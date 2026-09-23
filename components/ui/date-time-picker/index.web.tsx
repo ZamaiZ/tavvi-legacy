@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Pressable, TextInput } from 'react-native';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from '@ui/calendar';
 import { PrimitiveIcon } from '@gluestack-ui/core/icon/creator';
 
 type DateTimePickerMode = 'date' | 'time' | 'datetime';

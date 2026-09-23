@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Platform } from 'react-native';
 
-import { Menu, MenuItem, MenuItemLabel } from '@/components/ui/menu';
+import { Menu, MenuItem, MenuItemLabel } from '@ui/menu';
 import { View, TextInput, TouchableOpacity, Text } from 'react-native';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
