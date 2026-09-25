@@ -5,10 +5,10 @@ import { HttpError } from './errors.js'
 
 export async function enforceRateLimit(
   supabase: SupabaseClient<Database>,
-  bucket: 'auth:login' | 'mutation',
+  bucket: 'auth:login' | 'auth:device' | 'auth:device-unlink' | 'mutation',
   identifier: string,
 ) {
-  const max = bucket === 'auth:login' ? 10 : 60
+  const max = bucket === 'mutation' ? 60 : 10
   const result = await supabase.rpc('check_rate_limit', {
     p_bucket: bucket,
     p_identifier: identifier,

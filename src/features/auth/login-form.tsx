@@ -12,21 +12,27 @@ import type { LoginPalette } from './login-theme'
 type LoginFormProps = {
   palette: LoginPalette
   signIn: AuthContextValue['signIn']
+  signInWithBiometrics: AuthContextValue['signInWithBiometrics']
+  disableBiometrics: AuthContextValue['disableBiometrics']
+  hasDeviceContract: boolean
   authMessage: string | null
   forbidden: boolean
   onReturnToForm(): void
 }
 
-export function LoginForm({ palette, signIn, authMessage, forbidden, onReturnToForm }: LoginFormProps) {
+export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiometrics, hasDeviceContract, authMessage, forbidden, onReturnToForm }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [biometricBusy, setBiometricBusy] = useState(false)
   const submissionInFlight = useRef(false)
   const reducedMotion = useReducedMotion()
-  const alert = formError ?? authMessage
-  const blocked = !email || !password || submitting
+  const alert = formError ?? authMessage ?? successMessage
+  const alertIsSuccess = !formError && !authMessage && Boolean(successMessage)
+  const blocked = !email || !password || submitting || biometricBusy
 
   async function submit() {
     if (submissionInFlight.current) return
@@ -51,8 +57,8 @@ export function LoginForm({ palette, signIn, authMessage, forbidden, onReturnToF
   return (
     <View style={[styles.surface, { backgroundColor: palette.surface, borderColor: palette.border }]}>
       {alert ? (
-        <View style={[styles.alert, { backgroundColor: palette.errorSurface }]}>
-          <AppText family="login" variant="caption" style={{ color: palette.error }} accessibilityRole="alert">{alert}</AppText>
+        <View style={[styles.alert, { backgroundColor: alertIsSuccess ? palette.field : palette.errorSurface }]}>
+          <AppText family="login" variant="caption" style={{ color: alertIsSuccess ? palette.text : palette.error }} accessibilityRole="alert">{alert}</AppText>
           {forbidden ? (
             <Pressable accessibilityRole="button" onPress={onReturnToForm} style={styles.returnAction}>
               <AppText family="login" variant="label" style={{ color: palette.error }}>Voltar ao formulário</AppText>
@@ -71,7 +77,7 @@ export function LoginForm({ palette, signIn, authMessage, forbidden, onReturnToF
         icon={Mail}
         palette={palette}
         value={email}
-        onChangeText={(value) => { setEmail(value); setEmailError(null); setFormError(null) }}
+        onChangeText={(value) => { setEmail(value); setEmailError(null); setFormError(null); setSuccessMessage(null) }}
         placeholder="voce@tavvi.com"
         keyboardType="email-address"
         autoCapitalize="none"
@@ -87,7 +93,7 @@ export function LoginForm({ palette, signIn, authMessage, forbidden, onReturnToF
         icon={Lock}
         palette={palette}
         value={password}
-        onChangeText={(value) => { setPassword(value); setFormError(null) }}
+        onChangeText={(value) => { setPassword(value); setFormError(null); setSuccessMessage(null) }}
         placeholder="Sua senha"
         secureTextEntry
         autoComplete="password"
@@ -122,8 +128,28 @@ export function LoginForm({ palette, signIn, authMessage, forbidden, onReturnToF
               : <ArrowRight accessible={false} size={18} color={brand.lime} strokeWidth={2.2} />}
           </View>
         </Pressable>
-        <BiometricButton colors={palette} />
+        <BiometricButton colors={palette} hasDeviceContract={hasDeviceContract} onBiometricSignIn={signInWithBiometrics} disabled={submitting || biometricBusy} />
       </View>
+      {hasDeviceContract ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: submitting || biometricBusy, busy: biometricBusy }}
+          disabled={submitting || biometricBusy}
+          onPress={() => {
+            setFormError(null)
+            setSuccessMessage(null)
+            setBiometricBusy(true)
+            void disableBiometrics().then(() => setSuccessMessage('A biometria foi desativada neste aparelho.'))
+              .catch((error) => setFormError(error instanceof Error ? error.message : 'Não foi possível desativar a biometria.'))
+              .finally(() => setBiometricBusy(false))
+          }}
+          style={styles.unlink}
+        >
+          <AppText family="login" variant="caption" style={{ color: palette.subtle }}>
+            {biometricBusy ? 'Confirmando…' : 'Desativar biometria neste aparelho'}
+          </AppText>
+        </Pressable>
+      ) : null}
     </View>
   )
 }
@@ -134,6 +160,7 @@ const styles = StyleSheet.create({
   alert: { gap: 8, padding: 12, borderRadius: 14, borderCurve: 'continuous' },
   returnAction: { minHeight: 48, alignSelf: 'flex-start', justifyContent: 'center' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  unlink: { minHeight: 40, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   submit: { minHeight: 58, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 22, paddingRight: 7, borderRadius: 20, borderCurve: 'continuous' },
   submitIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 15, borderCurve: 'continuous', backgroundColor: brand.ink },
 })

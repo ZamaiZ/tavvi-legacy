@@ -11,13 +11,18 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.tavvi.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/tavvi-icon-mono.png",
         "backgroundImage": "./assets/images/tavvi-icon.png",
         "monochromeImage": "./assets/images/tavvi-icon-mono.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -44,10 +49,22 @@
               {
                 "fontFamily": "Inter",
                 "fontDefinitions": [
-                  { "path": "./node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf", "weight": 400 },
-                  { "path": "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf", "weight": 500 },
-                  { "path": "./node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf", "weight": 600 },
-                  { "path": "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf", "weight": 700 }
+                  {
+                    "path": "./node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+                    "weight": 700
+                  }
                 ]
               }
             ]
@@ -78,6 +95,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cc331619-3ca4-4e99-80f7-b2f139c5782c"
+      }
+    },
+    "owner": "zamaiz"
   }
 }

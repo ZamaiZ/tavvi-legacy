@@ -6,6 +6,7 @@ import { HttpError } from '../../http/errors.js'
 import { enforceRateLimit } from '../../http/security.js'
 import type { AdminContext } from '../../http/request-context.js'
 import { createAnonymousSupabaseClient, createUserSupabaseClient } from '../../integrations/supabase/client.js'
+import { replaceDeviceRefreshToken } from './device-contract.service.js'
 import type { RefreshInput, SignInInput } from './auth.schemas.js'
 
 function toMobileSession(session: Session, user: MobileUser): MobileSession {
@@ -80,14 +81,15 @@ export async function refreshSession(input: RefreshInput): Promise<MobileSession
     throw new HttpError(403, 'FORBIDDEN', 'Esta conta não administra a plataforma.')
   }
 
-  return toMobileSession(refreshed.data.session, { id: refreshed.data.user.id, email: refreshed.data.user.email })
+  const mobileSession = toMobileSession(refreshed.data.session, { id: refreshed.data.user.id, email: refreshed.data.user.email })
+  await replaceDeviceRefreshToken(input.refreshToken, mobileSession)
+  return mobileSession
 }
 
 export function getSession(context: AdminContext): SessionInfo {
   return { user: context.user }
 }
 
-export async function signOut(context: AdminContext) {
-  await revokeRemoteSession(context.accessToken, getServerEnv())
+export function signOut(_context: AdminContext) {
   return { signedOut: true as const }
 }

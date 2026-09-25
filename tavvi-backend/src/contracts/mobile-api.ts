@@ -10,6 +10,9 @@ export type MobileSession = {
   user: MobileUser
 }
 export type RefreshSessionInput = { refreshToken: string }
+export type DeviceContractRegistrationInput = { deviceId: string; deviceSecret: string; refreshToken: string }
+export type DeviceContractLoginInput = { deviceId: string; deviceSecret: string }
+export type DeviceContractRevocationInput = DeviceContractLoginInput
 export type SignedOut = { signedOut: true }
 export type SessionInfo = { user: MobileUser }
 export type MobileInvite = {

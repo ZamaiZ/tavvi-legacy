@@ -33,6 +33,10 @@ export type Database = {
       revoke_platform_admin_invite: { Args: { p_invite_id: string; p_trusted_ip?: string | null }; Returns: { id: string; revoked_at: string }[] }
       rotate_platform_admin_invite: { Args: { p_invite_id: string; p_token_hash: string }; Returns: { id: string; email: string | null; expires_at: string }[] }
       list_restaurant_members: { Args: { p_restaurant_id: string }; Returns: { membership_id: string; user_id: string; email: string; display_name: string | null; member_role: Database['public']['Enums']['member_role']; joined_at: string }[] }
+      register_mobile_device_contract: { Args: { p_device_id: string; p_device_secret_hash: unknown; p_refresh_token_hash: unknown; p_refresh_token_ciphertext: string; p_refresh_token_nonce: string; p_refresh_token_tag: string }; Returns: string }
+      get_mobile_device_contract: { Args: { p_device_id: string; p_device_secret_hash: unknown }; Returns: { id: string; user_id: string; refresh_token_hash: string; refresh_token_ciphertext: string; refresh_token_nonce: string; refresh_token_tag: string }[] }
+      replace_mobile_device_refresh: { Args: { p_old_refresh_token_hash: unknown; p_new_refresh_token_hash: unknown; p_refresh_token_ciphertext: string; p_refresh_token_nonce: string; p_refresh_token_tag: string }; Returns: boolean }
+      revoke_mobile_device_contract: { Args: { p_device_id: string; p_device_secret_hash: unknown }; Returns: boolean }
     }
     Enums: { member_role: 'admin' | 'cashier' | 'attendant' | 'waiter'; restaurant_status: 'draft' | 'active' | 'suspended' }
     CompositeTypes: { [_ in never]: never }

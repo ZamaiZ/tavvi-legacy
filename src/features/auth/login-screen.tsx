@@ -15,7 +15,7 @@ export function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
   const { resolved, preference, setPreference } = useAppTheme()
-  const { signIn, message, status, returnToForm } = useAuth()
+  const { signIn, signInWithBiometrics, disableBiometrics, hasDeviceContract, message, status, returnToForm } = useAuth()
   const palette = getLoginPalette(resolved)
   const contentWidth = Math.min(Math.max(width - spacing.x6 * 2, 0), 440)
   const year = new Date().getFullYear()
@@ -48,6 +48,9 @@ export function LoginScreen() {
           <LoginForm
             palette={palette}
             signIn={signIn}
+            signInWithBiometrics={signInWithBiometrics}
+            disableBiometrics={disableBiometrics}
+            hasDeviceContract={hasDeviceContract}
             authMessage={message}
             forbidden={status === 'forbidden'}
             onReturnToForm={returnToForm}
