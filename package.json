@@ -2,6 +2,15 @@
   "name": "tavvi-workspace",
   "private": true,
   "packageManager": "pnpm@10.34.5",
+  "pnpm": {
+    "packageExtensions": {
+      "@gluestack-ui/utils@5.0.1-alpha.0": {
+        "dependencies": {
+          "@react-aria/utils": "^3.34.1"
+        }
+      }
+    }
+  },
   "scripts": {
     "approve-build": "pnpm approve-builds",
     "back": "pnpm --filter @tavvi/api-contracts build && pnpm --filter ./apps/backend dev",
@@ -13,5 +22,8 @@
     "dev:web": "pnpm dev:back-web",
     "dev:mobile": "pnpm dev:back-expo",
     "ngrok": "pnpm --filter ./apps/backend exec ngrok http 3002"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }

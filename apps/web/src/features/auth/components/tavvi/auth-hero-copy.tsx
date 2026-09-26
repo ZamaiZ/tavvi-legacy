@@ -30,10 +30,10 @@ export function AuthHeroCopy({
           className={desktop ? 'h-10 w-[102px] object-contain' : 'h-[31px] w-[78px] object-contain'}
         />
         <div className={desktop
-          ? 'inline-flex min-h-[30px] max-w-full items-center gap-2 rounded-tv-badge bg-tv-lime-soft px-3 py-1 text-tv-lime'
-          : 'inline-flex min-h-[26px] max-w-full items-center gap-2 rounded-tv-badge-mobile bg-tv-lime-soft px-[10px] py-1 text-tv-lime'}
+          ? 'inline-flex min-h-[30px] max-w-full items-center gap-2 rounded-tv-badge bg-[var(--tv-accent-soft)] px-3 py-1 text-[var(--tv-accent-text-dark)]'
+          : 'inline-flex min-h-[26px] max-w-full items-center gap-2 rounded-tv-badge-mobile bg-[var(--tv-accent-soft)] px-[10px] py-1 text-[var(--tv-accent-text-dark)]'}
         >
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-tv-lime shadow-[0_0_0_3px_var(--tv-lime-soft)]" />
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--tv-accent-text-dark)] shadow-[0_0_0_3px_var(--tv-accent-soft)]" />
           <span className={desktop ? 'text-xs leading-4 font-semibold' : 'text-[11px] leading-4 font-semibold'}>{badge}</span>
         </div>
       </Reveal>
@@ -44,7 +44,7 @@ export function AuthHeroCopy({
             ? 'tv-hero-title text-tv-on-dark'
             : 'text-[31px] leading-8 font-extrabold tracking-[-1.1px] text-tv-on-dark'}
           >
-            {title}<span className="text-tv-lime">.</span>
+            {title}<span className="text-[var(--tv-accent-text-dark)]">.</span>
           </h1>
         </Reveal>
         <Reveal delay={0.12}>

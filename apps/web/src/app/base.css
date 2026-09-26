@@ -62,9 +62,9 @@
   --color-status-active-bg: var(--status-active-bg);
   --color-status-suspended: var(--status-suspended);
   --color-status-suspended-bg: var(--status-suspended-bg);
-  --color-tv-lime: var(--tv-lime);
-  --color-tv-lime-pressed: var(--tv-lime-pressed);
-  --color-tv-lime-soft: var(--tv-lime-soft);
+  --color-tv-accent: var(--tv-accent-color);
+  --color-tv-accent-pressed: var(--tv-accent-pressed);
+  --color-tv-accent-soft: var(--tv-accent-soft);
   --color-tv-ink: var(--tv-ink);
   --color-tv-hero: var(--tv-hero);
   --color-tv-hero-end: var(--tv-hero-end);
@@ -115,18 +115,30 @@
 .admin-territory,
 .tv-auth-scope,
 .workspace-territory {
-  --tv-lime: #B2F52F;
-  --tv-lime-pressed: #BEF94A;
-  --tv-lime-soft: rgba(178,245,47,0.12);
-  --tv-lime-glow: rgba(178,245,47,0.42);
-  --tv-lime-cta-glow: rgba(178,245,47,0.55);
+  --tv-accent-color: #2563EB;
+  --tv-accent-pressed: #1D4ED8;
+  --tv-accent-on: #FFFFFF;
+  --tv-accent-text-light: #1D4ED8;
+  --tv-accent-text-dark: #8FB1FF;
+  --tv-accent-soft: rgba(37,99,235,0.12);
+  --tv-accent-glow: rgba(37,99,235,0.26);
+  --tv-accent-cta-glow: rgba(37,99,235,0.38);
   --tv-ink: #0A0C09;
   --tv-hero: #121510;
   --tv-hero-end: #0E120C;
   --tv-on-dark: #F4F6F0;
   --tv-muted-on-dark: #A9AEA3;
   --tv-subtle-on-dark: #7D8278;
-  --tv-hero-glow: rgba(178,245,47,0.22);
+  --tv-accent-hero-glow: rgba(37,99,235,0.18);
+  --tv-accent-focus-light: #1D4ED8;
+  --tv-accent-focus-dark: #8FB1FF;
+  --tv-accent-pill-light: #E8EEFC;
+  --tv-accent-pill-on-light: #173C8C;
+  --tv-accent-pill-dark: #1F428A;
+  --tv-accent-pill-on-dark: #FFFFFF;
+  --tv-accent-pill: var(--tv-accent-pill-light);
+  --tv-accent-pill-on: var(--tv-accent-pill-on-light);
+  --tv-accent-surface: rgba(37,99,235,0.12);
 
   --tv-screen: #EEF0E8;
   --tv-surface: #FFFFFF;
@@ -136,22 +148,21 @@
   --tv-subtle: #6B7167;
   --tv-border: rgba(10,12,9,0.12);
   --tv-toggle-line: rgba(10,12,9,0.16);
-  --tv-focus: #557D00;
-  --tv-ring: rgba(85,125,0,0.16);
+  --tv-focus: var(--tv-accent-focus-light);
+  --tv-accent-ring: rgba(37,99,235,0.30);
   --tv-error: #B42318;
   --tv-error-surface: #FEE4E2;
   --tv-warn: #A06700;
   --tv-warn-surface: #FFF0CC;
   --tv-hover: rgba(10,12,9,0.06);
-  --tv-glow: rgba(178,245,47,0.16);
+  --tv-accent-glow: rgba(37,99,235,0.26);
   --tv-card-shadow: 0 30px 60px -22px rgba(10,12,9,0.45);
 
   --tv-rail: #DEE2D5;
   --tv-panel: var(--tv-screen);
   --tv-line: rgba(10,12,9,0.09);
   --tv-line-strong: var(--tv-toggle-line);
-  --tv-accent: #557D00;
-  --tv-accent-surface: rgba(85,125,0,0.12);
+  --tv-accent: var(--tv-accent-text-light);
   --tv-ok: #267D30;
   --tv-ok-surface: #DFF6DE;
   --tv-neutral: #62675E;
@@ -166,8 +177,6 @@
   --tv-dock-line: rgba(244,246,240,0.10);
   --tv-hero-tile: #181B15;
   --tv-on-dark-chip: rgba(244,246,240,0.08);
-  --tv-lime-pill: rgba(178,245,47,0.10);
-  --tv-lime-pill-text: #C9F870;
   --tv-hero-ok: #79C77C;
   --tv-hero-warn: #E7AF5C;
   --tv-hero-danger: #FF8A84;
@@ -178,8 +187,8 @@
   --card-foreground: var(--tv-text);
   --popover: var(--tv-surface);
   --popover-foreground: var(--tv-text);
-  --primary: var(--tv-lime);
-  --primary-foreground: var(--tv-ink);
+  --primary: var(--tv-accent-color);
+  --primary-foreground: var(--tv-accent-on);
   --secondary: var(--tv-field);
   --secondary-foreground: var(--tv-text);
   --muted: var(--tv-field);
@@ -215,22 +224,24 @@
   --tv-subtle: #7D8278;
   --tv-border: rgba(244,246,240,0.10);
   --tv-toggle-line: rgba(244,246,240,0.14);
-  --tv-focus: #B2F52F;
-  --tv-ring: rgba(178,245,47,0.14);
+  --tv-focus: var(--tv-accent-focus-dark);
+  --tv-accent-pill: var(--tv-accent-pill-dark);
+  --tv-accent-pill-on: var(--tv-accent-pill-on-dark);
+  --tv-accent-ring: rgba(37,99,235,0.30);
   --tv-error: #FF8A84;
   --tv-error-surface: #3A1715;
   --tv-warn: #E7AF5C;
   --tv-warn-surface: #382810;
   --tv-hover: rgba(244,246,240,0.07);
-  --tv-glow: rgba(178,245,47,0.10);
+  --tv-accent-glow: rgba(37,99,235,0.26);
   --tv-card-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
 
   --tv-rail: #151812;
   --tv-panel: var(--tv-screen);
   --tv-line: rgba(244,246,240,0.08);
   --tv-line-strong: var(--tv-toggle-line);
-  --tv-accent: #B2F52F;
-  --tv-accent-surface: rgba(178,245,47,0.12);
+  --tv-accent: var(--tv-accent-text-dark);
+  --tv-accent-surface: rgba(37,99,235,0.12);
   --tv-ok: #79C77C;
   --tv-ok-surface: #1A2F1B;
   --tv-neutral: #A9AEA3;
@@ -247,8 +258,8 @@
   --card-foreground: var(--tv-text);
   --popover: var(--tv-surface);
   --popover-foreground: var(--tv-text);
-  --primary: var(--tv-lime);
-  --primary-foreground: var(--tv-ink);
+  --primary: var(--tv-accent-color);
+  --primary-foreground: var(--tv-accent-on);
   --secondary: var(--tv-field);
   --secondary-foreground: var(--tv-text);
   --muted: var(--tv-field);

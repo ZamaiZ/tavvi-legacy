@@ -3,7 +3,6 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { ArrowRight, Lock, Mail } from 'lucide-react-native'
 import { useReducedMotion } from 'react-native-reanimated'
 import { AppText } from '@/components/primitives/app-text'
-import { brand } from '@/theme'
 import type { AuthContextValue } from './auth-context'
 import { BiometricButton } from './biometric-button'
 import { LoginField } from './login-field'
@@ -112,20 +111,20 @@ export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiomet
           style={({ pressed }) => [
             styles.submit,
             {
-              backgroundColor: brand.lime,
+              backgroundColor: palette.accent,
               opacity: blocked ? 0.5 : pressed ? 0.88 : 1,
-              boxShadow: blocked ? undefined : `0 10px 28px -10px ${brand.limeGlow}`,
+              boxShadow: blocked ? undefined : `0 10px 28px -10px ${palette.accentGlow}`,
               transform: [{ scale: pressed && !blocked && !reducedMotion ? 0.985 : 1 }],
             },
           ]}
         >
-          <AppText family="login" variant="label" style={{ color: brand.ink }}>
+          <AppText family="login" variant="label" style={{ color: palette.accentOn }}>
             {submitting ? 'Entrando…' : 'Entrar no console'}
           </AppText>
           <View style={styles.submitIcon}>
             {submitting
-              ? <ActivityIndicator color={brand.lime} />
-              : <ArrowRight accessible={false} size={18} color={brand.lime} strokeWidth={2.2} />}
+              ? <ActivityIndicator color={palette.accent} />
+              : <ArrowRight accessible={false} size={18} color={palette.accent} strokeWidth={2.2} />}
           </View>
         </Pressable>
         <BiometricButton colors={palette} hasDeviceContract={hasDeviceContract} onBiometricSignIn={signInWithBiometrics} disabled={submitting || biometricBusy} />
@@ -162,5 +161,5 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
   unlink: { minHeight: 40, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   submit: { minHeight: 58, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 22, paddingRight: 7, borderRadius: 20, borderCurve: 'continuous' },
-  submitIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 15, borderCurve: 'continuous', backgroundColor: brand.ink },
+  submitIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 15, borderCurve: 'continuous', backgroundColor: '#0A0C09' },
 })

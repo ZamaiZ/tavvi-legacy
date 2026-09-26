@@ -52,6 +52,15 @@ export function getConsoleConfig(user: { email?: string | null } | null): Consol
       sub: 'Contas cadastradas',
       icon: 'store',
     },
+    {
+      kind: 'leaf',
+      key: 'branding',
+      href: '/branding',
+      activeMatch: ['/branding'],
+      label: 'Identidade visual',
+      sub: 'Cores dos painéis',
+      icon: 'palette',
+    },
   ]
 
   return {

@@ -137,12 +137,12 @@ export function TavviSignInForm({
       <button
         type="submit"
         disabled={!email || !password || pending}
-        className="group mt-1 flex min-h-[58px] w-full items-center justify-between rounded-tv-cta bg-tv-lime py-[7px] pl-[22px] pr-[7px] text-tv-ink outline-none transition-[background-color,box-shadow,transform,opacity] duration-200 hover:bg-tv-lime-pressed hover:shadow-[0_14px_34px_-10px_var(--tv-lime-cta-glow)] motion-safe:active:scale-[0.985] motion-reduce:transition-none focus-visible:ring-4 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+        className="group mt-1 flex min-h-[58px] w-full items-center justify-between rounded-tv-cta bg-[var(--tv-accent-color)] py-[7px] pl-[22px] pr-[7px] text-[var(--tv-accent-on)] outline-none transition-[background-color,box-shadow,transform,opacity] duration-200 hover:bg-[var(--tv-accent-pressed)] hover:shadow-[0_14px_34px_-10px_var(--tv-accent-cta-glow)] motion-safe:active:scale-[0.985] motion-reduce:transition-none focus-visible:ring-4 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
         <span className="text-sm leading-5 font-bold">{pending ? 'Entrando…' : ctaLabel}</span>
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-tv-button bg-tv-ink text-tv-lime transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-tv-button bg-tv-ink text-[var(--tv-accent-text-dark)] transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
           {pending ? (
-            <span aria-label="Carregando" className="size-[18px] animate-spin rounded-full border-2 border-tv-lime-soft border-t-tv-lime motion-reduce:animate-none" />
+            <span aria-label="Carregando" className="size-[18px] animate-spin rounded-full border-2 border-[var(--tv-accent-soft)] border-t-[var(--tv-accent-text-dark)] motion-reduce:animate-none" />
           ) : (
             <LuArrowRight aria-hidden="true" className="size-[18px]" strokeWidth={2.2} />
           )}

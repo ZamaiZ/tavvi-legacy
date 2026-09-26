@@ -13,12 +13,14 @@ const schema = z.object({
   NEXT_PUBLIC_ROOT_DOMAIN: z.string().min(1, {
     error: 'NEXT_PUBLIC_ROOT_DOMAIN ausente',
   }),
+  API_BASE_URL: z.url({ error: 'API_BASE_URL precisa ser a origem da API Express' }),
 })
 
 const parsed = schema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_ROOT_DOMAIN: process.env.NEXT_PUBLIC_ROOT_DOMAIN,
+  API_BASE_URL: process.env.API_BASE_URL,
 })
 
 if (!parsed.success) {

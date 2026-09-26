@@ -8,7 +8,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { AppText } from '@/components/primitives/app-text'
 import { PrimaryCTA } from '@/components/primitives/primary-cta'
 import type { PlatformInvitation } from '@tavvi/api-contracts'
-import { brand, radii, useAppTheme } from '@/theme'
+import { radii, useAppTheme } from '@/theme'
 import { useQueryClient } from '@tanstack/react-query'
 import { invitationKeys, useCreateInvitation, useRotateInvitation } from './queries'
 
@@ -60,7 +60,7 @@ export function CreateInvitationSheet({ open, onOpenChange, initialEmail = '', i
     <View style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.line2 }]}>
       <View style={[styles.handle, { backgroundColor: colors.line2 }]} />
       {created ? <View style={styles.createdContent}>
-        <View style={styles.successHeading}><View style={styles.successTile}><Check size={22} color={brand.ink} strokeWidth={2.4} /></View><View style={styles.successCopy}><AppText variant="title" style={{ color: colors.foreground }}>Convite criado</AppText><AppText variant="meta" tone="muted">Copie agora. O link não será exibido novamente.</AppText></View></View>
+        <View style={styles.successHeading}><View style={[styles.successTile, { backgroundColor: colors.accent }]}><Check size={22} color={colors.accentOn} strokeWidth={2.4} /></View><View style={styles.successCopy}><AppText variant="title" style={{ color: colors.foreground }}>Convite criado</AppText><AppText variant="meta" tone="muted">Copie agora. O link não será exibido novamente.</AppText></View></View>
         <View style={[styles.linkBox, { backgroundColor: colors.field, borderColor: colors.line2 }]}><Text selectable textBreakStrategy="simple" style={[styles.linkText, { color: colors.foreground }]}>{created.link}</Text></View>
         <Pressable accessibilityRole="button" onPress={() => void copyLink()} style={({ pressed }) => [styles.copyLink, { backgroundColor: colors.field, borderColor: created.copied ? colors.accentText : colors.line2 }, pressed && { opacity: 0.75 }]}><Copy size={17} color={created.copied ? colors.accentText : colors.foreground} /><AppText variant="rowTitle" style={{ color: created.copied ? colors.accentText : colors.foreground }}>{created.copied ? 'Link copiado' : 'Copiar link'}</AppText></Pressable>
         <PrimaryCTA label="Já copiei o link" icon={ArrowRight} disabled={!created.copied} onPress={() => void finish()} />
@@ -95,5 +95,5 @@ const styles = StyleSheet.create({
   formContent: { width: '100%', alignSelf: 'stretch', gap: 16, paddingTop: 4 }, heading: { gap: 6, paddingHorizontal: 4 },
   emailGroup: { gap: 8 }, emailField: { minHeight: 54, borderWidth: 1, borderRadius: radii.field, borderCurve: 'continuous', paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }, input: { flex: 1, minWidth: 0, fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14.5, lineHeight: 20, paddingVertical: 0 },
   validity: { gap: 8 }, stepper: { height: 54, borderWidth: 1, borderRadius: radii.field, borderCurve: 'continuous', paddingHorizontal: 7, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, stepperButton: { width: 40, height: 40, borderRadius: radii.tileSm, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
-  createdContent: { width: '100%', alignSelf: 'stretch', flex: 1, gap: 16, paddingTop: 4 }, successHeading: { flexDirection: 'row', alignItems: 'center', gap: 12 }, successTile: { width: 46, height: 46, borderRadius: radii.tile, borderCurve: 'continuous', backgroundColor: brand.lime, alignItems: 'center', justifyContent: 'center' }, successCopy: { flex: 1, minWidth: 0, gap: 2 }, linkBox: { minHeight: 82, borderWidth: 1, borderStyle: 'dashed', borderRadius: radii.field, borderCurve: 'continuous', padding: 14, justifyContent: 'center' }, linkText: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 12.5, lineHeight: 19 }, copyLink: { height: 54, borderWidth: 1, borderRadius: radii.control, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  createdContent: { width: '100%', alignSelf: 'stretch', flex: 1, gap: 16, paddingTop: 4 }, successHeading: { flexDirection: 'row', alignItems: 'center', gap: 12 }, successTile: { width: 46, height: 46, borderRadius: radii.tile, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' }, successCopy: { flex: 1, minWidth: 0, gap: 2 }, linkBox: { minHeight: 82, borderWidth: 1, borderStyle: 'dashed', borderRadius: radii.field, borderCurve: 'continuous', padding: 14, justifyContent: 'center' }, linkText: { fontFamily: 'JetBrainsMono_500Medium', fontSize: 12.5, lineHeight: 19 }, copyLink: { height: 54, borderWidth: 1, borderRadius: radii.control, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
 })

@@ -14,7 +14,7 @@ import Svg, {
 import { AppText } from '@/components/primitives/app-text'
 import { ThemeToggle } from '@/components/primitives/theme-toggle'
 import { createNotchedPath } from '@/components/shell/notched-path'
-import { brand, type ThemePreference } from '@/theme'
+import { type ThemePreference } from '@/theme'
 import type { LoginPalette } from './login-theme'
 
 type LoginHeroProps = {
@@ -47,8 +47,8 @@ export function LoginHero({ width, palette, preference, onThemeChange }: LoginHe
             <Stop offset="1" stopColor={palette.heroEnd} />
           </LinearGradient>
           <RadialGradient id="heroGlow" cx="84%" cy="82%" rx="48%" ry="64%">
-            <Stop offset="0" stopColor={brand.lime} stopOpacity={0.22} />
-            <Stop offset="1" stopColor={brand.lime} stopOpacity={0} />
+            <Stop offset="0" stopColor={palette.accent} stopOpacity={0.22} />
+            <Stop offset="1" stopColor={palette.accent} stopOpacity={0} />
           </RadialGradient>
           <ClipPath id="heroClip">
             <Path d={path} />
@@ -73,9 +73,9 @@ export function LoginHero({ width, palette, preference, onThemeChange }: LoginHe
       <View style={styles.content}>
         <View style={styles.topContent}>
           <Image source={lockup} contentFit="contain" accessibilityLabel="Tavvi" style={styles.lockup} />
-          <View style={[styles.badge, { backgroundColor: brand.limeSoft }]}>
-            <View style={[styles.badgeDot, { backgroundColor: brand.lime, boxShadow: `0 0 0 3px ${brand.limeSoft}` }]} />
-            <AppText family="login" variant="caption" style={{ color: brand.lime, fontSize: 11 }}>
+          <View style={[styles.badge, { backgroundColor: palette.accentPill }]}>
+            <View style={[styles.badgeDot, { backgroundColor: palette.accentPillOn, boxShadow: `0 0 0 3px ${palette.accentGlow}` }]} />
+            <AppText family="login" variant="caption" style={{ color: palette.accentPillOn, fontSize: 11 }}>
               Console · Acesso de administrador
             </AppText>
           </View>
@@ -88,7 +88,7 @@ export function LoginHero({ width, palette, preference, onThemeChange }: LoginHe
             maxFontSizeMultiplier={1.35}
             style={[styles.title, { color: palette.heroText }]}
           >
-            Bem-vindo de volta<AppText family="login" variant="display" style={{ color: brand.lime }}>.</AppText>
+            Bem-vindo de volta<AppText family="login" variant="display" style={{ color: palette.accentTextDark }}>.</AppText>
           </AppText>
           <AppText family="login" variant="meta" maxFontSizeMultiplier={1.5} style={{ color: palette.heroMuted }}>
             Restaurantes, cardápios, mesas e pedidos em um só lugar.

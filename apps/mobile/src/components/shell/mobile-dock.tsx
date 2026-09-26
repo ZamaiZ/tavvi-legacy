@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics'
-import { ChevronRight, House, LogOut, Mail, Menu, Store, UserRound, X } from 'lucide-react-native'
+import { ChevronRight, House, LogOut, Mail, Menu, Palette, Store, UserRound, X } from 'lucide-react-native'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router, usePathname } from 'expo-router'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -14,7 +14,7 @@ import { getInviteState } from '@/features/invitations/invitation-state'
 import type { PlatformInvitation } from '@tavvi/api-contracts'
 import { restaurantKeys } from '@/features/restaurants/queries'
 import type { RestaurantSummary } from '@tavvi/api-contracts'
-import { brand, layout, motion, radii, useAppTheme } from '@/theme'
+import { layout, motion, radii, useAppTheme } from '@/theme'
 
 export const dockMetrics = { side: 22, height: 64, bottom: layout.dockBottom } as const
 export type MobilePanel = 'none' | 'account' | 'menu'
@@ -35,9 +35,10 @@ export function MobileDock({ panel, setPanel }: { panel: MobilePanel; setPanel(p
   const panelExit = reducedMotion ? FadeOut.duration(motion.panelOut) : FadeOutUp.duration(motion.panelOut).easing(Easing.out(Easing.cubic))
 
   function toggle(next: Exclude<MobilePanel, 'none'>) { void Haptics.selectionAsync(); setPanel(panel === next ? 'none' : next) }
-  function go(path: '/' | '/restaurants') { setPanel('none'); router.replace(path) }
+  function go(path: '/' | '/restaurants' | '/branding') { setPanel('none'); router.replace(path) }
   const invitesActive = pathname === '/' || pathname.startsWith('/invitations/')
   const restaurantsActive = pathname.startsWith('/restaurants')
+  const brandingActive = pathname.startsWith('/branding')
 
   return <>
     {panel !== 'none' ? <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.panelOut)} style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim, zIndex: 20 }]}><Pressable accessibilityLabel="Fechar painel" accessibilityRole="button" style={StyleSheet.absoluteFill} onPress={() => setPanel('none')} /></Animated.View> : null}
@@ -45,7 +46,7 @@ export function MobileDock({ panel, setPanel }: { panel: MobilePanel; setPanel(p
     {panel === 'account' ? <Animated.View entering={panelMotion} exiting={panelExit} style={[styles.accountPosition, { left: 12, bottom: dockBottom + dockMetrics.height + 18 }]}>
       <AdaptiveBlurSurface style={styles.panelSurface}>
         <View style={styles.identity}>
-          <View style={styles.avatar}><AppText variant="label" style={styles.avatarText}>{initials(user?.email)}</AppText></View>
+          <View style={[styles.avatar, { backgroundColor: colors.accent }]}><AppText variant="label" style={[styles.avatarText, { color: colors.accentOn }]}>{initials(user?.email)}</AppText></View>
           <View style={styles.identityCopy}><AppText variant="rowTitle" numberOfLines={1} style={{ color: colors.foreground, fontSize: 14 }}>{user?.email ?? 'Administrador'}</AppText><AppText variant="rowMeta" tone="muted" numberOfLines={1}>Administrador da plataforma</AppText></View>
           <Pressable accessibilityRole="button" accessibilityLabel="Fechar conta" hitSlop={5} onPress={() => setPanel('none')} style={[styles.closeButton, { backgroundColor: colors.field }]}><X size={16} color={colors.muted} /></Pressable>
         </View>
@@ -60,13 +61,14 @@ export function MobileDock({ panel, setPanel }: { panel: MobilePanel; setPanel(p
         <AppText variant="caps" style={[styles.menuHeading, { color: colors.subtle }]}>NAVEGAÇÃO</AppText>
         <NavigationRow icon={Mail} label="Convites" sub="Acessos de administrador" count={pendingCount == null ? undefined : `${pendingCount} ${pendingCount === 1 ? 'pendente' : 'pendentes'}`} active={invitesActive} onPress={() => go('/')} />
         <NavigationRow icon={Store} label="Restaurantes" sub="Estabelecimentos da plataforma" count={restaurantCount == null ? undefined : String(restaurantCount)} active={restaurantsActive} onPress={() => go('/restaurants')} />
+        <NavigationRow icon={Palette} label="Identidade visual" sub="Cores dos painéis" active={brandingActive} onPress={() => go('/branding')} />
       </AdaptiveBlurSurface>
     </Animated.View> : null}
 
     <View style={[styles.dock, { left: dockMetrics.side, right: dockMetrics.side, bottom: dockBottom }]}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Conta" accessibilityState={{ selected: panel === 'account' }} onPress={() => toggle('account')} style={({ pressed }) => [styles.sideButton, panel === 'account' && styles.activeSideButton, pressed && styles.pressed]}><UserRound size={21} color={panel === 'account' ? brand.lime : '#F4F6F0'} strokeWidth={1.9} /></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel="Início" onPress={() => go('/')} style={({ pressed }) => [styles.homeButton, pressed && styles.homePressed]}><House size={20} color={brand.ink} strokeWidth={2} /><AppText variant="rowTitle" style={styles.homeLabel}>Início</AppText></Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel="Menu" accessibilityState={{ selected: panel === 'menu' }} onPress={() => toggle('menu')} style={({ pressed }) => [styles.sideButton, panel === 'menu' && styles.activeSideButton, pressed && styles.pressed]}><Menu size={21} color={panel === 'menu' ? brand.lime : '#F4F6F0'} strokeWidth={1.9} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Conta" accessibilityState={{ selected: panel === 'account' }} onPress={() => toggle('account')} style={({ pressed }) => [styles.sideButton, panel === 'account' && { backgroundColor: colors.accentRing }, pressed && styles.pressed]}><UserRound size={21} color={panel === 'account' ? colors.accentTextDark : '#F4F6F0'} strokeWidth={1.9} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Início" onPress={() => go('/')} style={({ pressed }) => [styles.homeButton, { backgroundColor: pressed ? colors.accentPressed : colors.accent }, pressed && styles.pressed]}><House size={20} color={colors.accentOn} strokeWidth={2} /><AppText variant="rowTitle" style={{ color: colors.accentOn }}>Início</AppText></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Menu" accessibilityState={{ selected: panel === 'menu' }} onPress={() => toggle('menu')} style={({ pressed }) => [styles.sideButton, panel === 'menu' && { backgroundColor: colors.accentRing }, pressed && styles.pressed]}><Menu size={21} color={panel === 'menu' ? colors.accentTextDark : '#F4F6F0'} strokeWidth={1.9} /></Pressable>
     </View>
   </>
 }
@@ -74,7 +76,7 @@ export function MobileDock({ panel, setPanel }: { panel: MobilePanel; setPanel(p
 function NavigationRow({ icon: Icon, label, sub, count, active, onPress }: { icon: typeof Mail; label: string; sub: string; count?: string; active: boolean; onPress(): void }) {
   const { colors } = useAppTheme()
   return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} style={({ pressed }) => [styles.menuRow, { backgroundColor: active || pressed ? colors.field : 'transparent' }]}>
-    <View style={[styles.menuTile, { backgroundColor: active ? brand.lime : colors.field }]}><Icon size={19} color={active ? brand.ink : colors.foreground} strokeWidth={1.8} /></View>
+    <View style={[styles.menuTile, { backgroundColor: active ? colors.accent : colors.field }]}><Icon size={19} color={active ? colors.accentOn : colors.foreground} strokeWidth={1.8} /></View>
     <View style={styles.menuCopy}><AppText variant="rowTitle" numberOfLines={1}>{label}</AppText><AppText variant="rowMeta" tone="muted" numberOfLines={1}>{sub}</AppText></View>
     {count ? <AppText variant="rowMeta" style={{ color: colors.subtle }}>{count}</AppText> : null}<ChevronRight size={16} color={colors.subtle} />
   </Pressable>
@@ -82,9 +84,9 @@ function NavigationRow({ icon: Icon, label, sub, count, active, onPress }: { ico
 
 const styles = StyleSheet.create({
   dock: { position: 'absolute', height: dockMetrics.height, borderRadius: 32, borderCurve: 'continuous', borderWidth: 1, borderColor: 'rgba(244,246,240,0.10)', backgroundColor: '#121510', paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 40, boxShadow: '0 20px 40px -16px rgba(0,0,0,0.7)' },
-  sideButton: { width: 48, height: 48, borderRadius: 24, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' }, activeSideButton: { backgroundColor: 'rgba(178,245,47,0.14)' },
-  homeButton: { height: 48, borderRadius: 24, borderCurve: 'continuous', backgroundColor: brand.lime, paddingLeft: 18, paddingRight: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }, homePressed: { backgroundColor: brand.limePressed, transform: [{ scale: 0.97 }] }, homeLabel: { color: brand.ink },
+  sideButton: { width: 48, height: 48, borderRadius: 24, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
+  homeButton: { height: 48, borderRadius: 24, borderCurve: 'continuous', paddingLeft: 18, paddingRight: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   pressed: { opacity: 0.72 }, accountPosition: { position: 'absolute', width: 286, zIndex: 30 }, menuPosition: { position: 'absolute', zIndex: 30 }, panelSurface: { borderRadius: radii.overlay, borderCurve: 'continuous', borderWidth: 1, borderColor: 'rgba(244,246,240,0.14)', padding: 16, gap: 14, overflow: 'hidden', boxShadow: '0 20px 40px -16px rgba(0,0,0,0.7)' },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 10 }, avatar: { width: 44, height: 44, borderRadius: 15, borderCurve: 'continuous', backgroundColor: brand.lime, alignItems: 'center', justifyContent: 'center' }, avatarText: { color: brand.ink, fontFamily: 'PlusJakartaSans_800ExtraBold' }, identityCopy: { flex: 1, minWidth: 0, gap: 2 }, closeButton: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' }, themeGroup: { minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, divider: { height: 1 }, signOut: { height: 46, borderRadius: 14, borderCurve: 'continuous', paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 10 }, avatar: { width: 44, height: 44, borderRadius: 15, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' }, avatarText: { fontFamily: 'PlusJakartaSans_800ExtraBold' }, identityCopy: { flex: 1, minWidth: 0, gap: 2 }, closeButton: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' }, themeGroup: { minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, divider: { height: 1 }, signOut: { height: 46, borderRadius: 14, borderCurve: 'continuous', paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
   menuSurface: { borderRadius: radii.overlay, borderCurve: 'continuous', borderWidth: 1, borderColor: 'rgba(244,246,240,0.14)', padding: 8, gap: 4, overflow: 'hidden', boxShadow: '0 20px 40px -16px rgba(0,0,0,0.7)' }, menuHeading: { paddingTop: 10, paddingHorizontal: 12, paddingBottom: 6 }, menuRow: { height: 62, borderRadius: 18, borderCurve: 'continuous', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }, menuTile: { width: 40, height: 40, borderRadius: 13, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' }, menuCopy: { flex: 1, minWidth: 0, gap: 2 },
 })

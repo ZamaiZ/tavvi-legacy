@@ -33,7 +33,11 @@ export async function proxy(request: NextRequest) {
     return new NextResponse(null, { status: 404 })
   }
 
-  const rewritten = request.nextUrl.clone()
+  // NextResponse.rewrite precisa receber um URL absoluto. Passar o NextURL
+  // clonado aqui gera `x-middleware-rewrite: /admin/...` no dev server; o
+  // Next mantém a rota externa (`/entrar`) e responde com `_not-found`.
+  // Construir a partir da URL da requisição preserva host, query e protocolo.
+  const rewritten = new URL(request.url)
   rewritten.pathname = toInternalPath(territory, path)
   const response = NextResponse.rewrite(rewritten)
 

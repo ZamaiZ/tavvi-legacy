@@ -5,13 +5,16 @@ import { PlatformInviteOverlay } from '@/features/platform/components/invites/pl
 import { getCurrentUser, getPlatformAdminStatus } from '@/server/dal/auth'
 import { getCachedAdminRestaurants, getCachedPlatformInvites } from '@/server/dal/admin-console'
 import { inviteState } from '@/domain/invite'
+import { PlatformAppearanceProvider } from '@/components/theme/platform-appearance-provider'
+import { readPlatformAppearance } from '@/server/api/platform-appearance'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const appearance = await readPlatformAppearance()
   // This layout also wraps the sign-in page, so authorization stays in the
   // private pages and the existing access-denied decision remains unchanged.
   const user = await getCurrentUser()
   if (!user || (await getPlatformAdminStatus()) === 'denied') {
-    return <div className="admin-territory flex min-h-dvh flex-col">{children}</div>
+    return <PlatformAppearanceProvider initialAppearance={appearance} className="admin-territory flex min-h-dvh flex-col">{children}</PlatformAppearanceProvider>
   }
 
   const cookieStore = await cookies()
@@ -21,10 +24,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pendingCount = invites.filter((invite) => inviteState(invite) === 'pending').length
   const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
   return (
-    <div className="admin-territory min-h-dvh">
+    <PlatformAppearanceProvider initialAppearance={appearance} className="admin-territory min-h-dvh">
       <ConsoleShell config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />}>
         {children}
       </ConsoleShell>
-    </div>
+    </PlatformAppearanceProvider>
   )
 }

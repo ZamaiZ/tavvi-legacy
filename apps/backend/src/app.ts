@@ -27,7 +27,7 @@ export function createApp(env: ServerEnv = getServerEnv()): Express {
       response.setHeader('Access-Control-Allow-Origin', origin)
       response.setHeader('Vary', 'Origin')
       response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept')
-      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
     }
     if (request.method === 'OPTIONS') {
       response.sendStatus(origin && env.corsOrigins.includes(origin) ? 204 : 403)

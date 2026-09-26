@@ -11,7 +11,7 @@ import { InfoList } from '@/components/primitives/info-list'
 import { SectionCard } from '@/components/primitives/section-card'
 import { StateCard } from '@/components/primitives/state-card'
 import { formatDate } from '@/lib/format'
-import { brand, layout, useAppTheme } from '@/theme'
+import { layout, useAppTheme } from '@/theme'
 import { useRestaurant } from './queries'
 import { getRestaurantPresentation } from './restaurant-presentation'
 
@@ -31,7 +31,7 @@ export function RestaurantDetailScreen({ id }: { id: string }) {
     : query.isError || !restaurant || !status ? <StateCard error title="Não foi possível carregar" message="Verifique sua conexão e tente novamente." retry actionLabel="Tentar novamente" actionIcon={RotateCcw} onAction={() => void query.refetch()} />
       : <View style={styles.sections}>
         <DetailHero initials={nameInitials(restaurant.name)} status={status.label} tone={status.tone} title={restaurant.name} meta={restaurant.segment || 'Tipo não informado'} largeTitle />
-        <SectionCard title="LINK PÚBLICO"><View style={[styles.publicLink, { backgroundColor: colors.field }]}><Link size={16} color={colors.subtle} strokeWidth={1.8} /><AppText variant="rowMeta" numberOfLines={1} ellipsizeMode="middle" style={styles.slug}>/{restaurant.slug}</AppText><Pressable accessibilityRole="button" accessibilityLabel={copied ? 'Link copiado' : 'Copiar link público'} disabled={!fullUrl} onPress={() => void copyPublicUrl()} style={({ pressed }) => [styles.copyButton, { backgroundColor: copied ? brand.lime : colors.surface, opacity: !fullUrl ? 0.5 : pressed ? 0.72 : 1 }]}><AppText variant="label" style={{ color: copied ? brand.ink : colors.foreground }}>{copied ? 'Copiado' : 'Copiar'}</AppText></Pressable></View></SectionCard>
+        <SectionCard title="LINK PÚBLICO"><View style={[styles.publicLink, { backgroundColor: colors.field }]}><Link size={16} color={colors.subtle} strokeWidth={1.8} /><AppText variant="rowMeta" numberOfLines={1} ellipsizeMode="middle" style={styles.slug}>/{restaurant.slug}</AppText><Pressable accessibilityRole="button" accessibilityLabel={copied ? 'Link copiado' : 'Copiar link público'} disabled={!fullUrl} onPress={() => void copyPublicUrl()} style={({ pressed }) => [styles.copyButton, { backgroundColor: copied ? colors.accent : colors.surface, opacity: !fullUrl ? 0.5 : pressed ? 0.72 : 1 }]}><AppText variant="label" style={{ color: copied ? colors.accentOn : colors.foreground }}>{copied ? 'Copiado' : 'Copiar'}</AppText></Pressable></View></SectionCard>
         <SectionCard title="RESPONSÁVEIS">{restaurant.members.length ? <View style={styles.members}>{restaurant.members.map((member) => <View key={member.id} style={styles.member}>
           <View style={[styles.memberAvatar, { backgroundColor: colors.accentSurface }]}><AppText variant="rowMeta" style={{ color: colors.accentText, fontFamily: 'PlusJakartaSans_800ExtraBold', fontSize: 12.5 }}>{nameInitials(member.name)}</AppText></View>
           <View style={styles.memberCopy}><AppText variant="bodyMedium" numberOfLines={1}>{member.name}</AppText><Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`mailto:${member.email}`)}><AppText variant="rowMeta" tone="muted" numberOfLines={1}>{member.email}</AppText></Pressable></View>

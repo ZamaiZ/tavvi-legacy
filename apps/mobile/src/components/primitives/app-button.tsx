@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { AppText } from './app-text'
-import { brand, radii, spacing, useAppTheme } from '@/theme'
+import { radii, spacing, useAppTheme } from '@/theme'
 
 export type AppButtonProps = {
   label: string
@@ -16,8 +16,8 @@ export type AppButtonProps = {
 
 export function AppButton({ label, variant = 'primary', size = 'md', loading, disabled, icon, onPress, accessibilityLabel }: AppButtonProps) {
   const { colors } = useAppTheme()
-  const backgroundColor = variant === 'primary' ? brand.lime : variant === 'destructive' ? colors.dangerText : variant === 'secondary' ? colors.surface : 'transparent'
-  const textColor = variant === 'primary' ? brand.ink : variant === 'destructive' ? colors.surface : colors.foreground
+  const backgroundColor = variant === 'primary' ? colors.accent : variant === 'destructive' ? colors.dangerText : variant === 'secondary' ? colors.surface : 'transparent'
+  const textColor = variant === 'primary' ? colors.accentOn : variant === 'destructive' ? colors.surface : colors.foreground
   const blocked = disabled || loading
   return (
     <Pressable
@@ -26,7 +26,7 @@ export function AppButton({ label, variant = 'primary', size = 'md', loading, di
       accessibilityState={{ disabled: blocked, busy: loading }}
       disabled={blocked}
       onPress={onPress}
-      style={({ pressed }) => [styles.base, size === 'sm' && styles.sm, size === 'icon' && styles.icon, { backgroundColor: pressed && variant === 'primary' ? brand.limePressed : backgroundColor, borderColor: colors.line2, borderWidth: variant === 'secondary' ? 1 : 0, opacity: blocked ? 0.5 : 1, transform: [{ scale: pressed && !blocked ? 0.97 : 1 }] }]}
+      style={({ pressed }) => [styles.base, size === 'sm' && styles.sm, size === 'icon' && styles.icon, { backgroundColor: pressed && variant === 'primary' ? colors.accentPressed : backgroundColor, borderColor: colors.line2, borderWidth: variant === 'secondary' ? 1 : 0, opacity: blocked ? 0.5 : 1, transform: [{ scale: pressed && !blocked ? 0.97 : 1 }] }]}
     >
       {loading ? <ActivityIndicator color={textColor} /> : <View style={styles.content}>{icon}<AppText variant="label" style={{ color: textColor }}>{label}</AppText></View>}
     </Pressable>

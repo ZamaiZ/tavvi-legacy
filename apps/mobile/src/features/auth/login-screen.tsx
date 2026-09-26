@@ -14,9 +14,9 @@ const wordmark = require('../../../assets/images/brand/tavvi-wordmark.png')
 export function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
-  const { resolved, preference, setPreference } = useAppTheme()
+  const { resolved, preference, setPreference, colors } = useAppTheme()
   const { signIn, signInWithBiometrics, disableBiometrics, hasDeviceContract, message, status, returnToForm } = useAuth()
-  const palette = getLoginPalette(resolved)
+  const palette = getLoginPalette(resolved, colors)
   const contentWidth = Math.min(Math.max(width - spacing.x6 * 2, 0), 440)
   const year = new Date().getFullYear()
 
