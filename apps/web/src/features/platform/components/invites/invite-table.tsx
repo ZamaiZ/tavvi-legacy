@@ -1,0 +1,94 @@
+'use client'
+
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { LuBan, LuChevronRight, LuMail, LuRotateCcw } from 'react-icons/lu'
+import { inviteState, type InviteState, type PlatformInviteDTO } from '@/domain/invite'
+import { formatLong, formatShort } from '@/lib/format-date'
+import { revokeInviteAction } from '@/server/actions/invites'
+import { toast } from '@/components/ui/toast'
+import { useConsoleActions } from '@/components/shell/console-shell'
+import { ListHero, NewInviteButton } from '../list-hero'
+import { Toolbar, type InviteFilter } from '../toolbar'
+import { TvBadge } from '../tv-badge'
+import { InviteDrawer } from './invite-drawer'
+import { StateCard } from '../state-card'
+
+const filters: InviteFilter[] = ['all', 'pending', 'redeemed', 'expired', 'revoked']
+
+function inviteMeta(invite: PlatformInviteDTO, state: InviteState) {
+  if (state === 'pending') return `Válido até ${formatLong(invite.expiresAt)}`
+  if (state === 'redeemed') return `Resgatado em ${formatLong(invite.redeemedAt!)}`
+  if (state === 'revoked') return `Revogado em ${formatLong(invite.revokedAt!)}`
+  return `Venceu em ${formatLong(invite.expiresAt)}`
+}
+
+function updateDetail(router: ReturnType<typeof useRouter>, search: ReturnType<typeof useSearchParams>, id: string | null) {
+  const params = new URLSearchParams(search.toString())
+  if (id) params.set('convite', id)
+  else params.delete('convite')
+  const value = params.toString()
+  router.replace(`/${value ? `?${value}` : ''}`, { scroll: false })
+}
+
+export function InviteList({ invites, query, filter, selectedId, selectedInvite, invalidDetail }: {
+  invites: PlatformInviteDTO[]
+  query: string
+  filter: InviteFilter
+  selectedId?: string
+  selectedInvite: PlatformInviteDTO | null
+  invalidDetail?: boolean
+}) {
+  const router = useRouter()
+  const search = useSearchParams()
+  const { openInvite } = useConsoleActions()
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+  const counts = useMemo(() => Object.fromEntries(filters.map((key) => [key, key === 'all' ? invites.length : invites.filter((invite) => inviteState(invite) === key).length])) as Partial<Record<InviteFilter, number>>, [invites])
+  const filtered = useMemo(() => invites.filter((invite) => {
+    const matchesQuery = !query || (invite.email ?? 'Qualquer e-mail').toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'))
+    return matchesQuery && (filter === 'all' || inviteState(invite) === filter)
+  }), [filter, invites, query])
+  const pendingCount = counts.pending ?? 0
+
+  function revoke(id: string) {
+    startTransition(async () => {
+      const result = await revokeInviteAction(id)
+      setConfirmId(null)
+      toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: 'Não foi possível revogar o convite.', type: 'error' })
+      router.refresh()
+    })
+  }
+
+  return <div className="tv-console-page">
+    <ListHero title="Convites" description="Crie acessos seguros para que novos clientes cadastrem e administrem seus restaurantes." mobileDescription="Acessos de administrador à plataforma." summary={`${invites.length} ${invites.length === 1 ? 'convite' : 'convites'} · ${pendingCount} pendentes`} action={<NewInviteButton onClick={() => openInvite()} />} />
+    <Toolbar kind="invites" query={query} filter={filter} counts={counts} />
+    {invites.length === 0 ? <StateCard icon={<LuMail />} title="Nenhum convite ainda" description="Emita o primeiro. Quem receber cria a conta, cria o restaurante e já entra como administrador dele." action={<NewInviteButton onClick={() => openInvite()} />} /> : filtered.length === 0 ? <div className="tv-no-results" aria-live="polite">{query ? `Nenhum convite encontrado para “${query}”.` : 'Nenhum convite nesta situação.'}</div> : <>
+      <div role="table" aria-label="Convites" className="tv-table-shell">
+        <div role="row" className="tv-table-head tv-invite-columns"><span role="columnheader">DESTINATÁRIO</span><span role="columnheader">SITUAÇÃO</span><span role="columnheader">CRIADO EM</span><span role="columnheader">VÁLIDO ATÉ</span><span role="columnheader" /> </div>
+        {filtered.map((invite) => {
+          const state = inviteState(invite)
+          return <div role="row" key={invite.id} className={`tv-table-row tv-invite-columns${selectedId === invite.id ? ' is-selected' : ''}`}>
+            <button type="button" className="tv-row-hit" aria-label={`Abrir convite para ${invite.email ?? 'qualquer e-mail'}`} onClick={() => updateDetail(router, search, invite.id)} />
+            <div role="cell" className="tv-table-cell"><span className="tv-row-icon"><LuMail /></span><span><strong className="tv-row-title">{invite.email ?? 'Qualquer e-mail'}</strong><small className="tv-row-meta">{inviteMeta(invite, state)}</small></span></div>
+            <div role="cell"><TvBadge state={state} /></div><div role="cell" className="tv-date-cell">{formatShort(invite.createdAt)}</div><div role="cell" className="tv-date-cell">{formatShort(invite.expiresAt)}</div>
+            <div role="cell" className="tv-row-actions">{state === 'pending' && <button type="button" className="is-danger" aria-label="Revogar convite" title="Revogar convite" onClick={() => setConfirmId(invite.id)}><LuBan /></button>}<button type="button" aria-label={state === 'pending' ? 'Gerar novo link' : 'Gerar novo convite'} title={state === 'pending' ? 'Gerar novo link' : 'Gerar novo convite'} onClick={() => openInvite(state === 'pending' ? invite.email ?? undefined : invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw /></button><LuChevronRight className="tv-row-chevron" aria-hidden="true" /></div>
+          </div>
+        })}
+      </div>
+      <div className="tv-mobile-cards">{filtered.map((invite) => { const state = inviteState(invite); return <button type="button" key={invite.id} className="tv-mobile-card" onClick={() => updateDetail(router, search, invite.id)}><span className="tv-row-icon"><LuMail /></span><span className="tv-mobile-card-copy"><strong>{invite.email ?? 'Qualquer e-mail'}</strong><small>{inviteMeta(invite, state)}</small></span><TvBadge state={state} /><LuChevronRight className="tv-row-chevron" /></button> })}</div>
+    </>}
+    <InviteDrawer invite={selectedInvite} />
+    {invalidDetail && <InvalidDetailCleaner />}
+    {confirmId && <div className="tv-confirm-scrim"><section role="alertdialog" aria-modal="true" aria-label="Revogar convite?" className="tv-confirm-dialog"><span className="tv-state-icon is-danger"><LuBan /></span><h2>Revogar convite?</h2><p>O link deixará de funcionar imediatamente.</p><div><button type="button" className="tv-secondary-cta" onClick={() => setConfirmId(null)}>Cancelar</button><button type="button" className="tv-tonal-button" disabled={pending} onClick={() => revoke(confirmId)}>{pending ? <span className="tv-spinner" /> : 'Revogar'}</button></div></section></div>}
+  </div>
+}
+
+function InvalidDetailCleaner() {
+  const router = useRouter()
+  const search = useSearchParams()
+  useEffect(() => {
+    updateDetail(router, search, null)
+  }, [router, search])
+  return null
+}

@@ -1,0 +1,206 @@
+/* As regras do cardápio público. NENHUMA cor literal aqui: tudo sai das
+   variáveis que `resolveTheme` produz, e é isso que permite oito temas
+   compartilharem uma folha só. */
+
+.menu {
+  background: var(--m-base);
+  color: var(--m-ink);
+  font-family: var(--m-font-text);
+  min-height: 100dvh;
+}
+
+.menu-display {
+  font-family: var(--m-font-display);
+}
+.menu-muted {
+  color: var(--m-muted);
+}
+.menu-accent {
+  color: var(--m-accent);
+}
+.menu-line {
+  border-color: var(--m-line);
+}
+.menu-block {
+  border-radius: var(--m-radius-block);
+}
+.menu-photo {
+  border-radius: var(--m-radius-photo);
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------------------
+   O FEED — Fase 4
+
+   Os dois eixos são `scroll-snap` NATIVO aninhado. Não há JavaScript de
+   gesto em lugar nenhum: o navegador já sabe fazer inércia, e imitar isso à
+   mão é onde esse tipo de interface costuma engasgar.
+
+   A regra, sem exceção:
+     horizontal = onde estou no cardápio
+     vertical   = o que tem nesta parada
+   --------------------------------------------------------------------- */
+
+.menu-feed {
+  display: flex;
+  height: 100dvh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  /* Sem isto, chegar ao fim do feed puxa a página inteira atrás. */
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.menu-feed::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-column {
+  position: relative;
+  flex: 0 0 100%;
+  height: 100dvh;
+  scroll-snap-align: start;
+  /* `always` impede o deslize rápido de pular três pratos de uma vez. */
+  scroll-snap-stop: always;
+}
+
+/* O rolador vertical é ABSOLUTO dentro da coluna, e o rodapé fica de fora
+   dele. É isso que faz nome e preço não se moverem quando a mídia troca —
+   `position: sticky` dentro do rolador dependeria da ordem dos filhos e
+   escorregaria no fim da lista. */
+.menu-screens {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+.menu-screens::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-screen {
+  position: relative;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: var(--m-base);
+}
+
+/* O véu. É ele que torna o contraste MEDÍVEL: o que está atrás é foto de
+   prato, que é imprevisível, e o que fica atrás do texto é esta cor, que é
+   conhecida. Os pisos de contraste do tema valem porque este gradiente
+   existe — o alpha da faixa de texto é alto o bastante para o fundo efetivo
+   ser `--m-base` dentro de uma tolerância conhecida. */
+.menu-veil {
+  background: linear-gradient(
+    to top,
+    var(--m-veil) 0%,
+    var(--m-veil) 42%,
+    color-mix(in oklab, var(--m-base) 55%, transparent) 68%,
+    transparent 100%
+  );
+}
+
+/* O véu do TOPO é outro gradiente, e não o de baixo virado. Reusar o do
+   rodapé no trilho produz uma faixa opaca que termina em corte reto no meio
+   da foto — foi o primeiro desenho, e ficou péssimo.
+
+   Aqui ele é mais curto e mais suave: escurece só o suficiente para o nome
+   da categoria ser lido sobre qualquer foto, e some antes de virar tarja. */
+.menu-veil-top {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--m-base) 72%, transparent) 0%,
+    color-mix(in oklab, var(--m-base) 45%, transparent) 45%,
+    transparent 100%
+  );
+}
+
+/* O botão e os chips do trilho flutuam sobre a foto. Fundo translúcido do
+   próprio tema com desfoque atrás: é o que os separa da imagem sem precisar
+   de borda dura, que é o que dava cara de caixinha empilhada. */
+.menu-chip {
+  background: color-mix(in oklab, var(--m-base) 55%, transparent);
+  color: var(--m-ink);
+  border-radius: 999px;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .menu-chip {
+    background: color-mix(in oklab, var(--m-base) 38%, transparent);
+    backdrop-filter: blur(12px) saturate(1.2);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   O TRILHO COLAPSÁVEL — Fase 5
+
+   Conserta três defeitos do primeiro desenho: a seta de voltar não existia
+   na primeira tela; o último chip era fatiado por uma borda reta; e tudo
+   abria expandido, ocupando a faixa sobre a foto.
+   --------------------------------------------------------------------- */
+
+/* Os chips continuam OCUPANDO espaço quando fechados, e apenas somem. Animar
+   a largura do contêiner seria o caminho "certo", e é justamente o que
+   engasga: `width: auto` não é animável, e as alternativas com `max-width`
+   saltam. Como o trilho flutua sobre a foto e o véu já cobre a faixa inteira,
+   espaço invisível aqui não custa nada visualmente — e `inert` resolve o que
+   importa de verdade, que é foco e toque. */
+.menu-rail-item {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+  /* O escalonamento: cada chip entra 40ms depois do anterior. */
+  transition-delay: calc(var(--i) * 40ms);
+}
+
+.menu-rail[data-open='true'] .menu-rail-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* Fechar é rápido e junto. Escalonar a saída faria o trilho parecer lento
+   justamente quando a pessoa já decidiu que não quer mais ele ali. */
+.menu-rail[data-open='false'] .menu-rail-item {
+  transition-delay: 0ms;
+}
+
+.menu-rail[data-open='false'] .menu-rail-list {
+  pointer-events: none;
+}
+
+/* O chip deixa de ser cortado por uma linha reta e se dissolve — e isso
+   avisa que há mais para o lado, coisa que uma borda dura não diz. Só na
+   direita: à esquerda fica a pílula, e não há o que esmaecer. */
+.menu-rail-list {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0,
+    black calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    black 0,
+    black calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+/* Quem pediu menos movimento continua com o snap — ele não é animação, é
+   onde a rolagem para. O que sai é a rolagem suave, o autoplay do vídeo, que
+   é decidido no componente, e o escalonamento do trilho. */
+@media (prefers-reduced-motion: reduce) {
+  .menu-feed,
+  .menu-screens {
+    scroll-behavior: auto;
+  }
+
+  .menu-rail-item {
+    transition: none;
+    transition-delay: 0ms;
+  }
+}

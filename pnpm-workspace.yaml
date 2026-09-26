@@ -1,2 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  esbuild: true
+  ngrok: true
+  unrs-resolver: true
+
 overrides:
   lightningcss: 1.30.1

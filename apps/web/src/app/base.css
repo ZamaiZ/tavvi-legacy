@@ -1,0 +1,452 @@
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  /* Títulos de componentes usam a face do território. O admin usa Jakarta;
+     o painel mantém Inter e o pequeno território público mantém sua dupla. */
+  --font-heading: var(--heading-face);
+  --font-display: var(--display-face);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-tv-chip: 12px;
+  --radius-tv-button: 15px;
+  --radius-tv-field: 18px;
+  --radius-tv-cta: 20px;
+  --radius-tv-card: 28px;
+  --radius-tv-card-lg: 30px;
+  --radius-tv-hero: 32px;
+  --radius-tv-alert: 14px;
+  --radius-tv-toggle: 19px;
+  --radius-tv-badge: 15px;
+  --radius-tv-badge-mobile: 13px;
+  --color-status-draft: var(--status-draft);
+  --color-status-draft-bg: var(--status-draft-bg);
+  --color-status-active: var(--status-active);
+  --color-status-active-bg: var(--status-active-bg);
+  --color-status-suspended: var(--status-suspended);
+  --color-status-suspended-bg: var(--status-suspended-bg);
+  --color-tv-lime: var(--tv-lime);
+  --color-tv-lime-pressed: var(--tv-lime-pressed);
+  --color-tv-lime-soft: var(--tv-lime-soft);
+  --color-tv-ink: var(--tv-ink);
+  --color-tv-hero: var(--tv-hero);
+  --color-tv-hero-end: var(--tv-hero-end);
+  --color-tv-on-dark: var(--tv-on-dark);
+  --color-tv-muted-on-dark: var(--tv-muted-on-dark);
+  --color-tv-subtle-on-dark: var(--tv-subtle-on-dark);
+  --color-tv-screen: var(--tv-screen);
+  --color-tv-surface: var(--tv-surface);
+  --color-tv-field: var(--tv-field);
+  --color-tv-text: var(--tv-text);
+  --color-tv-muted: var(--tv-muted);
+  --color-tv-subtle: var(--tv-subtle);
+  --color-tv-border: var(--tv-border);
+  --color-tv-focus: var(--tv-focus);
+  --color-tv-error: var(--tv-error);
+  --color-tv-error-surface: var(--tv-error-surface);
+  --color-tv-warn: var(--tv-warn);
+  --color-tv-warn-surface: var(--tv-warn-surface);
+
+  /* Escala com degraus reais. A direção da Fase 1 punha tudo em peso 600 e
+     separava só por tamanho, o que achata a hierarquia: o olho não tem onde
+     descansar. Aqui cada degrau tem tamanho E entrelinha próprios. */
+  --text-display: 2.125rem;
+  --text-display--line-height: 1.08;
+  --text-title: 1.625rem;
+  --text-title--line-height: 1.2;
+  --text-section: 1.1875rem;
+  --text-section--line-height: 1.3;
+  --text-card: 0.9375rem;
+  --text-card--line-height: 1.4;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.5;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.4;
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  /* Uma curva só no produto. É a expo-out que `Reveal` usa desde a Fase 3A:
+     arranca rápido e freia longo, o que faz o movimento parecer resposta do
+     sistema e não enfeite. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-territory,
+.tv-auth-scope,
+.workspace-territory {
+  --tv-lime: #B2F52F;
+  --tv-lime-pressed: #BEF94A;
+  --tv-lime-soft: rgba(178,245,47,0.12);
+  --tv-lime-glow: rgba(178,245,47,0.42);
+  --tv-lime-cta-glow: rgba(178,245,47,0.55);
+  --tv-ink: #0A0C09;
+  --tv-hero: #121510;
+  --tv-hero-end: #0E120C;
+  --tv-on-dark: #F4F6F0;
+  --tv-muted-on-dark: #A9AEA3;
+  --tv-subtle-on-dark: #7D8278;
+  --tv-hero-glow: rgba(178,245,47,0.22);
+
+  --tv-screen: #EEF0E8;
+  --tv-surface: #FFFFFF;
+  --tv-field: #F5F7F1;
+  --tv-text: #11150F;
+  --tv-muted: #62675E;
+  --tv-subtle: #6B7167;
+  --tv-border: rgba(10,12,9,0.12);
+  --tv-toggle-line: rgba(10,12,9,0.16);
+  --tv-focus: #557D00;
+  --tv-ring: rgba(85,125,0,0.16);
+  --tv-error: #B42318;
+  --tv-error-surface: #FEE4E2;
+  --tv-warn: #A06700;
+  --tv-warn-surface: #FFF0CC;
+  --tv-hover: rgba(10,12,9,0.06);
+  --tv-glow: rgba(178,245,47,0.16);
+  --tv-card-shadow: 0 30px 60px -22px rgba(10,12,9,0.45);
+
+  --tv-rail: #DEE2D5;
+  --tv-panel: var(--tv-screen);
+  --tv-line: rgba(10,12,9,0.09);
+  --tv-line-strong: var(--tv-toggle-line);
+  --tv-accent: #557D00;
+  --tv-accent-surface: rgba(85,125,0,0.12);
+  --tv-ok: #267D30;
+  --tv-ok-surface: #DFF6DE;
+  --tv-neutral: #62675E;
+  --tv-neutral-surface: rgba(10,12,9,0.06);
+  --tv-row-hover: rgba(10,12,9,0.025);
+  --tv-row-selected: rgba(10,12,9,0.05);
+  --tv-glass: rgba(255,255,255,0.90);
+  --tv-scrim: rgba(10,12,9,0.32);
+  --tv-overlay-shadow: 0 24px 48px -18px rgba(30,40,20,0.30);
+
+  --tv-dock: #121510;
+  --tv-dock-line: rgba(244,246,240,0.10);
+  --tv-hero-tile: #181B15;
+  --tv-on-dark-chip: rgba(244,246,240,0.08);
+  --tv-lime-pill: rgba(178,245,47,0.10);
+  --tv-lime-pill-text: #C9F870;
+  --tv-hero-ok: #79C77C;
+  --tv-hero-warn: #E7AF5C;
+  --tv-hero-danger: #FF8A84;
+
+  --background: var(--tv-panel);
+  --foreground: var(--tv-text);
+  --card: var(--tv-surface);
+  --card-foreground: var(--tv-text);
+  --popover: var(--tv-surface);
+  --popover-foreground: var(--tv-text);
+  --primary: var(--tv-lime);
+  --primary-foreground: var(--tv-ink);
+  --secondary: var(--tv-field);
+  --secondary-foreground: var(--tv-text);
+  --muted: var(--tv-field);
+  --muted-foreground: var(--tv-muted);
+  --accent: var(--tv-row-selected);
+  --accent-foreground: var(--tv-text);
+  --destructive: var(--tv-error);
+  --border: var(--tv-line);
+  --input: var(--tv-border);
+  --ring: var(--tv-focus);
+  --radius: 1rem;
+  --status-draft: var(--tv-neutral);
+  --status-draft-bg: var(--tv-neutral-surface);
+  --status-active: var(--tv-ok);
+  --status-active-bg: var(--tv-ok-surface);
+  --status-suspended: var(--tv-warn);
+  --status-suspended-bg: var(--tv-warn-surface);
+
+  --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+  --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+  --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark .admin-territory,
+.dark .tv-auth-scope,
+.dark .workspace-territory {
+  --tv-screen: #0A0C09;
+  --tv-surface: #11130F;
+  --tv-field: #181B15;
+  --tv-text: #F4F6F0;
+  --tv-muted: #A9AEA3;
+  --tv-subtle: #7D8278;
+  --tv-border: rgba(244,246,240,0.10);
+  --tv-toggle-line: rgba(244,246,240,0.14);
+  --tv-focus: #B2F52F;
+  --tv-ring: rgba(178,245,47,0.14);
+  --tv-error: #FF8A84;
+  --tv-error-surface: #3A1715;
+  --tv-warn: #E7AF5C;
+  --tv-warn-surface: #382810;
+  --tv-hover: rgba(244,246,240,0.07);
+  --tv-glow: rgba(178,245,47,0.10);
+  --tv-card-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+
+  --tv-rail: #151812;
+  --tv-panel: var(--tv-screen);
+  --tv-line: rgba(244,246,240,0.08);
+  --tv-line-strong: var(--tv-toggle-line);
+  --tv-accent: #B2F52F;
+  --tv-accent-surface: rgba(178,245,47,0.12);
+  --tv-ok: #79C77C;
+  --tv-ok-surface: #1A2F1B;
+  --tv-neutral: #A9AEA3;
+  --tv-neutral-surface: rgba(244,246,240,0.07);
+  --tv-row-hover: rgba(244,246,240,0.035);
+  --tv-row-selected: rgba(244,246,240,0.06);
+  --tv-glass: rgba(20,23,18,0.86);
+  --tv-scrim: rgba(0,0,0,0.55);
+  --tv-overlay-shadow: 0 24px 48px -18px rgba(0,0,0,0.75);
+
+  --background: var(--tv-panel);
+  --foreground: var(--tv-text);
+  --card: var(--tv-surface);
+  --card-foreground: var(--tv-text);
+  --popover: var(--tv-surface);
+  --popover-foreground: var(--tv-text);
+  --primary: var(--tv-lime);
+  --primary-foreground: var(--tv-ink);
+  --secondary: var(--tv-field);
+  --secondary-foreground: var(--tv-text);
+  --muted: var(--tv-field);
+  --muted-foreground: var(--tv-muted);
+  --accent: var(--tv-row-selected);
+  --accent-foreground: var(--tv-text);
+  --destructive: var(--tv-error);
+  --border: var(--tv-line);
+  --input: var(--tv-border);
+  --ring: var(--tv-focus);
+  --radius: 1rem;
+  --status-draft: var(--tv-neutral);
+  --status-draft-bg: var(--tv-neutral-surface);
+  --status-active: var(--tv-ok);
+  --status-active-bg: var(--tv-ok-surface);
+  --status-suspended: var(--tv-warn);
+  --status-suspended-bg: var(--tv-warn-surface);
+}
+
+:root {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.511 0.096 186.391);
+  --primary-foreground: oklch(0.984 0.014 180.72);
+  /* Neutros deslocados para quente: o matiz sai de 286 (azulado) para 85
+     (levemente amarelado). E o que separa a direcao "calida" da fria. */
+  --secondary: oklch(0.970 0.004 85);
+  --secondary-foreground: oklch(0.215 0.008 75);
+  --muted: oklch(0.970 0.004 85);
+  --muted-foreground: oklch(0.556 0.012 75);
+  --accent: oklch(0.962 0.006 85);
+  --accent-foreground: oklch(0.215 0.008 75);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0.005 85);
+  --input: oklch(0.922 0.005 85);
+  --ring: oklch(0.56 0.1 186);
+
+  /* A raiz pública mantém a dupla original. Os territórios privados não
+     interferem nas fontes temáticas do cardápio. */
+  --heading-face: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --display-face: var(--font-display), ui-serif, Georgia, serif;
+
+  /* Três superfícies empilhadas, em vez de retângulos delimitados por linha
+     de 1px. No modo claro a pilha SOBE: o fundo da página é o mais escuro
+     dos três, e o cartão que flutua sobre ele é branco. */
+  --surface-1: oklch(0.985 0.003 85);
+  --surface-2: oklch(1 0 0);
+  --surface-3: oklch(1 0 0);
+
+  /* Sombra curta e de baixa opacidade, com matiz quente para acompanhar os
+     neutros. Sombra cinza sobre neutro quente parece sujeira, não relevo. */
+  --shadow-1: 0 1px 2px oklch(0.30 0.02 75 / 0.05), 0 1px 3px oklch(0.30 0.02 75 / 0.04);
+  --shadow-2: 0 2px 4px oklch(0.30 0.02 75 / 0.05), 0 8px 20px oklch(0.30 0.02 75 / 0.07);
+
+  /* Situacao do restaurante. Conjunto a parte, separado da primaria: a
+     primaria e um verde-azulado (matiz 186), e "ativo" precisa ser
+     distinguivel dela num relance -- por isso o verde-folha em 145. */
+  --status-draft: oklch(0.556 0.012 75);
+  --status-draft-bg: oklch(0.962 0.006 85);
+  --status-active: oklch(0.520 0.140 145);
+  --status-active-bg: oklch(0.950 0.040 145);
+  --status-suspended: oklch(0.560 0.130 75);
+  --status-suspended-bg: oklch(0.960 0.050 85);
+  --chart-1: oklch(0.845 0.143 164.978);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.596 0.145 163.225);
+  --chart-4: oklch(0.508 0.118 165.612);
+  --chart-5: oklch(0.432 0.095 166.913);
+  --radius: 0.4rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.6 0.118 184.704);
+  --sidebar-primary-foreground: oklch(0.984 0.014 180.72);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.56 0.1 186);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+}
+
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.437 0.078 188.216);
+  --primary-foreground: oklch(0.984 0.014 180.72);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.704 0.11 182.5);
+  --chart-1: oklch(0.845 0.143 164.978);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.596 0.145 163.225);
+  --chart-4: oklch(0.508 0.118 165.612);
+  --chart-5: oklch(0.432 0.095 166.913);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.704 0.14 182.503);
+  --sidebar-primary-foreground: oklch(0.277 0.046 192.524);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.704 0.11 182.5);
+
+  /* No escuro a pilha INVERTE: o fundo é o mais escuro e cada camada
+     clareia. Sombra quase não funciona sobre fundo escuro, então aqui a
+     separação entre camadas vem da diferença de luminosidade, não do relevo. */
+  --surface-1: oklch(0.18 0.005 285);
+  --surface-2: oklch(0.21 0.006 285.885);
+  --surface-3: oklch(0.25 0.006 285.885);
+
+  --shadow-1: 0 1px 2px oklch(0 0 0 / 0.30);
+  --shadow-2: 0 2px 4px oklch(0 0 0 / 0.30), 0 8px 20px oklch(0 0 0 / 0.35);
+
+  /* Situacao no modo escuro: fundo escuro saturado, texto claro. Mantem o
+     mesmo contraste do modo claro invertido. */
+  --status-draft: oklch(0.708 0.012 75);
+  --status-draft-bg: oklch(0.270 0.008 75);
+  --status-active: oklch(0.760 0.130 145);
+  --status-active-bg: oklch(0.280 0.045 145);
+  --status-suspended: oklch(0.790 0.120 75);
+  --status-suspended-bg: oklch(0.290 0.045 75);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground text-body;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    /* Números de largura fixa em toda a interface. Preço que dança quando
+       passa de 9 para 10 é exatamente o detalhe que separa produto
+       caprichado de andaime. */
+    font-variant-numeric: tabular-nums;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* O Tailwind v4 deixou de pôr `cursor: pointer` em botão, seguindo o
+     padrão do navegador. Num produto que o dono usa em desktop o dia
+     inteiro, isso faz cada botão parecer inerte até o clique. A regra volta
+     aqui, uma vez, em vez de uma classe por componente.
+
+     `:not(:disabled)` é a parte que importa: mão sobre botão desativado
+     promete uma ação que não vai acontecer. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+
+  /* O marcador de território concentra a tipografia privada. A hierarquia
+     vem de peso e escala, não da mistura de famílias. */
+  .admin-territory {
+    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    background: var(--surface-1);
+  }
+
+  .tv-auth-scope {
+    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .workspace-territory {
+    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-tavvi-mono), ui-monospace, monospace;
+    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    background: var(--surface-1);
+  }
+
+}
+
+.tavvi-page {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+

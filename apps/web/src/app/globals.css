@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./base.css";
+@import "../features/workspace/styles/workspace.css";
+@import "../features/auth/styles/auth.css";
+@import "../features/public-menu/styles/public-menu.css";
+@import "../features/platform/styles/platform.css";
+

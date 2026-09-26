@@ -1,29 +1,41 @@
-# Tavvi Mobile
+# Tavvi Workspace
 
-Console mobile privado para administradores da plataforma Tavvi. O app usa Expo Router, SecureStore e uma API Express independente em `tavvi-backend/`. O Express é a única fronteira do app para autenticação, convites e restaurantes; Supabase Auth e dados são acessados somente pelo servidor.
+Tavvi is a pnpm monorepo containing the Expo mobile app, the Next.js web app, the Express API, and shared packages. Apps keep independent deployment configurations; Web and Mobile will use the same Express API origin and `/api/v1` contract as their migration completes.
 
-## Desenvolvimento local
+## Workspace
 
-O serviço Express requer Node.js 22.9 ou mais recente.
+- `apps/backend`: Express API and Supabase server integration.
+- `apps/mobile`: Expo Router application.
+- `apps/web`: Next.js application and server-side transport adapter.
+- `packages/api-contracts`: shared request, response, and error contracts.
+- `packages/theme-core`: shared panel palette calculations.
+- `supabase`: canonical project configuration, migration history, seed data, and generated schema.
 
-1. Copie `.env.example` para `.env.local` e configure `EXPO_PUBLIC_API_URL` com o endereço do Express acessível pelo dispositivo. Em aparelho físico, use o IP LAN da máquina; `localhost` aponta para o próprio aparelho.
-2. Copie `tavvi-backend/.env.example` para `tavvi-backend/.env` e preencha os valores server-only do ambiente Supabase e `PAINEL_PUBLIC_URL`.
-3. Em um terminal, inicie o backend a partir de `tavvi-backend/` com `pnpm dev`.
-4. Em outro terminal, inicie o app com `npx expo start` e abra pelo Expo Go ou por um development build.
+## Local setup
 
-Os processos Expo e Express são independentes. A API não é servida por Expo Router, e as credenciais Supabase não fazem parte das variáveis do bundle móvel. Nenhuma publicação do backend está configurada neste repositório.
+Use Node.js 22.9 or newer and pnpm 10.34.5. Install the workspace from the repository root with `pnpm install`.
 
-## Escopo atual
+Create `apps/backend/.env` from `apps/backend/.env.example`, `apps/mobile/.env.local` from `apps/mobile/.env.example`, and `apps/web/.env.local` from `apps/web/.env.example`. Use the same Supabase project values where applicable. Set Mobile's `EXPO_PUBLIC_API_URL` and Web's server-only `API_BASE_URL` to the Express API origin for that environment.
 
-- Login, restauração, renovação e encerramento de sessão de `platform_admin`.
-- Convites de plataforma: listar, consultar, criar, copiar, rotacionar e revogar.
-- Restaurantes: consulta somente leitura de lista e detalhe.
-- Tema Sistema, Claro e Escuro; dock móvel.
+Run apps individually or use one root command for the processes you need:
 
-O cache de listas é somente memória. O link de convite recém-criado existe apenas no painel aberto até ser copiado ou descartado.
+```text
+pnpm back
+pnpm expo
+pnpm web
+pnpm dev
+pnpm dev:back-web
+pnpm dev:back-expo
+pnpm dev:web
+pnpm dev:mobile
+pnpm ngrok
+pnpm approve-build
+```
 
-## Backend e API
+`pnpm dev` starts all three apps. `pnpm dev:web` or `pnpm dev:back-web` starts Express and Next; `pnpm dev:mobile` or `pnpm dev:back-expo` starts Express and Mobile. The parallel runner prefixes each process and stops sibling processes when one exits. `pnpm ngrok` creates a tunnel to backend port 3002. `pnpm approve-build` calls pnpm 10.34.5's built-in `pnpm approve-builds` command and records selected dependency build approvals at the root.
 
-- O serviço e as variáveis locais estão descritos em [docs/deployment/express-backend.md](docs/deployment/express-backend.md).
-- O contrato HTTP atual está em [docs/api/mobile-v1.md](docs/api/mobile-v1.md).
-- A migration aditiva de auditoria para mutações de convite deve passar pelo fluxo existente de alterações do Supabase antes do deploy do serviço. Ela não é aplicada automaticamente pelo app.
+The API migration is incremental. Existing Mobile API calls remain on the current route until the common `/api/v1` cutover phase; Web domain data continues to use its existing server-side data layer until each domain is migrated.
+
+## Security and deployments
+
+Supabase service and signing secrets belong only in server environment variables. Never commit local environment files. Configure Web and Mobile with the same environment-specific API origin while retaining separate app deployments. See `docs/deployment/monorepo.md` and `docs/deployment/express-backend.md`.

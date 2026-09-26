@@ -1,0 +1,60 @@
+@keyframes tv-auth-form-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .tv-auth-form-float {
+    animation: tv-auth-form-float 7s ease-in-out infinite;
+  }
+
+  .tv-auth-form-float:focus-within {
+    animation-play-state: paused;
+  }
+}
+
+.admin-territory .tv-login-input:-webkit-autofill,
+.tv-auth-scope .tv-login-input:-webkit-autofill,
+.admin-territory .tv-login-input:-webkit-autofill:hover,
+.tv-auth-scope .tv-login-input:-webkit-autofill:hover,
+.admin-territory .tv-login-input:-webkit-autofill:focus,
+.tv-auth-scope .tv-login-input:-webkit-autofill:focus,
+.admin-territory .tv-login-input:-webkit-autofill:active,
+.tv-auth-scope .tv-login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 40px var(--tv-field) inset;
+  -webkit-text-fill-color: var(--tv-text);
+  caret-color: var(--tv-focus);
+  transition: background-color 9999s ease-out 0s;
+}
+
+@media (min-width: 1280px) {
+  .tv-hero-title {
+    font-size: 76px;
+    line-height: 76px;
+    letter-spacing: -2.8px;
+  }
+}
+
+@media (max-height: 719px) and (min-width: 1024px) {
+  .tv-auth-main {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .tv-auth-layout {
+    height: auto;
+    min-height: 608px;
+  }
+}
+
+@media (max-width: 767px) {
+  .tavvi-page {
+    padding: 1.25rem 1rem calc(7rem + env(safe-area-inset-bottom));
+  }
+}
+

@@ -1,0 +1,183 @@
+import 'server-only'
+import { uuidSchema } from '@/domain/common'
+import {
+  createTagSchema,
+  tagTokenSchema,
+  updateTagSchema,
+  type ResolvedTagDTO,
+  type TagDTO,
+} from '@/domain/tag'
+import { recordAudit } from '@/server/security/audit'
+import { rateLimitIdentity } from '@/server/security/client-ip'
+import { enforceRateLimit } from '@/server/security/rate-limit'
+import { generateTagToken } from '@/server/security/tokens'
+import type { RevalidationTarget } from '@/server/revalidate'
+import { getRestaurantRevalidationTarget } from './revalidation-target'
+import { createUserClient } from './_client'
+import {
+  currentTerritory,
+  requireMember,
+  requirePlatformAdmin,
+  requireRestaurantAdmin,
+} from './auth'
+
+async function db() {
+  return createUserClient(await currentTerritory())
+}
+
+// `{ tag }` aninhado, e não `TagDTO & RevalidationTarget`: as duas formas têm
+// campo `id`, e uma interseção faria o id da plaquinha e o do restaurante
+// disputarem a mesma chave — exatamente o tipo de armadilha silenciosa que
+// esta fase existe para tirar do caminho.
+export async function createTag(
+  input: unknown,
+): Promise<RevalidationTarget & { tag: TagDTO }> {
+  const data = createTagSchema.parse(input)
+  await requirePlatformAdmin()
+
+  const supabase = await db()
+
+  // Colisao em 2^80 e praticamente impossivel, mas quem garante e o unique
+  // do banco. Tres tentativas cobrem o caso raro sem virar loop infinito.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const publicToken = generateTagToken()
+    const { data: row, error } = await supabase
+      .from('menu_tags')
+      .insert({
+        restaurant_id: data.restaurantId,
+        public_token: publicToken,
+        label: data.label ?? null,
+      })
+      .select('id, public_token, label, is_active, last_seen_at')
+      .single()
+
+    if (!error && row) {
+      await recordAudit({
+        action: 'tag.created',
+        subjectType: 'menu_tag',
+        subjectId: row.id as string,
+        restaurantId: data.restaurantId,
+      })
+      return {
+        ...(await getRestaurantRevalidationTarget(data.restaurantId)),
+        tag: {
+          id: row.id as string,
+          publicToken: row.public_token as string,
+          label: row.label as string | null,
+          isActive: row.is_active as boolean,
+          lastSeenAt: row.last_seen_at as string | null,
+        },
+      }
+    }
+
+    // 23505 e violacao de unique: so nesse caso vale tentar outro token.
+    if (error && error.code !== '23505') {
+      throw new Error(`Não foi possível criar a plaquinha: ${error.message}`)
+    }
+  }
+
+  throw new Error('Não foi possível gerar a plaquinha. Tente de novo.')
+}
+
+export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
+  const id = uuidSchema.parse(restaurantId)
+  await requireMember(id)
+
+  const supabase = await db()
+  const { data, error } = await supabase
+    .from('menu_tags')
+    .select('id, public_token, label, is_active, last_seen_at')
+    .eq('restaurant_id', id)
+    .order('created_at')
+
+  if (error) {
+    throw new Error(`Não foi possível listar plaquinhas: ${error.message}`)
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    publicToken: row.public_token as string,
+    label: row.label as string | null,
+    isActive: row.is_active as boolean,
+    lastSeenAt: row.last_seen_at as string | null,
+  }))
+}
+
+export async function updateTag(input: unknown): Promise<RevalidationTarget> {
+  const data = updateTagSchema.parse(input)
+
+  const supabase = await db()
+  const { data: row, error: lookupError } = await supabase
+    .from('menu_tags')
+    .select('restaurant_id')
+    .eq('id', data.tagId)
+    .single()
+
+  if (lookupError || !row) throw new Error('Plaquinha não encontrada')
+  const restaurantId = row.restaurant_id as string
+  await requireRestaurantAdmin(restaurantId)
+
+  // public_token e restaurant_id nao aparecem aqui: o gatilho no banco
+  // recusaria a alteracao de qualquer forma.
+  const { error } = await supabase
+    .from('menu_tags')
+    .update({ label: data.label ?? null, is_active: data.isActive })
+    .eq('id', data.tagId)
+
+  if (error) {
+    throw new Error(`Não foi possível salvar a plaquinha: ${error.message}`)
+  }
+
+  return getRestaurantRevalidationTarget(restaurantId)
+}
+
+export async function deleteTag(tagId: unknown): Promise<RevalidationTarget> {
+  const id = uuidSchema.parse(tagId)
+  await requirePlatformAdmin()
+
+  const supabase = await db()
+
+  // O restaurante da plaquinha é lido ANTES do delete: depois, a linha não
+  // existe mais e não haveria de onde tirar o alvo da revalidação.
+  const { data: row, error: lookupError } = await supabase
+    .from('menu_tags')
+    .select('restaurant_id')
+    .eq('id', id)
+    .single()
+
+  if (lookupError || !row) throw new Error('Plaquinha não encontrada')
+  const revalidationTarget = await getRestaurantRevalidationTarget(row.restaurant_id as string)
+
+  const { error } = await supabase.from('menu_tags').delete().eq('id', id)
+  if (error) {
+    throw new Error(`Não foi possível remover a plaquinha: ${error.message}`)
+  }
+
+  await recordAudit({
+    action: 'tag.deleted',
+    subjectType: 'menu_tag',
+    subjectId: id,
+  })
+
+  return revalidationTarget
+}
+
+export async function resolveTag(
+  token: unknown,
+): Promise<ResolvedTagDTO | null> {
+  await enforceRateLimit('tag:resolve', await rateLimitIdentity())
+
+  const parsed = tagTokenSchema.safeParse(token)
+  if (!parsed.success) return null
+
+  const supabase = await db()
+  const { data, error } = await supabase.rpc('resolve_menu_tag', {
+    p_token: parsed.data,
+  })
+
+  if (error || !data || data.length === 0) return null
+  return {
+    restaurantSlug: data[0].restaurant_slug as string,
+    tagLabel: data[0].tag_label as string | null,
+  }
+}
