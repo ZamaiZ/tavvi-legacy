@@ -6,4 +6,5 @@
 @import "../features/auth/styles/auth.css";
 @import "../features/public-menu/styles/public-menu.css";
 @import "../features/platform/styles/platform.css";
+@import "../features/platform/styles/console-mobile.css";
 

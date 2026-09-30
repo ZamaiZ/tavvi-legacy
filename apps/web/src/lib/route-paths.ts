@@ -5,6 +5,7 @@ const externalFirstSegments: Record<PrivateTerritory, Record<string, string>> = 
     entrar: 'sign-in',
     convites: 'invitations',
     restaurantes: 'restaurants',
+    conta: 'account',
   },
   painel: {
     entrar: 'sign-in',

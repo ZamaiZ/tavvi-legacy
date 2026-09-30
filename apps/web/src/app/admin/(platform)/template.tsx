@@ -1,19 +1,17 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
 export default function AdminTemplate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const mainRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     document.querySelector<HTMLElement>('.tv-console-main')?.scrollTo({ top: 0 })
   }, [pathname])
+  // No celular quem dá o recuo é cada tela (console-mobile.css) e o login
+  // ocupa a tela inteira; do md para cima o recuo continua o mesmo.
   return (
-    <div
-      ref={mainRef}
-      className="mx-auto flex w-full max-w-[1320px] flex-col gap-[14px] px-[18px] pt-[18px] pb-[calc(118px+env(safe-area-inset-bottom))] md:px-6 md:pt-6 md:pb-8 lg:gap-0 lg:px-8 lg:pt-7 lg:pb-10"
-    >
+    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-[14px] md:px-6 md:pt-6 md:pb-8 lg:gap-0 lg:px-8 lg:pt-7 lg:pb-10">
       {children}
     </div>
   )

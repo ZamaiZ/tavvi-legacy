@@ -35,6 +35,7 @@ export function Sidebar({
   onSearch,
   onAccount,
   onToggle,
+  mobileChrome = true,
 }: {
   items: SidebarEntry[]
   mode: RailMode
@@ -44,6 +45,7 @@ export function Sidebar({
   onSearch?: () => void
   onAccount: () => void
   onToggle: () => void
+  mobileChrome?: boolean
 }) {
   const pathname = toExternalPath(usePathname())
   const expanded = mode === 'pinned'
@@ -102,16 +104,18 @@ export function Sidebar({
         </div>
       </aside>
 
-      <header className="tv-mobile-header">
-        <span className="tv-sidebar-mark">
-          <img className="tv-brandmark-light" src="/brand/tavvi-brandmark-gold-on-light.png" alt="" />
-          <img className="tv-brandmark-dark" src="/brand/tavvi-brandmark-gold-on-dark.png" alt="" />
-        </span>
-        <span className="tv-mobile-context"><strong>{contextLabel}</strong><small>{contextDescription}</small></span>
-        <button type="button" className="tv-mobile-search" aria-label="Buscar páginas" onClick={openSearch}><LuSearch /></button>
-        <button type="button" className="tv-mobile-account" aria-label="Abrir conta" onClick={onAccount}>{email?.trim().slice(0, 1).toUpperCase() || 'A'}</button>
-      </header>
-      <nav className="tv-mobile-tabs" aria-label="Navegação principal">{links(true)}</nav>
+      {mobileChrome ? <>
+        <header className="tv-mobile-header">
+          <span className="tv-sidebar-mark">
+            <img className="tv-brandmark-light" src="/brand/tavvi-brandmark-gold-on-light.png" alt="" />
+            <img className="tv-brandmark-dark" src="/brand/tavvi-brandmark-gold-on-dark.png" alt="" />
+          </span>
+          <span className="tv-mobile-context"><strong>{contextLabel}</strong><small>{contextDescription}</small></span>
+          <button type="button" className="tv-mobile-search" aria-label="Buscar páginas" onClick={openSearch}><LuSearch /></button>
+          <button type="button" className="tv-mobile-account" aria-label="Abrir conta" onClick={onAccount}>{email?.trim().slice(0, 1).toUpperCase() || 'A'}</button>
+        </header>
+        <nav className="tv-mobile-tabs" aria-label="Navegação principal">{links(true)}</nav>
+      </> : null}
     </>
   )
 }

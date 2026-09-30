@@ -23,7 +23,7 @@ function nextTheme(theme: Theme): Theme {
   return 'system'
 }
 
-export function HeroThemeToggle() {
+export function HeroThemeToggle({ hideBelowLg = false }: { hideBelowLg?: boolean }) {
   const { theme, setTheme } = useTheme()
   const reducedMotion = useReducedMotion()
   const [turn, setTurn] = useState(0)
@@ -61,7 +61,7 @@ export function HeroThemeToggle() {
         onClick={toggle}
         aria-label="Alternar tema"
         aria-description={`Preferência atual: ${LABELS[theme]}`}
-        className="absolute top-[max(24px,calc(env(safe-area-inset-top)+12px))] right-6 z-20 flex size-[54px] items-center justify-center rounded-tv-toggle border border-[var(--tv-toggle-line)] bg-tv-surface text-tv-text outline-none transition-colors duration-150 hover:bg-[var(--tv-hover)] focus-visible:ring-4 focus-visible:ring-tv-ring motion-reduce:transition-none lg:top-0 lg:right-0"
+        className={`absolute top-[max(24px,calc(env(safe-area-inset-top)+12px))] right-6 z-20 flex size-[54px] items-center justify-center rounded-tv-toggle border border-[var(--tv-toggle-line)] bg-tv-surface text-tv-text outline-none transition-colors duration-150 hover:bg-[var(--tv-hover)] focus-visible:ring-4 focus-visible:ring-tv-ring motion-reduce:transition-none lg:top-0 lg:right-0${hideBelowLg ? ' max-lg:hidden' : ''}`}
       >
         <span
           aria-hidden="true"

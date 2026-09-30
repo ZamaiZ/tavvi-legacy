@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { plainTextSchema, slugSchema, uuidSchema } from './common'
-import { inviteTokenSchema } from './invite'
+import { inviteTokenSchema, type MemberRole } from './invite'
 import { themeSchema } from './theme'
 
 export const restaurantStatusSchema = z.enum(['draft', 'active', 'suspended'])
@@ -107,4 +107,12 @@ export type RestaurantDetailDTO = {
   updatedAt: string
   segment: string | null
   deletedAt: string | null
+}
+
+// Quem responde pelo restaurante, na consulta do console da plataforma.
+export type RestaurantResponsibleDTO = {
+  id: string
+  name: string
+  email: string
+  role: MemberRole
 }

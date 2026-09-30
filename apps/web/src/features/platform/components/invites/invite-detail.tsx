@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { LuBan, LuCheck, LuMail, LuRotateCcw } from 'react-icons/lu'
+import { LuBan, LuMail, LuRotateCcw } from 'react-icons/lu'
 import { toast } from '@/components/ui/toast'
 import { inviteState, type PlatformInviteDTO } from '@/domain/invite'
 import { formatLong } from '@/lib/format-date'
 import { revokeInviteAction } from '@/server/actions/invites'
 import { TvBadge } from '../tv-badge'
 import { PrimaryCTA, TonalButton } from '../buttons'
+import { ConfirmDialog } from '../confirm-dialog'
 import { useConsoleActions } from '@/components/shell/console-shell'
 
 function meta(invite: PlatformInviteDTO, state: ReturnType<typeof inviteState>) {
@@ -42,12 +43,12 @@ export function InviteDetail({ invite }: { invite: PlatformInviteDTO }) {
       <div className="tv-detail-top"><span className="tv-detail-icon"><LuMail /></span><TvBadge state={state} hero /></div>
       <h2>{title}<i>.</i></h2><p>{meta(invite, state)}</p>
     </section>
-    <section className="tv-info-card"><div><span>Criado em</span><strong>{formatLong(invite.createdAt)}</strong></div><div><span>Válido até</span><strong>{formatLong(invite.expiresAt)}</strong></div><div><span>Destinatário</span><strong>{invite.email ? 'E-mail definido' : 'Qualquer e-mail'}</strong></div></section>
-    <section className="tv-timeline-card"><h3>HISTÓRICO</h3>{events.map((event) => <div className={`tv-timeline-event tv-event-${event.tone}`} key={event.label}><span className="tv-timeline-dot"><i /></span><div><strong>{event.label}</strong><small>{event.meta}</small></div></div>)}</section>
+    <section className="tv-info-card tv-invite-info"><div><span>Criado em</span><strong>{formatLong(invite.createdAt)}</strong></div><div><span>Válido até</span><strong>{formatLong(invite.expiresAt)}</strong></div><div><span>Destinatário</span><strong>{invite.email ? 'E-mail definido' : 'Qualquer e-mail'}</strong></div></section>
+    <section className="tv-timeline-card"><h3>HISTÓRICO</h3><div className="tv-timeline-events">{events.map((event) => <div className={`tv-timeline-event tv-event-${event.tone}`} key={event.label}><span className="tv-timeline-dot"><i /></span><div><strong>{event.label}</strong><small>{event.meta}</small></div></div>)}</div></section>
     {state === 'pending' ? <>
       <PrimaryCTA className="tv-detail-primary" onClick={() => openInvite(invite.email ?? undefined, invite.id)}>Gerar novo link<span><LuRotateCcw /></span></PrimaryCTA>
       <TonalButton className="tv-detail-revoke" onClick={() => setConfirm(true)}><LuBan />Revogar convite</TonalButton>
     </> : <button type="button" className="tv-secondary-cta tv-detail-secondary" onClick={() => openInvite(invite.email ?? undefined)}><span>Gerar novo convite</span><i><LuRotateCcw /></i></button>}
-    {confirm && <div className="tv-confirm-scrim"><section role="alertdialog" aria-modal="true" aria-label="Revogar convite?" className="tv-confirm-dialog"><span className="tv-state-icon is-danger"><LuBan /></span><h2>Revogar convite?</h2><p>O link deixará de funcionar imediatamente.</p><div><button type="button" className="tv-secondary-cta" onClick={() => setConfirm(false)}>Cancelar</button><button type="button" className="tv-tonal-button" disabled={pending} onClick={revoke}>{pending ? <span className="tv-spinner" /> : 'Revogar'}</button></div></section></div>}
+    {confirm && <ConfirmDialog title="Revogar convite?" description="O link deixará de funcionar imediatamente." confirmLabel="Revogar" icon={<LuBan />} destructive pending={pending} onCancel={() => setConfirm(false)} onConfirm={revoke} />}
   </div>
 }

@@ -1,6 +1,7 @@
 import 'server-only'
 import { plainTextSchema, slugSchema, uuidSchema } from '@/domain/common'
-import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPublicDTO, RestaurantStatus } from '@/domain/restaurant'
+import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
+import type { MemberRole } from '@/domain/invite'
 import { nextSlugCandidate, slugify } from '@/lib/slug'
 import { rateLimitIdentity } from '@/server/security/client-ip'
 import { enforceRateLimit } from '@/server/security/rate-limit'
@@ -178,6 +179,31 @@ export async function getRestaurantForAdmin(
     segment: data.segment,
     deletedAt: data.deleted_at,
   }
+}
+
+// Responsáveis para a consulta do console. Usa a mesma RPC da equipe, que já
+// libera o administrador da plataforma (`is_platform_admin()`); checamos aqui
+// também, como nas outras leituras de admin.
+export async function listRestaurantMembersForAdmin(
+  restaurantId: unknown,
+): Promise<RestaurantResponsibleDTO[]> {
+  const id = uuidSchema.parse(restaurantId)
+  await requirePlatformAdmin()
+
+  const supabase = await db()
+  const { data, error } = await supabase.rpc('list_restaurant_members', {
+    p_restaurant_id: id,
+  })
+  if (error) {
+    throw new Error('Não foi possível carregar os responsáveis.', { cause: error })
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.membership_id,
+    name: row.display_name?.trim() || row.email.split('@')[0],
+    email: row.email,
+    role: row.member_role as MemberRole,
+  }))
 }
 
 export async function getRestaurantBySlugPublic(

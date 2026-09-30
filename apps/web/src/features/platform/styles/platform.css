@@ -43,9 +43,11 @@
 .tv-command-row small { color: var(--tv-subtle); font-size: 12px; font-weight: 500; }
 .tv-command-empty { padding: 20px 12px; color: var(--tv-muted); font-size: 13px; }
 .tv-console-page { min-width: 0; }
-.tv-console-page > :nth-child(1) { animation: tv-page-in .45s var(--ease-out) both; }
-.tv-console-page > :nth-child(2) { animation: tv-page-in .65s var(--ease-out) both; animation-delay: 70ms; }
-.tv-console-page > :nth-child(3) { animation: tv-page-in .65s var(--ease-out) both; animation-delay: 140ms; }
+/* O topo só do celular (.tv-m-only) entra na lista como primeiro filho; a
+   contagem o ignora para o desktop manter a mesma sequência de entrada. */
+.tv-console-page > :nth-child(1 of :not(.tv-m-only)) { animation: tv-page-in .45s var(--ease-out) both; }
+.tv-console-page > :nth-child(2 of :not(.tv-m-only)) { animation: tv-page-in .65s var(--ease-out) both; animation-delay: 70ms; }
+.tv-console-page > :nth-child(3 of :not(.tv-m-only)) { animation: tv-page-in .65s var(--ease-out) both; animation-delay: 140ms; }
 .tv-list-overview { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
 .tv-list-heading h1 { margin: 3px 0 4px; color: var(--tv-text); font-size: 22px; line-height: 1.2; font-weight: 600; letter-spacing: -.022em; }
 .tv-list-eyebrow { color: var(--tv-gold-text); font-size: 11.5px; font-weight: 500; }
@@ -247,8 +249,6 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
 .tv-detail-page-content > header span { color: var(--tv-subtle); font-size: 11px; font-weight: 700; letter-spacing: .1em; }
 .tv-detail-page-content > header h1 { margin: 6px 0 0; font-size: 28px; line-height: 32px; font-weight: 800; letter-spacing: -.9px; }
 .tv-detail-page-content > header h1 i { color: var(--tv-gold-text); font-style: normal; }
-.tv-detail-back { display: none; color: var(--tv-muted); font-size: 14px; text-decoration: none; }
-.tv-detail-back svg { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
 .tv-error-page { min-height: 100dvh; padding: 32px; display: grid; place-items: center; }
 .tv-error-page .tv-state-card { width: min(540px,100%); }
 .tv-loading-page { width: min(100%,1320px); min-height: 100dvh; margin: auto; padding: 28px 32px 40px; }
@@ -258,8 +258,6 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
 .tv-skeleton-toolbar { width: min(660px,100%); height: 48px; margin: 18px 0 14px; border-radius: 17px; }
 .tv-skeleton-list { display: grid; overflow: hidden; border: 1px solid var(--tv-line); border-radius: 22px; background: var(--tv-surface); }
 .tv-skeleton-row { height: 76px; border-bottom: 1px solid var(--tv-line); }
-.tv-skeleton-card { min-height: 320px; border-radius: 22px; }
-.tv-skeleton-detail-back { width: 148px; height: 18px; border-radius: 8px; }
 .tv-skeleton-detail-eyebrow { display: block; width: 88px; height: 11px; margin-bottom: 8px; border-radius: 6px; }
 .tv-skeleton-detail-title { width: min(290px,100%); height: 32px; border-radius: 10px; }
 .tv-skeleton-detail-hero { height: 190px; border-radius: 30px; background: var(--tv-hero); }
@@ -273,8 +271,11 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
 @media (max-width: 1023px) {
   .tv-table-shell { display: none; }
   .tv-drawer-scrim { display: block; }
-  .tv-mobile-cards { display: grid; gap: 10px; }
-  .tv-mobile-card { min-height: 76px; padding: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--tv-line); border-radius: 22px; background: var(--tv-surface); color: var(--tv-text); font: inherit; text-align: left; cursor: pointer; }
+  /* Sem coluna explícita, a coluna implícita `auto` do grid cresce até a
+     largura mínima do conteúdo (e-mail e data em nowrap) e empurra a página
+     para os lados no celular. minmax(0, 1fr) prende a coluna à tela. */
+  .tv-mobile-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .tv-mobile-card { min-width: 0; min-height: 76px; padding: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--tv-line); border-radius: 22px; background: var(--tv-surface); color: var(--tv-text); font: inherit; text-align: left; cursor: pointer; }
   .tv-mobile-card:active { transform: scale(.985); }
   .tv-mobile-card:focus-visible { outline: 2px solid var(--tv-focus); outline-offset: 3px; }
   .tv-mobile-card-copy { min-width: 0; flex: 1; }
@@ -305,7 +306,6 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
   .tv-invite-sheet-body { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
   .tv-state-card { min-height: 260px; padding: 26px 18px; }
   .tv-state-card p { font-size: 13.5px; }
-  .tv-detail-back { display: block; }
   .tv-detail-page { padding: 22px 18px calc(118px + env(safe-area-inset-bottom)); }
   .tv-detail-page-content { margin: 28px auto 0; }
   .tv-detail-page-content > header { display: none; }
@@ -326,16 +326,7 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
 
 @media (max-width: 767px) {
   .tv-console-main { position: relative; inset: auto; min-height: 100dvh; overflow: visible; border-radius: 0; }
-  .tv-mobile-menu { padding: 8px; }
-  .tv-mobile-theme { display: flex; align-items: center; justify-content: space-between; }
-  .tv-mobile-theme span { display: flex; flex-direction: column; gap: 4px; }
-  .tv-mobile-theme small { color: var(--tv-muted); font-size: 12px; }
-  .tv-mobile-theme strong { font-size: 14px; }
-  .tv-mobile-theme button { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--tv-line-strong); border-radius: 19px; background: var(--tv-field); color: var(--tv-text); }
-  .tv-mobile-theme button svg { width: 20px; height: 20px; }
   .tv-account-popover { left: 12px; bottom: 104px; width: min(286px,calc(100vw - 24px)); }
-}
-@media (prefers-reduced-motion: reduce) {
 }
 
 /* Shared private shell: console and restaurant workspace. */
@@ -426,3 +417,30 @@ button.tv-stat-card:hover,button.tv-stat-card.is-selected { border-color: var(--
   .workspace-territory .tv-menu-page { padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); }
 }
 
+
+/* Conta: a mesma página serve a aba Conta do celular e o desktop. */
+.tv-account-page { width: min(100%, 560px); margin-inline: auto; padding: 26px 32px 64px; display: flex; flex-direction: column; }
+.tv-account-page > h1 { margin: 0 0 16px; color: var(--tv-text); font-size: 22px; line-height: 1.2; font-weight: 600; letter-spacing: -.022em; }
+.tv-account-profile { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
+.tv-account-profile-avatar { width: 52px; height: 52px; flex: 0 0 52px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 18px; font-weight: 650; }
+.tv-account-profile-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tv-account-profile-copy strong { overflow: hidden; color: var(--tv-text); font-size: 17px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.tv-account-profile-copy small { color: var(--tv-text-3); font-size: 13px; }
+.tv-account-label { margin: 22px 16px 6px; color: var(--tv-text-3); font-size: 13px; font-weight: 400; letter-spacing: .02em; text-transform: uppercase; }
+.tv-account-group { overflow: hidden; border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
+.tv-account-group.is-spaced { margin-top: 22px; }
+.tv-account-segment { margin: 10px; padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 10px; background: var(--tv-neutral-soft); }
+.tv-account-segment button { height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); font-size: 14px; font-weight: 500; }
+.tv-account-segment button[aria-pressed="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 3px rgba(22,20,15,.12), 0 0 0 .5px var(--tv-line-2); }
+.tv-account-signout { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: transparent; color: var(--tv-danger); font-size: 16px; }
+.tv-account-signout svg { width: 17px; height: 17px; }
+.tv-account-signout:active { background: var(--tv-danger-soft); }
+.tv-account-signout:disabled { opacity: .6; }
+
+/* Responsáveis na página desktop do restaurante. */
+.tv-member-list { margin: 0; padding: 0; display: grid; gap: 10px; list-style: none; }
+.tv-member-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tv-member-list span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tv-member-list strong { overflow: hidden; color: var(--tv-text); font-size: 13.5px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.tv-member-list a { overflow: hidden; color: var(--tv-text-3); font-size: 12px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.tv-member-list small { flex: 0 0 auto; color: var(--tv-text-3); font-size: 12px; }

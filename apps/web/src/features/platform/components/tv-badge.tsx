@@ -18,6 +18,10 @@ const tones: Record<BadgeState, string> = {
   draft: 'neutral', active: 'ok', suspended: 'warn',
 }
 
+export function badgeLabel(state: BadgeState) {
+  return labels[state]
+}
+
 export function TvBadge({ state, hero = false }: { state: BadgeState; hero?: boolean }) {
   return <span className={`tv-badge tv-tone-${tones[state]}${hero ? ' is-hero' : ''}`}>{labels[state]}</span>
 }

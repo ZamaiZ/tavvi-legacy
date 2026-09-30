@@ -68,3 +68,74 @@
   }
 }
 
+
+/* Entrada do console abaixo de 1024 px: a tela do app (Tavvi Mobile.dc.html).
+   Sempre escura, qualquer que seja o tema. O painel mantém o layout acima. */
+.tv-console-login-hero { display: none; }
+
+@media (max-width: 1023px) {
+  :root:has(.tv-auth-main[data-login="console"]),
+  :root:has(.tv-auth-main[data-login="console"]) body,
+  .admin-territory:has(.tv-auth-main[data-login="console"]) { background: #0D0C0A; }
+
+  .tv-auth-main[data-login="console"] { background: #0D0C0A; color: #F2EEE6; }
+  .tv-auth-main[data-login="console"]::before {
+    position: absolute;
+    top: 40px;
+    right: -110px;
+    width: 340px;
+    height: 340px;
+    background: url('/brand/tavvi-brandmark-gold-on-dark.png') no-repeat center / contain;
+    opacity: .07;
+    content: '';
+    pointer-events: none;
+  }
+  .tv-auth-main[data-login="console"] .tv-auth-layout {
+    width: 100%;
+    max-width: 430px;
+    gap: 0;
+    padding: max(24px, calc(env(safe-area-inset-top) + 20px)) 20px max(34px, calc(env(safe-area-inset-bottom) + 16px));
+  }
+
+  .tv-console-login-hero { position: relative; z-index: 1; margin-bottom: auto; padding-bottom: 28px; display: flex; flex-direction: column; align-items: flex-start; }
+  .tv-console-login-lockup { width: 80px; height: auto; }
+  .tv-console-login-pill { margin-top: 32px; height: 24px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: rgba(208,172,110,.13); color: #D6B67C; font-size: 12px; font-weight: 500; }
+  .tv-console-login-pill > span { width: 5px; height: 5px; border-radius: 50%; background: #D0AC6E; }
+  .tv-console-login-hero h1 { margin: 12px 0 6px; color: #F2EEE6; font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -.025em; }
+  .tv-console-login-hero p { margin: 0; color: #A6A094; font-size: 15px; line-height: 1.45; }
+
+  [data-login="console"] .tv-login-form { gap: 10px; padding: 16px; border: 0; border-radius: 22px; background: #1A1916; color: #F2EEE6; box-shadow: none; }
+  [data-login="console"] .tv-login-head,
+  [data-login="console"] .tv-login-label > label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  /* Só o rótulo some; o aviso de Caps Lock continua visível acima do campo. */
+  [data-login="console"] .tv-login-label { display: contents; }
+  [data-login="console"] .tv-login-label > span { align-self: flex-start; margin-left: 4px; background: rgba(224,180,101,.13); color: #E0B465; }
+  [data-login="console"] .tv-login-field { gap: 6px; }
+  [data-login="console"] .tv-login-box { height: 48px; min-height: 48px; padding: 0 4px 0 14px; gap: 10px; border: 0; border-radius: 13px; background: #232120; box-shadow: none; }
+  [data-login="console"] .tv-login-box:focus-within { box-shadow: 0 0 0 2px rgba(208,172,110,.45); }
+  [data-login="console"] .tv-login-icon { width: 17px; height: 17px; color: #7C766B; }
+  [data-login="console"] .tv-login-input { padding: 0; color: #F2EEE6; font-size: 16px; font-weight: 400; }
+  [data-login="console"] .tv-login-input::placeholder { color: #7C766B; }
+  [data-login="console"] .tv-login-reveal { color: #7C766B; }
+  [data-login="console"] .tv-login-error { padding: 0 4px; color: #EE8C80; font-size: 12.5px; }
+  [data-login="console"] .tv-login-alert { border-radius: 13px; background: rgba(238,140,128,.12); color: #EE8C80; }
+  [data-login="console"] .tv-login-submit { height: 50px; margin-top: 4px; padding: 0 20px; justify-content: center; gap: 8px; border-radius: 999px; background: #D0AC6E; color: #15120C; }
+  [data-login="console"] .tv-login-submit > span:first-child { font-size: 16px; font-weight: 600; }
+  [data-login="console"] .tv-login-submit-icon { width: auto; height: auto; background: transparent; color: #15120C; }
+  [data-login="console"] .tv-login-submit-icon svg { width: 17px; height: 17px; }
+  [data-login="console"] .tv-login-submit-icon > span { border-color: rgba(21,18,12,.25); border-top-color: #15120C; }
+  [data-login="console"] .tv-login-submit:disabled { opacity: .45; }
+  [data-login="console"] .tv-auth-spacer { display: none; }
+  [data-login="console"] .tv-auth-footer { min-height: 0; margin-top: 18px; }
+  [data-login="console"] .tv-auth-footer > div { margin-top: 0; }
+  [data-login="console"] .tv-auth-footer img { width: 38px; height: auto; opacity: .55; }
+  [data-login="console"] .tv-auth-footer span { color: #7C766B; font-size: 12px; }
+  [data-login="console"] .tv-auth-footer span[aria-hidden="true"] { background: #7C766B; }
+  [data-login="console"] .tv-login-input:-webkit-autofill,
+  [data-login="console"] .tv-login-input:-webkit-autofill:hover,
+  [data-login="console"] .tv-login-input:-webkit-autofill:focus,
+  [data-login="console"] .tv-login-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 40px #232120 inset;
+    -webkit-text-fill-color: #F2EEE6;
+  }
+}

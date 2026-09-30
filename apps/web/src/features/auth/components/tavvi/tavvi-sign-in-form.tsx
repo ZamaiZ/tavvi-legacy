@@ -74,12 +74,12 @@ export function TavviSignInForm({
       action={formAction}
       noValidate
       onSubmit={handleSubmit}
-      className="flex w-full flex-col gap-4 rounded-tv-card border border-tv-border bg-tv-surface p-5 text-tv-text lg:gap-4 lg:p-6 lg:shadow-[var(--tv-card-shadow)]"
+      className="tv-login-form flex w-full flex-col gap-4 rounded-tv-card border border-tv-border bg-tv-surface p-5 text-tv-text lg:gap-4 lg:p-6 lg:shadow-[var(--tv-card-shadow)]"
     >
       <input type="hidden" name="next" value={next} />
 
       {denialVisible ? (
-        <div role="alert" className="flex flex-col gap-2 rounded-tv-alert bg-tv-error-surface p-3 text-tv-error">
+        <div role="alert" className="tv-login-alert flex flex-col gap-2 rounded-tv-alert bg-tv-error-surface p-3 text-tv-error">
           <p className="text-[12.5px] leading-[17px] font-medium">Sua conta não tem permissão para acessar o console de administração.</p>
           <button
             type="button"
@@ -92,12 +92,12 @@ export function TavviSignInForm({
       ) : null}
 
       {formError ? (
-        <div role="alert" className="rounded-tv-alert bg-tv-error-surface p-3 text-[12.5px] leading-[17px] font-medium text-tv-error">
+        <div role="alert" className="tv-login-alert rounded-tv-alert bg-tv-error-surface p-3 text-[12.5px] leading-[17px] font-medium text-tv-error">
           {formError}
         </div>
       ) : null}
 
-      <div className="flex min-h-7 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+      <div className="tv-login-head flex min-h-7 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
         <h2 className="text-[22px] leading-[26px] font-extrabold tracking-[-0.66px]">Entrar</h2>
         <p className="text-xs leading-4 font-medium text-tv-subtle">{hint}</p>
       </div>
@@ -137,10 +137,10 @@ export function TavviSignInForm({
       <button
         type="submit"
         disabled={!email || !password || pending}
-        className="group mt-1 flex h-9 w-full items-center justify-between rounded-tv-cta bg-[var(--tv-btn)] px-3 text-[var(--tv-btn-text)] outline-none transition-opacity duration-150 hover:opacity-80 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50"
+        className="tv-login-submit group mt-1 flex h-9 w-full items-center justify-between rounded-tv-cta bg-[var(--tv-btn)] px-3 text-[var(--tv-btn-text)] outline-none transition-opacity duration-150 hover:opacity-80 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="text-[13px] leading-5 font-medium">{pending ? 'Entrando…' : ctaLabel}</span>
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-tv-ink text-[var(--tv-gold-text)]">
+        <span className="tv-login-submit-icon flex size-7 shrink-0 items-center justify-center rounded-md bg-tv-ink text-[var(--tv-gold-text)]">
           {pending ? (
             <span aria-label="Carregando" className="size-[18px] animate-spin rounded-full border-2 border-[var(--tv-gold-soft)] border-t-[var(--tv-gold-text)] motion-reduce:animate-none" />
           ) : (

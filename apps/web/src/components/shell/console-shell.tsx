@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
+import { ConsoleTabBar } from './console-tab-bar'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig } from './console-config'
@@ -29,11 +30,13 @@ export function ConsoleShell({
   config,
   initialRail,
   inviteOverlay,
+  surface = 'restaurant',
 }: {
   children: ReactNode
   config: ConsoleConfig
   initialRail: RailMode
   inviteOverlay?: ReactNode
+  surface?: 'console' | 'restaurant'
 }) {
   const leaves = config.leaves
   const email = config.userLabel
@@ -65,9 +68,24 @@ export function ConsoleShell({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [mode])
 
+  // No celular a barra do navegador acompanha o fundo agrupado do console,
+  // inclusive quando o tema escolhido difere do tema do sistema.
+  useEffect(() => {
+    if (surface !== 'console') return
+    const root = document.documentElement
+    const sync = () => {
+      const color = root.classList.contains('dark') ? '#0D0C0A' : '#F2F0EB'
+      document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => { meta.content = color })
+    }
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [surface])
+
   return <ConsoleActionsContext.Provider value={context}>
     <ConsoleInviteContext.Provider value={inviteContext}>
-      <div className="tv-console-root" style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
+      <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
         <Sidebar
           items={leaves.map((leaf) => ({
             href: leaf.href,
@@ -83,8 +101,10 @@ export function ConsoleShell({
           onSearch={() => setPaletteOpen(true)}
           onAccount={() => setAccountOpen((open) => !open)}
           onToggle={toggleRailMode}
+          mobileChrome={surface !== 'console'}
         />
         <main className="tv-console-main">{children}</main>
+        {surface === 'console' ? <ConsoleTabBar pendingCount={counts.pendingInvites} /> : null}
         <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
         {accountOpen && <><button className="tv-overlay-scrim" aria-label="Fechar conta" onClick={() => setAccountOpen(false)} /><AccountPopover email={email} description={description} onClose={() => setAccountOpen(false)} /></>}
         {config.showNewInvite ? inviteOverlay : null}

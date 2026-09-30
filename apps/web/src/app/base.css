@@ -168,6 +168,17 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --font-heading: var(--tv-font);
   --font-display: var(--display-face);
+  /* Raios das telas de entrada (console e painel). Sem eles o Tailwind não
+     gera os utilitários rounded-tv-* e tudo sai com canto reto. */
+  --radius-tv-card: 16px;
+  --radius-tv-field: 8px;
+  --radius-tv-cta: 999px;
+  --radius-tv-button: 8px;
+  --radius-tv-toggle: 10px;
+  --radius-tv-alert: 10px;
+  --radius-tv-chip: 999px;
+  --radius-tv-badge: 999px;
+  --radius-tv-badge-mobile: 999px;
   --text-display: 1.375rem;
   --text-display--line-height: 1.2;
   --text-title: 1.0625rem;
