@@ -4,9 +4,21 @@ import { LuArrowRight, LuLock, LuMail } from 'react-icons/lu'
 import { ConsoleField } from './console-field'
 import { useSignInForm } from './use-sign-in-form'
 
-// Formulário do login do console (Tavvi Web.dc.html): sem cartão no desktop,
-// CTA em pílula com opacidade .45 até os dois campos terem valor.
-export function ConsoleSignInForm({ next, denied = false }: { next: string; denied?: boolean }) {
+// Formulário do login do console e do painel (Tavvi Web.dc.html): sem cartão
+// no desktop, CTA em pílula com opacidade .45 até os dois campos terem valor.
+export function ConsoleSignInForm({
+  next,
+  denied = false,
+  hint = 'Credenciais de administrador',
+  emailPlaceholder = 'voce@tavvi.com',
+  ctaLabel = 'Entrar no console',
+}: {
+  next: string
+  denied?: boolean
+  hint?: string
+  emailPlaceholder?: string
+  ctaLabel?: string
+}) {
   const form = useSignInForm(denied)
   const ready = Boolean(form.email && form.password)
 
@@ -16,7 +28,7 @@ export function ConsoleSignInForm({ next, denied = false }: { next: string; deni
 
       <div className="tv-cl-head">
         <h2>Entrar</h2>
-        <p>Credenciais de administrador</p>
+        <p>{hint}</p>
       </div>
 
       {form.denialVisible ? (
@@ -35,7 +47,7 @@ export function ConsoleSignInForm({ next, denied = false }: { next: string; deni
         value={form.email}
         onChange={form.editEmail}
         icon={LuMail}
-        placeholder="voce@tavvi.com"
+        placeholder={emailPlaceholder}
         autoComplete="email"
         error={form.emailError}
         readOnly={form.busy}
@@ -63,7 +75,7 @@ export function ConsoleSignInForm({ next, denied = false }: { next: string; deni
       <button type="submit" disabled={!ready || form.busy} data-busy={form.busy} className="tv-cl-submit">
         {form.busy
           ? <><span aria-hidden="true" className="tv-cl-spinner" />Entrando…</>
-          : <>Entrar no console<LuArrowRight aria-hidden="true" /></>}
+          : <>{ctaLabel}<LuArrowRight aria-hidden="true" /></>}
       </button>
 
       <p className="tv-cl-footnote">Protegido por sessão segura · Tavvi</p>

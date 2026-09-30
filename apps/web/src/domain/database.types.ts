@@ -520,6 +520,7 @@ export type Database = {
           id: string
           logo_path: string | null
           name: string
+          onboarding_completed_at: string | null
           segment: string | null
           slug: string
           status: Database["public"]["Enums"]["restaurant_status"]
@@ -538,6 +539,7 @@ export type Database = {
           id?: string
           logo_path?: string | null
           name: string
+          onboarding_completed_at?: string | null
           segment?: string | null
           slug: string
           status?: Database["public"]["Enums"]["restaurant_status"]
@@ -556,6 +558,7 @@ export type Database = {
           id?: string
           logo_path?: string | null
           name?: string
+          onboarding_completed_at?: string | null
           segment?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["restaurant_status"]

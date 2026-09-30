@@ -1,12 +1,25 @@
 'use client'
 
-import type { CSSProperties } from 'react'
-import { RiInstagramLine, RiMapPinLine, RiPhoneLine, RiWhatsappLine } from 'react-icons/ri'
+import type { CSSProperties, ReactNode } from 'react'
+import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
 import type { ThemeChoice } from '@/domain/theme'
+import { ALL_THEME_FONT_VARIABLES } from '@/lib/fonts'
+import { publicMediaUrl } from '@/lib/media-url'
 import { resolveTheme } from '@/lib/theme/resolve'
-import { PhonePreviewFrame, type PreviewMode } from './floating-restaurant-preview'
-import '@/features/public-menu/styles/menu.css'
+import type { PreviewMode } from './floating-restaurant-preview'
 
+type Action = { key: string; label: string; icon: ReactNode }
+
+// Os valores são cores, comprimentos e variáveis de fonte vindos dos presets
+// ou já validados pelo `themeSchema`; nada digitado pelo cliente entra aqui.
+function toCss(vars: Record<string, string>): string {
+  return Object.entries(vars)
+    .map(([name, value]) => `${name}:${value}`)
+    .join(';')
+}
+
+// A capa do cardápio como o cliente a vê: mesmos atalhos, mesma ordem e o
+// tema do restaurante — nunca o dourado do painel.
 export function ContactPreview({
   theme,
   name,
@@ -15,6 +28,7 @@ export function ContactPreview({
   whatsapp,
   instagram,
   address,
+  coverPath,
   mode,
 }: {
   theme: ThemeChoice
@@ -24,52 +38,58 @@ export function ContactPreview({
   whatsapp: string
   instagram: string
   address: string
-  mode: PreviewMode
+  coverPath: string | null
+  // Sem `mode`, a face acompanha o tema do painel. O popover do celular
+  // continua passando a face escolhida no seletor dele.
+  mode?: PreviewMode
 }) {
   const resolved = resolveTheme(theme)
-  const style = (mode === 'light' ? resolved.styleLight : resolved.styleDark) as CSSProperties
-  const channels = [
-    phone ? { label: 'Telefone', value: phone, icon: <RiPhoneLine aria-hidden="true" /> } : null,
-    whatsapp ? { label: 'WhatsApp', value: whatsapp, icon: <RiWhatsappLine aria-hidden="true" /> } : null,
-    instagram ? { label: 'Instagram', value: `@${instagram.replace(/^@+/, '')}`, icon: <RiInstagramLine aria-hidden="true" /> } : null,
-    address ? { label: 'Endereço', value: address, icon: <RiMapPinLine aria-hidden="true" /> } : null,
-  ].filter((channel) => channel !== null)
+  const handle = instagram.trim().replace(/^@+/, '')
+  const candidates: (Action | null)[] = [
+    phone.trim() ? { key: 'phone', label: 'Ligar', icon: <LuPhone aria-hidden="true" /> } : null,
+    whatsapp.trim() ? { key: 'whatsapp', label: 'WhatsApp', icon: <LuMessageCircle aria-hidden="true" /> } : null,
+    handle ? { key: 'instagram', label: `@${handle}`, icon: <LuInstagram aria-hidden="true" /> } : null,
+    address.trim() ? { key: 'address', label: 'Como chegar', icon: <LuMapPin aria-hidden="true" /> } : null,
+  ]
+  const actions = candidates.filter((action): action is Action => action !== null)
+  const style = mode
+    ? ((mode === 'light' ? resolved.styleLight : resolved.styleDark) as CSSProperties)
+    : undefined
 
   return (
-    <PhonePreviewFrame mode={mode} density={resolved.density} style={style}>
-      <div
-        className="h-24 w-full"
-        style={{
-          background:
-            'linear-gradient(150deg, color-mix(in oklab, var(--m-accent) 70%, var(--m-base)), var(--m-base))',
-        }}
-      />
-      <div className="px-3 pb-5">
-        <h3 className="menu-display -mt-2 text-base font-semibold leading-tight">
-          {name || 'Seu restaurante'}
-        </h3>
-        {description.trim() ? (
-          <p className="menu-muted mt-2 text-[0.6875rem] leading-relaxed">{description}</p>
+    <div className="tv-preview-phone">
+      {mode ? null : (
+        // Por folha, e não por `style`: só a regra consegue acompanhar a
+        // classe `.dark` do painel sem esperar a hidratação.
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `.tv-contact-phone-screen{${toCss(resolved.styleLight)}}.dark .tv-contact-phone-screen{${toCss(resolved.styleDark)}}`,
+          }}
+        />
+      )}
+      <div className={`tv-preview-phone-screen tv-contact-phone-screen ${ALL_THEME_FONT_VARIABLES}`} style={style}>
+        <div className="tv-contact-phone-cover">
+          {coverPath ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={publicMediaUrl('image', coverPath)} alt="" />
+          ) : null}
+        </div>
+        <div className="tv-contact-phone-intro">
+          <strong>{name.trim() || 'Seu restaurante'}</strong>
+          {description.trim() ? <span>{description}</span> : null}
+        </div>
+        {actions.length > 0 ? (
+          <div className="tv-contact-phone-actions">
+            {actions.map((action, index) => (
+              <span key={action.key} className={index === 0 ? 'is-primary' : undefined}>
+                {action.icon}
+                <span>{action.label}</span>
+              </span>
+            ))}
+          </div>
         ) : null}
-        {channels.length > 0 ? (
-          <section className="pt-5">
-            <h4 className="menu-display menu-accent text-[0.5625rem] font-bold uppercase tracking-[0.18em]">
-              Encontre e fale com a gente
-            </h4>
-            <ul className="menu-list menu-line mt-2 divide-y" style={{ borderColor: 'var(--m-line)' }}>
-              {channels.map((channel) => (
-                <li key={channel.label} className="menu-item flex items-start gap-2 py-2">
-                  <span className="menu-accent mt-0.5 shrink-0">{channel.icon}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="menu-display block text-[0.6875rem] font-semibold">{channel.label}</span>
-                    <span className="menu-muted mt-0.5 block break-words text-[0.625rem] leading-snug">{channel.value}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        {address.trim() ? <span className="tv-contact-phone-address">{address}</span> : null}
       </div>
-    </PhonePreviewFrame>
+    </div>
   )
 }

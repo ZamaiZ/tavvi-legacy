@@ -64,9 +64,8 @@ async function assertNotLastAdmin(
     throw new Error(`Não foi possível conferir a equipe: ${error.message}`)
   }
   if ((count ?? 0) === 0) {
-    throw new UserFacingError(
-      'Este é o único administrador. Promova outra pessoa antes de mudar este papel.',
-    )
+    // Texto do design (README §7.9). Vale para trocar papel e para remover.
+    throw new UserFacingError('A equipe precisa de ao menos um administrador.')
   }
 }
 

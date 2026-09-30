@@ -1,6 +1,13 @@
-/* Tokens fixos da interface privada. As variáveis públicas do cardápio e os
-   tokens editáveis de identidade continuam isolados em .site-public. */
+/* Paleta Tavvi. Vale para o documento inteiro, e não só para os territórios:
+   toasts, menus, popovers e diálogos do Base UI são montados no <body>, e ali
+   herdariam a paleta padrão do shadcn (primária verde-azulada, neutros
+   azulados). O cardápio público não é afetado: ele pinta tudo com as
+   variáveis `--m-*` de `resolveTheme`.
 
+   Os territórios continuam na lista para `.dark .x` e `.x.dark` (logo
+   abaixo) seguirem vencendo a declaração clara. */
+
+:root,
 .admin-territory,
 .tv-auth-scope,
 .workspace-territory {
@@ -74,12 +81,17 @@
   --sidebar-accent-foreground: var(--tv-text);
   --sidebar-border: var(--tv-line);
   --sidebar-primary: var(--tv-gold-text);
+  --sidebar-primary-foreground: var(--tv-btn-text);
+  --sidebar-ring: var(--tv-gold);
   --radius: 0.5rem;
 
-  font-family: var(--tv-font);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.003em;
-  -webkit-font-smoothing: antialiased;
+  /* Situação do restaurante e sinais de sucesso/aviso, nas cores Tavvi. */
+  --status-draft: var(--tv-text-2);
+  --status-draft-bg: var(--tv-neutral-soft);
+  --status-active: var(--tv-ok);
+  --status-active-bg: var(--tv-ok-soft);
+  --status-suspended: var(--tv-warn);
+  --status-suspended-bg: var(--tv-warn-soft);
 
   /* Nomes semânticos consumidos pelas folhas atuais. */
   --tv-screen: var(--tv-bg);
@@ -100,6 +112,17 @@
   --tv-overlay-shadow: var(--tv-pop);
 }
 
+/* Tipografia só nos territórios: o cardápio público usa as fontes do tema. */
+.admin-territory,
+.tv-auth-scope,
+.workspace-territory {
+  font-family: var(--tv-font);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark,
 .dark .admin-territory, .admin-territory.dark,
 .dark .tv-auth-scope, .tv-auth-scope.dark,
 .dark .workspace-territory, .workspace-territory.dark {
@@ -248,121 +271,12 @@
   --color-tv-warn-surface: var(--tv-warn-surface);
   --color-tv-ring: var(--tv-ring);
 }
+/* O que a raiz tem de diferente dos territórios não é cor: o raio do shadcn
+   e as famílias do cardápio público. As cores vêm da paleta Tavvi no topo. */
 :root {
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.511 0.096 186.391);
-  --primary-foreground: oklch(0.984 0.014 180.72);
-  /* Neutros deslocados para quente: o matiz sai de 286 (azulado) para 85
-     (levemente amarelado). E o que separa a direcao "calida" da fria. */
-  --secondary: oklch(0.970 0.004 85);
-  --secondary-foreground: oklch(0.215 0.008 75);
-  --muted: oklch(0.970 0.004 85);
-  --muted-foreground: oklch(0.556 0.012 75);
-  --accent: oklch(0.962 0.006 85);
-  --accent-foreground: oklch(0.215 0.008 75);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0.005 85);
-  --input: oklch(0.922 0.005 85);
-  --ring: oklch(0.56 0.1 186);
-
-  /* A raiz pública mantém a dupla original. Os territórios privados não
-     interferem nas fontes temáticas do cardápio. */
+  --radius: 0.4rem;
   --heading-face: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --display-face: var(--font-display), ui-serif, Georgia, serif;
-
-  /* Três superfícies empilhadas, em vez de retângulos delimitados por linha
-     de 1px. No modo claro a pilha SOBE: o fundo da página é o mais escuro
-     dos três, e o cartão que flutua sobre ele é branco. */
-  --surface-1: oklch(0.985 0.003 85);
-  --surface-2: oklch(1 0 0);
-  --surface-3: oklch(1 0 0);
-
-  /* Sombra curta e de baixa opacidade, com matiz quente para acompanhar os
-     neutros. Sombra cinza sobre neutro quente parece sujeira, não relevo. */
-  --shadow-1: 0 1px 2px oklch(0.30 0.02 75 / 0.05), 0 1px 3px oklch(0.30 0.02 75 / 0.04);
-  --shadow-2: 0 2px 4px oklch(0.30 0.02 75 / 0.05), 0 8px 20px oklch(0.30 0.02 75 / 0.07);
-
-  /* Situacao do restaurante. Conjunto a parte, separado da primaria: a
-     primaria e um verde-azulado (matiz 186), e "ativo" precisa ser
-     distinguivel dela num relance -- por isso o verde-folha em 145. */
-  --status-draft: oklch(0.556 0.012 75);
-  --status-draft-bg: oklch(0.962 0.006 85);
-  --status-active: oklch(0.520 0.140 145);
-  --status-active-bg: oklch(0.950 0.040 145);
-  --status-suspended: oklch(0.560 0.130 75);
-  --status-suspended-bg: oklch(0.960 0.050 85);
-  --chart-1: oklch(0.845 0.143 164.978);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.596 0.145 163.225);
-  --chart-4: oklch(0.508 0.118 165.612);
-  --chart-5: oklch(0.432 0.095 166.913);
-  --radius: 0.4rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.6 0.118 184.704);
-  --sidebar-primary-foreground: oklch(0.984 0.014 180.72);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.56 0.1 186);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-}
-
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.437 0.078 188.216);
-  --primary-foreground: oklch(0.984 0.014 180.72);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.704 0.11 182.5);
-  --chart-1: oklch(0.845 0.143 164.978);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.596 0.145 163.225);
-  --chart-4: oklch(0.508 0.118 165.612);
-  --chart-5: oklch(0.432 0.095 166.913);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.704 0.14 182.503);
-  --sidebar-primary-foreground: oklch(0.277 0.046 192.524);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.704 0.11 182.5);
-
-  /* No escuro a pilha INVERTE: o fundo é o mais escuro e cada camada
-     clareia. Sombra quase não funciona sobre fundo escuro, então aqui a
-     separação entre camadas vem da diferença de luminosidade, não do relevo. */
-  --surface-1: oklch(0.18 0.005 285);
-  --surface-2: oklch(0.21 0.006 285.885);
-  --surface-3: oklch(0.25 0.006 285.885);
-
-  --shadow-1: 0 1px 2px oklch(0 0 0 / 0.30);
-  --shadow-2: 0 2px 4px oklch(0 0 0 / 0.30), 0 8px 20px oklch(0 0 0 / 0.35);
-
-  /* Situacao no modo escuro: fundo escuro saturado, texto claro. Mantem o
-     mesmo contraste do modo claro invertido. */
-  --status-draft: oklch(0.708 0.012 75);
-  --status-draft-bg: oklch(0.270 0.008 75);
-  --status-active: oklch(0.760 0.130 145);
-  --status-active-bg: oklch(0.280 0.045 145);
-  --status-suspended: oklch(0.790 0.120 75);
-  --status-suspended-bg: oklch(0.290 0.045 75);
 }
 
 @layer base {

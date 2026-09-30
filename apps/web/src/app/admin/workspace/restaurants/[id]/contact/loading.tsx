@@ -2,17 +2,24 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {
   return (
-    <main className="tavvi-page">
-      <div className="mb-8 space-y-2">
-        <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-4 w-80" />
+    <main className="tv-contact-page">
+      <div className="mb-[18px] flex flex-col gap-[3px]">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-4 w-96 max-w-full" />
       </div>
-      <div className="space-y-4">
-          {[2, 3, 1].map((section, index) => <div key={index} className="tavvi-surface space-y-4 p-5 sm:p-6">
-            <Skeleton className="h-5 w-32" />
-            {Array.from({ length: section }).map((_, field) => <div key={field} className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full rounded-xl" /></div>)}
+      <div className="tv-contact-layout">
+        <div className="tv-contact-form">
+          {[2, 3, 1].map((fields, index) => <div key={index} className="tv-contact-card">
+            <div className="space-y-1.5"><Skeleton className="h-4 w-24" /><Skeleton className="h-3.5 w-64 max-w-full" /></div>
+            {Array.from({ length: fields }).map((_, field) => <div key={field} className="tv-contact-field"><Skeleton className="h-3.5 w-20" /><Skeleton className="h-8 w-full rounded-lg" /></div>)}
           </div>)}
-          <Skeleton className="h-14 w-full rounded-[18px]" />
+          <Skeleton className="h-[48px] w-full rounded-full" />
+        </div>
+        <div className="tv-contact-preview">
+          <Skeleton className="h-4 w-28 self-start" />
+          <Skeleton className="h-[520px] w-[260px] rounded-[34px]" />
+        </div>
       </div>
     </main>
   )

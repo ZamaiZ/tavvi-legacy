@@ -1,9 +1,5 @@
 import Image from 'next/image'
-import {
-  RiInstagramLine,
-  RiPhoneLine,
-  RiWhatsappLine,
-} from 'react-icons/ri'
+import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
 import { publicMediaUrl } from '@/lib/media-url'
 
 type ContactLink = { label: string; href: string; icon: React.ReactNode }
@@ -34,26 +30,36 @@ export function MenuCover({
   // Anotado como `(Atalho | null)[]` ANTES do filtro: sem isso o TypeScript
   // infere o tipo do literal — com `icone: Element` em vez de `ReactNode` —
   // e o predicado escrito à mão deixa de ser atribuível.
+  //
+  // A ordem e os rótulos são os da prévia do painel (README §7.8): Ligar,
+  // WhatsApp, @instagram e Como chegar. O primeiro fica em destaque.
   const candidates: (ContactLink | null)[] = [
+    contact.phone
+      ? {
+          label: 'Ligar',
+          href: `tel:${contact.phone.replace(/\D/g, '')}`,
+          icon: <LuPhone className="size-4 shrink-0" aria-hidden="true" />,
+        }
+      : null,
     contact.whatsapp
       ? {
           label: 'WhatsApp',
           href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`,
-          icon: <RiWhatsappLine className="size-4" aria-hidden="true" />,
+          icon: <LuMessageCircle className="size-4 shrink-0" aria-hidden="true" />,
         }
       : null,
     contact.instagram
       ? {
-          label: 'Instagram',
-          href: `https://instagram.com/${contact.instagram.replace(/^@/, '')}`,
-          icon: <RiInstagramLine className="size-4" aria-hidden="true" />,
+          label: `@${contact.instagram.replace(/^@+/, '')}`,
+          href: `https://instagram.com/${contact.instagram.replace(/^@+/, '')}`,
+          icon: <LuInstagram className="size-4 shrink-0" aria-hidden="true" />,
         }
       : null,
-    contact.phone
+    contact.address
       ? {
-          label: 'Telefone',
-          href: `tel:${contact.phone.replace(/\D/g, '')}`,
-          icon: <RiPhoneLine className="size-4" aria-hidden="true" />,
+          label: 'Como chegar',
+          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`,
+          icon: <LuMapPin className="size-4 shrink-0" aria-hidden="true" />,
         }
       : null,
   ]
@@ -148,15 +154,23 @@ export function MenuCover({
               ) : null}
 
               {links.length > 0 ? (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {links.map((link) => (
+                <div className="mt-5 grid grid-cols-2 gap-2">
+                  {links.map((link, index) => (
                     <a
-                      key={link.label}
+                      key={link.href}
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      // min-h-11 são os 44px de alvo de toque.
-                      className="menu-block menu-line flex min-h-11 items-center gap-2 border px-4 text-sm font-medium"
+                      // min-h-11 são os 44px de alvo de toque. Sobrando um
+                      // atalho sozinho na última linha, ele ocupa as duas
+                      // colunas. As cores vão no `style` pelo mesmo motivo do
+                      // logo: `menu.css` fica fora de `@layer`.
+                      className="menu-block flex min-h-11 min-w-0 items-center justify-center gap-2 px-3 text-sm font-medium [&:last-child:nth-child(odd)]:col-span-2"
+                      style={
+                        index === 0
+                          ? { background: 'var(--m-accent)', color: 'var(--m-on-accent)' }
+                          : { background: 'var(--m-chip)' }
+                      }
                     >
                       {/* O ícone entra na Fase 5: só o rótulo fazia os três
                           atalhos virarem uma fileira de palavras iguais, e o
@@ -166,7 +180,7 @@ export function MenuCover({
                           não faz nada de útil — fica por consistência, a
                           pedido do dono do projeto. */}
                       {link.icon}
-                      {link.label}
+                      <span className="truncate">{link.label}</span>
                     </a>
                   ))}
                 </div>

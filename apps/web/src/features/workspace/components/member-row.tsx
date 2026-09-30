@@ -1,47 +1,51 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { RiDeleteBinLine } from 'react-icons/ri'
+import { LuCopy, LuTrash2, LuUserCog, LuUserMinus } from 'react-icons/lu'
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { NativeSelect } from '@/components/ui/native-select'
-import { TableCell, TableRow } from '@/components/ui/table'
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { toast } from '@/components/ui/toast'
 import {
   MEMBER_ROLE_LABELS,
   type MemberDTO,
   type MemberRole,
 } from '@/domain/invite'
+import { copyText } from '@/lib/copy-text'
+import { formatShort } from '@/lib/format-date'
 import {
   changeMemberRoleAction,
   removeMemberAction,
 } from '@/server/actions/members'
+import { TeamConfirmDialog } from './team-confirm-dialog'
+
+const ROLES = Object.keys(MEMBER_ROLE_LABELS) as MemberRole[]
+const ROLE_OPTIONS: ComboboxOption[] = ROLES.map((role) => ({ value: role, label: MEMBER_ROLE_LABELS[role] }))
 
 export function MemberRow({
   member,
-  variant = 'row',
   isSelf = false,
 }: {
   member: MemberDTO
-  variant?: 'row' | 'card'
   isSelf?: boolean
 }) {
   const [pending, startTransition] = useTransition()
   const [papel, setPapel] = useState<MemberRole>(member.role)
+  const [removeOpen, setRemoveOpen] = useState(false)
 
   // Duas letras no máximo. Nome com sobrenome dá as duas iniciais; e-mail dá
-  // a primeira letra antes do arroba. O ponto de interrogação cobre o membro
-  // sem nome nem e-mail, que o banco permite.
+  // as iniciais das partes antes do domínio. O ponto de interrogação cobre o
+  // membro sem nome nem e-mail, que o banco permite.
   const fonte = member.displayName ?? member.email ?? ''
   const iniciais =
     fonte
@@ -50,7 +54,9 @@ export function MemberRow({
       .slice(0, 2)
       .map((parte) => parte[0]?.toUpperCase() ?? '')
       .join('') || '?'
-  const [removeOpen, setRemoveOpen] = useState(false)
+  const primary = member.displayName ?? member.email ?? 'Sem identificação'
+  const secondary = member.displayName && member.email ? member.email : null
+  const label = member.email ?? member.displayName ?? 'membro'
 
   function updateRole(nextRole: MemberRole) {
     const anterior = papel
@@ -77,6 +83,7 @@ export function MemberRow({
   function removeMember() {
     startTransition(async () => {
       const result = await removeMemberAction(member.membershipId)
+      setRemoveOpen(false)
       toast.add(
         result.ok
           ? { title: 'Membro removido', type: 'success' }
@@ -86,128 +93,86 @@ export function MemberRow({
   }
 
   const removeDialog = (
-    <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            Remover {member.email ?? member.displayName ?? 'este membro'}?
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            A pessoa perde o acesso a este restaurante na hora. Para voltar,
-            precisará de um convite novo.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={removeMember}>Remover</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <TeamConfirmDialog
+      open={removeOpen}
+      onOpenChange={setRemoveOpen}
+      icon={<LuTrash2 />}
+      title={`Remover ${member.email ?? member.displayName ?? 'este membro'}?`}
+      description="A pessoa perde o acesso a este restaurante na hora. Para voltar, precisará de um convite novo."
+      confirmLabel="Remover"
+      pending={pending}
+      onConfirm={removeMember}
+    />
   )
 
-  if (variant === 'card') {
-    return (
-      <article className="tavvi-surface p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="size-10 shrink-0">
-            <AvatarFallback>{iniciais}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="truncate font-semibold">
-              {member.displayName ?? member.email ?? 'Sem identificação'}
-            </p>
-            {member.displayName && member.email ? (
-              <p className="truncate text-sm text-muted-foreground">{member.email}</p>
-            ) : null}
-          </div>
-        </div>
-        <div className="mt-4 grid gap-3 border-t border-border/60 pt-4">
-          <NativeSelect
-            value={papel}
-            disabled={pending || isSelf}
-            aria-label={`Papel de ${member.email ?? member.displayName ?? 'membro'}`}
-            onChange={(event) => updateRole(event.target.value as MemberRole)}
-          >
-            {(Object.keys(MEMBER_ROLE_LABELS) as MemberRole[]).map((role) => (
-              <option key={role} value={role}>{MEMBER_ROLE_LABELS[role]}</option>
-            ))}
-          </NativeSelect>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">
-              {isSelf ? 'Você · ' : 'Desde '}{new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-            </span>
-            {isSelf ? <span className="text-xs font-medium text-muted-foreground">Seu acesso</span> : <Button variant="ghost" size="sm" disabled={pending} onClick={() => setRemoveOpen(true)}>
-              <RiDeleteBinLine className="size-4" /> Remover
-            </Button>}
-          </div>
-        </div>
-        {removeDialog}
-      </article>
-    )
-  }
-
+  // No desktop, o botão direito repete as ações da linha (spec de
+  // componentes §4.3). Em você mesmo, só copiar o e-mail.
   return (
-    <TableRow className="h-14">
-      <TableCell>
-        <div className="flex items-center gap-3">
-          {/* `Avatar` com as iniciais. O primitivo existia desde a Fase 1 e
-              nunca tinha sido importado por nenhuma tela — era uma das 42
-              peças do sistema de design que o painel ignorava.
-
-              Não há foto de perfil no produto, e nem por isso a lista precisa
-              ser só texto: a inicial dá âncora visual para percorrer uma
-              equipe de dez pessoas. */}
-          <Avatar className="size-9 shrink-0">
-            <AvatarFallback>{iniciais}</AvatarFallback>
-          </Avatar>
-
-          <div className="min-w-0">
-            <span className="block truncate font-medium">
-              {member.displayName ?? member.email ?? 'Sem identificação'}
-            </span>
-            {member.displayName && member.email ? (
-              <span className="block truncate text-small text-muted-foreground">
-                {member.email}
-              </span>
-            ) : null}
-          </div>
+    <ContextMenu disabled={isSelf && !member.email}>
+      <ContextMenuTrigger render={<div role="row" className="tv-team-row tv-team-columns" />}>
+        <div role="cell" className="tv-team-person">
+          <span className="tv-team-avatar" aria-hidden="true">{iniciais}</span>
+          <span className="tv-row-copy">
+            <strong className="tv-row-title">{primary}</strong>
+            {secondary ? <small className="tv-row-meta">{secondary}</small> : null}
+          </span>
         </div>
-      </TableCell>
 
-      <TableCell>
-        <NativeSelect
-          value={papel}
-          disabled={pending || isSelf}
-          aria-label={`Papel de ${member.email ?? member.displayName ?? 'membro'}`}
-          onChange={(event) => updateRole(event.target.value as MemberRole)}
-        >
-          {(Object.keys(MEMBER_ROLE_LABELS) as MemberRole[]).map((role) => (
-            <option key={role} value={role}>
-              {MEMBER_ROLE_LABELS[role]}
-            </option>
-          ))}
-        </NativeSelect>
-      </TableCell>
+        <div role="cell">
+          {/* Você mesmo não muda o próprio papel: a trava evita se rebaixar
+              sem querer. A do último administrador fica no servidor. */}
+          <Combobox
+            label={`Papel de ${label}`}
+            options={ROLE_OPTIONS}
+            value={papel}
+            onValueChange={(next) => updateRole(next as MemberRole)}
+            size="sm"
+            disabled={pending || isSelf}
+            className="tv-team-combo"
+          />
+        </div>
 
-      <TableCell className="text-muted-foreground">
-        {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-      </TableCell>
+        <div role="cell" className="tv-date-cell">
+          {formatShort(member.joinedAt)}
+        </div>
 
-      <TableCell>
-        {!isSelf ? <Button
-          variant="ghost"
-          size="sm"
-          disabled={pending}
-          onClick={() => setRemoveOpen(true)}
-        >
-          <RiDeleteBinLine className="size-4" />
-          Remover
-        </Button> : <span className="text-xs text-muted-foreground">Você</span>}
-
-        {/* Irmão do botão, controlado por estado. Diálogo montado dentro de
-            menu suspenso some junto com o menu e nunca chega a aparecer. */}
-        {removeDialog}
-      </TableCell>
-    </TableRow>
+        <div role="cell" className="tv-team-actions">
+          {isSelf ? (
+            <span className="tv-team-self">Você</span>
+          ) : (
+            <button
+              type="button"
+              className="tv-team-remove"
+              disabled={pending}
+              aria-label={`Remover ${label}`}
+              onClick={() => setRemoveOpen(true)}
+            >
+              <LuTrash2 aria-hidden="true" />
+              Remover
+            </button>
+          )}
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent aria-label={`Ações de ${label}`}>
+        {isSelf ? null : (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger><LuUserCog aria-hidden="true" /><span>Papel</span></ContextMenuSubTrigger>
+            <ContextMenuSubContent aria-label="Papel">
+              <ContextMenuRadioGroup value={papel} onValueChange={(next) => updateRole(next as MemberRole)}>
+                {ROLE_OPTIONS.map((option) => <ContextMenuRadioItem key={option.value} value={option.value}>{option.label}</ContextMenuRadioItem>)}
+              </ContextMenuRadioGroup>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        )}
+        {member.email ? <ContextMenuItem onClick={() => void copyText(member.email!, 'E-mail copiado')}><LuCopy aria-hidden="true" /><span>Copiar e-mail</span></ContextMenuItem> : null}
+        {isSelf ? null : (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem variant="destructive" disabled={pending} onClick={() => setRemoveOpen(true)}><LuUserMinus aria-hidden="true" /><span>Remover da equipe</span></ContextMenuItem>
+          </>
+        )}
+      </ContextMenuContent>
+      {removeDialog}
+    </ContextMenu>
   )
 }

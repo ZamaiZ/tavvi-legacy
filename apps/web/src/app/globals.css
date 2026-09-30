@@ -2,7 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./base.css";
+@import "./controls.css";
 @import "../features/workspace/styles/workspace.css";
+@import "../features/workspace/styles/team.css";
+@import "../features/workspace/styles/panel.css";
+@import "../features/menu-editor/styles/menu-editor.css";
 @import "../features/auth/styles/auth.css";
 @import "../features/auth/styles/console-login.css";
 @import "../features/public-menu/styles/public-menu.css";
@@ -10,5 +14,7 @@
 @import "../features/platform/styles/console-shell.css";
 @import "../features/platform/styles/console-page.css";
 @import "../features/platform/styles/console-detail.css";
+@import "../features/platform/styles/mobile-base.css";
 @import "../features/platform/styles/console-mobile.css";
+@import "../features/workspace/styles/panel-mobile.css";
 

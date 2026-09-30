@@ -1,18 +1,15 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import {
-  RiArrowGoBackLine,
-  RiCheckLine,
-} from 'react-icons/ri'
+import { LuCheck, LuUndo2 } from 'react-icons/lu'
 import { BrandImages } from '@/features/workspace/components/brand-images'
 import { FloatingRestaurantPreview } from '@/features/workspace/components/floating-restaurant-preview'
+import { IdentityPreview } from '@/features/workspace/components/identity-preview'
 import { ThemePreview } from '@/features/workspace/components/theme-preview'
-import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
-import { NativeSelect } from '@/components/ui/native-select'
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import type { BrandSlot } from '@/domain/media'
 import { SORTED_SEGMENTS, suggestPresetFor } from '@/domain/segment'
 import {
   THEME_PRESET_IDS,
@@ -21,12 +18,31 @@ import {
   type ThemeChoice,
   type ThemePresetId,
 } from '@/domain/theme'
-import { fitContrast } from '@/lib/color'
+import { contrastRatio, fitContrast } from '@/lib/color'
+import { ALL_THEME_FONT_VARIABLES } from '@/lib/fonts'
 import { isBaseInRange, PRESETS } from '@/lib/theme/presets'
 import { CONTRAST_MINIMUMS } from '@/lib/theme/resolve'
-import { getAccentOptions, getBaseOptions } from '@/features/workspace/components/identity-theme-options'
+import {
+  getAccentOptions,
+  getBaseOptions,
+  isAccentUsable,
+} from '@/features/workspace/components/identity-theme-options'
 import { updateIdentityAction } from '@/server/actions/restaurants'
-import { cn } from 'cn'
+
+const DENSITIES: { value: Density; label: string }[] = [
+  { value: 'confortavel', label: 'Confortável' },
+  { value: 'compacto', label: 'Compacto' },
+]
+
+// "Não informar" é o valor vazio, gravado como null.
+const SEGMENT_OPTIONS: ComboboxOption[] = [
+  { value: '', label: 'Não informar' },
+  ...SORTED_SEGMENTS.map((segment) => ({ value: segment.label, label: segment.label })),
+]
+
+function sameColor(a: string, b: string) {
+  return a.toLowerCase() === b.toLowerCase()
+}
 
 export function IdentityForm({
   restaurantId,
@@ -56,50 +72,40 @@ export function IdentityForm({
   const [selectedSegment, setSelectedSegment] = useState<string | null>(segment)
   const [savedSegment, setSavedSegment] = useState(segment)
   const [themeTouched, setThemeTouched] = useState(false)
-  // O aceite da derivação é por MUDANÇA, não por sessão: quem abre a tela e
-  // não mexe na cor não é interrogado de novo sobre uma escolha que já fez.
-  const [accentTouched, setAccentTouched] = useState(false)
-  const [accentAccepted, setAccentAccepted] = useState(false)
+  // Logo e capa gravam sozinhas; o formulário só guarda o caminho atual para
+  // a prévia mostrar a imagem assim que o envio termina.
+  const [brand, setBrand] = useState<Record<BrandSlot, string | null>>({ logo: logoPath, cover: coverPath })
   const [pending, startTransition] = useTransition()
 
   const preset = PRESETS[choice.preset]
   const currentBase = choice.base ?? preset.light.base
   const currentAccent = choice.accent ?? preset.light.accent
-  const baseOptions = useMemo(() => getBaseOptions(choice.preset), [choice.preset])
-  const accentOptions = useMemo(
-    () => getAccentOptions(choice.preset, currentBase, currentAccent),
-    [currentAccent, currentBase, choice.preset],
-  )
-
-  // As duas conferências do servidor, repetidas aqui. Isto é conveniência —
-  // a regra é o `updateIdentity`, que roda de novo e recusa. Mas dizer
-  // "não passa" no momento da escolha é muito melhor que dizer ao salvar.
-  const isBaseValid = useMemo(
-    () => isBaseInRange(choice.preset, currentBase),
+  const suggestedPreset = suggestPresetFor(selectedSegment)
+  const baseOptions = useMemo(
+    () => getBaseOptions(choice.preset, currentBase),
     [choice.preset, currentBase],
   )
-  // A derivação por face, a mesma que `resolveTheme` faz para desenhar o
-  // cardápio e que `updateIdentity` confere antes de gravar. `null` numa das
-  // faces quer dizer que nem o extremo de luminosidade atinge o piso — e aí
-  // a cor é recusada, não adaptada.
-  const derivedAccent = useMemo(
-    () => ({
-      light: fitContrast(currentAccent, currentBase, CONTRAST_MINIMUMS.accent),
-      dark: fitContrast(currentAccent, preset.dark.base, CONTRAST_MINIMUMS.accent),
-    }),
-    [currentAccent, currentBase, preset],
+  const accentOptions = useMemo(
+    () => getAccentOptions(choice.preset, currentBase, currentAccent),
+    [choice.preset, currentBase, currentAccent],
   )
 
-  const isAccentValid = derivedAccent.light !== null && derivedAccent.dark !== null
+  // As conferências do servidor, repetidas aqui — a regra é o
+  // `updateIdentity`, que roda de novo e recusa. Mas dizer "não passa" no
+  // momento da escolha é muito melhor que dizer ao salvar.
+  const isBaseValid = isBaseInRange(choice.preset, currentBase)
+  // Destaque do tema (`accent: null`): o cardápio usa a cor calibrada do
+  // preset no escuro, e no claro só precisa alcançar o piso. Destaque do
+  // dono: tem de ser legível como está no claro — é o que ele vê e escolheu —
+  // e ter versão possível no escuro. Nenhuma derivação escondida no claro.
+  const accentReadsOnLight =
+    choice.accent === null
+      ? fitContrast(currentAccent, currentBase, CONTRAST_MINIMUMS.accent) !== null
+      : contrastRatio(currentAccent, currentBase) >= CONTRAST_MINIMUMS.accent
+  const isAccentValid =
+    choice.accent === null ? accentReadsOnLight : isAccentUsable(choice.preset, currentAccent, currentBase)
   const hasChanges = JSON.stringify(choice) !== JSON.stringify(savedChoice) || selectedSegment !== savedSegment
-
-  // Só pede aceite quando a derivação de fato MUDOU a cor. Cor que já serve
-  // nas duas faces passa direto: pedir confirmação do que não mudou é ruído
-  // que ensina a clicar sem ler.
-  const needsAcceptance =
-    accentTouched &&
-    isAccentValid &&
-    (derivedAccent.light !== currentAccent || derivedAccent.dark !== currentAccent)
+  const canSave = !pending && hasChanges && isBaseValid && isAccentValid
 
   function updateSegment(value: string) {
     const nextSegment = value === '' ? null : value
@@ -108,8 +114,14 @@ export function IdentityForm({
     // Sugere o tema, e só enquanto a pessoa não tiver escolhido um à mão.
     // Depois disso a escolha é dela, e sobrescrever seria desfazer decisão.
     if (!themeTouched) {
-      const suggestedPreset = suggestPresetFor(nextSegment)
-      if (suggestedPreset) setChoice((current) => ({ ...current, preset: suggestedPreset }))
+      // Trocar de tema zera as cores pelo mesmo motivo de `updatePreset`;
+      // continuar no mesmo tema mantém as que o dono já escolheu.
+      const suggested = suggestPresetFor(nextSegment)
+      if (suggested) {
+        setChoice((current) =>
+          current.preset === suggested ? current : { ...current, preset: suggested, base: null, accent: null },
+        )
+      }
     }
   }
 
@@ -119,13 +131,10 @@ export function IdentityForm({
     // faixa do Grão quase nunca está dentro da faixa do Brasa, e carregar a
     // cor antiga produziria um estado recusado já no primeiro render.
     setChoice((current) => ({ ...current, preset: id, base: null, accent: null }))
-    // E o aceite zera junto: a cor voltou a ser a do preset, que é calibrada
-    // e não precisa de aceite nenhum.
-    setAccentTouched(false)
-    setAccentAccepted(false)
   }
 
   function save() {
+    if (!canSave) return
     startTransition(async () => {
       const result = await updateIdentityAction({
         restaurantId,
@@ -143,247 +152,164 @@ export function IdentityForm({
     })
   }
 
+  const previewData = {
+    theme: choice,
+    name,
+    segment: selectedSegment,
+    logoPath: brand.logo,
+    coverPath: brand.cover,
+  }
+
   return (
     <div className="tv-identity-layout">
-      <div className="tavvi-surface space-y-6 p-5 sm:p-6">
-        {/* Logo e capa gravam SOZINHAS, na hora do envio — não esperam o
-            "Salvar identidade". Envio de arquivo já é uma confirmação por si,
-            e amarrar o arquivo a um botão de salvar criaria um estado onde o
-            arquivo está no storage mas o banco ainda não sabe dele. */}
+      <div className="tv-identity-main">
         <BrandImages
           restaurantId={restaurantId}
-          logoPath={logoPath}
-          coverPath={coverPath}
+          logoPath={brand.logo}
+          coverPath={brand.cover}
+          onChange={(slot, path) => setBrand((current) => ({ ...current, [slot]: path }))}
         />
 
-        <Field>
-          <FieldLabel htmlFor="segment">Tipo de restaurante</FieldLabel>
-          <NativeSelect
-            id="segment"
-            value={selectedSegment ?? ''}
-            onChange={(event) => updateSegment(event.target.value)}
-          >
-            <option value="">Não informar</option>
-            {SORTED_SEGMENTS.map((s) => (
-              <option key={s.label} value={s.label}>
-                {s.label}
-              </option>
-            ))}
-          </NativeSelect>
-          <FieldDescription>
-            Só serve para sugerir um tema. Você pode trocar o tema depois.
-          </FieldDescription>
-        </Field>
-
-        <div>
-          <p className="text-small font-medium">Tema do cardápio</p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {THEME_PRESET_IDS.map((id) => {
-              const p = PRESETS[id]
-              const isSelected = choice.preset === id
-              const suggestedPreset = suggestPresetFor(selectedSegment) === id
-
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => updatePreset(id)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    'flex min-h-11 flex-col gap-2 rounded-lg border p-3 text-left transition-colors',
-                    isSelected
-                      ? 'border-primary bg-accent'
-                      : 'border-border hover:bg-accent/50',
-                  )}
-                >
-                  <span className="flex gap-1" aria-hidden="true">
-                    {[p.light.base, p.light.accent, p.dark.base].map((color, i) => (
-                      <i
-                        key={i}
-                        className="size-3.5 rounded-full border border-border"
-                        style={{ background: color }}
-                      />
-                    ))}
-                  </span>
-                  <span aria-hidden="true" className="text-lg leading-none" style={{ color: p.light.accent, fontFamily: p.displayFont }}>Aa</span>
-                  <span className="text-card font-semibold">{p.label}</span>
-                  {suggestedPreset ? (
-                    <span className="text-micro font-semibold uppercase tracking-wider text-primary">
-                      Sugerido
-                    </span>
-                  ) : null}
-                </button>
-              )
-            })}
+        <section className="tv-identity-card is-theme" aria-label="Tema e cores">
+          <div className="tv-identity-field is-segment">
+            <span className="tv-identity-label">Tipo de restaurante</span>
+            <Combobox
+              label="Tipo de restaurante"
+              options={SEGMENT_OPTIONS}
+              value={selectedSegment ?? ''}
+              onValueChange={updateSegment}
+              className="tv-identity-combo"
+            />
+            <span className="tv-identity-help">Só serve para sugerir um tema. Você pode trocar o tema depois.</span>
           </div>
-          <p className="mt-2 text-small text-muted-foreground">
-            {preset.segments.slice(0, 5).join(' · ')}
-          </p>
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="base">Cor de fundo</FieldLabel>
-            <div className="tv-theme-colors" role="group" aria-label="Opções de cor de fundo">
-              {baseOptions.map((color) => <button
-                key={color}
-                type="button"
-                title={color}
-                aria-label={`Cor de fundo ${color}`}
-                aria-pressed={currentBase.toLowerCase() === color.toLowerCase()}
-                onClick={() => setChoice((current) => ({ ...current, base: color === preset.light.base ? null : color }))}
-                style={{ backgroundColor: color }}
-              />)}
+          <div className="tv-identity-field is-themes">
+            <span id="identity-theme-label" className="tv-identity-label">Tema do cardápio</span>
+            {/* As variáveis das fontes dos temas, para cada "Aa" sair na fonte do
+                próprio tema, e não na do painel. */}
+            <div className={`tv-identity-themes ${ALL_THEME_FONT_VARIABLES}`} role="group" aria-labelledby="identity-theme-label">
+              {THEME_PRESET_IDS.map((id) => {
+                const p = PRESETS[id]
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className="tv-identity-theme"
+                    aria-pressed={choice.preset === id}
+                    onClick={() => updatePreset(id)}
+                  >
+                    <span className="tv-identity-theme-swatches" aria-hidden="true">
+                      {[p.light.base, p.light.accent, p.dark.base].map((color, i) => (
+                        <i key={i} style={{ background: color }} />
+                      ))}
+                    </span>
+                    <span aria-hidden="true" className="tv-identity-theme-sample" style={{ color: p.light.accent, fontFamily: p.displayFont }}>Aa</span>
+                    <span className="tv-identity-theme-name">
+                      <strong>{p.label}</strong>
+                      {suggestedPreset === id ? <small>SUGERIDO</small> : null}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
-            <p className="font-mono text-xs text-muted-foreground">{currentBase}</p>
-            <FieldDescription>
-              {isBaseValid ? (
-                'Dentro da faixa deste tema.'
-              ) : (
-                <span className="text-destructive">
-                  Fora da faixa do tema {preset.label}. O cardápio ficaria
-                  ilegível, e o servidor vai recusar.
-                </span>
-              )}
-            </FieldDescription>
-          </Field>
+            <span className="tv-identity-help">{preset.segments.slice(0, 5).join(' · ')}</span>
+          </div>
 
-          <Field>
-            <FieldLabel htmlFor="accent">Cor de destaque</FieldLabel>
-            <div className="tv-theme-colors" role="group" aria-label="Cores de destaque deste tema">
-              {accentOptions.map((color) => <button
-                key={color}
-                type="button"
-                title={color}
-                aria-label={`Cor de destaque ${color}`}
-                aria-pressed={currentAccent.toLowerCase() === color.toLowerCase()}
-                onClick={() => {
-                  setAccentTouched(true)
-                  setAccentAccepted(false)
-                  setChoice((current) => ({ ...current, accent: color === preset.light.accent ? null : color }))
-                }}
-                style={{ backgroundColor: color }}
-              />)}
-            </div>
-            <p className="font-mono text-xs text-muted-foreground">{currentAccent}</p>
-            <FieldDescription>
-              {isAccentValid ? (
-                'O matiz é mantido nas duas versões do cardápio; só a luminosidade se ajusta quando precisa.'
-              ) : (
-                <span className="text-destructive">
-                  Não fica legível na versão{' '}
-                  {derivedAccent.light === null && derivedAccent.dark === null
-                    ? 'clara nem na escura'
-                    : derivedAccent.light === null
-                      ? 'clara'
-                      : 'escura'}{' '}
-                  do cardápio. Escolha um tom mais vivo ou menos acinzentado.
-                </span>
-              )}
-            </FieldDescription>
-          </Field>
-        </div>
-
-        {/* A derivação não é silenciosa. Sem isto, a cor da marca mudaria
-            pelas costas do dono e ele só descobriria se olhasse a
-            pré-visualização escura. */}
-        {needsAcceptance ? (
-          <div className="rounded-lg border border-border bg-surface-1 p-4">
-            <p className="text-small font-medium">
-              Esta cor precisa de ajuste para ficar legível
-            </p>
-            <p className="mt-1 text-small text-muted-foreground">
-              O matiz é mantido; só a luminosidade muda, e só na versão em que
-              a cor original não seria lida.
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-4">
-              {[
-                { label: 'Você escolheu', color: currentAccent },
-                { label: 'No claro', color: derivedAccent.light ?? currentAccent },
-                { label: 'No escuro', color: derivedAccent.dark ?? currentAccent },
-              ].map((sample) => (
-                <div key={sample.label}>
-                  <span
-                    className="block size-10 rounded-md border border-border"
-                    style={{ background: sample.color }}
+          <div className="tv-identity-colors">
+            <div className="tv-identity-field">
+              <span id="identity-base-label" className="tv-identity-label">Cor de fundo</span>
+              <div className="tv-identity-swatches" role="group" aria-labelledby="identity-base-label">
+                {baseOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    aria-label={`Cor de fundo ${color}`}
+                    aria-pressed={sameColor(currentBase, color)}
+                    onClick={() => setChoice((current) => ({ ...current, base: sameColor(color, preset.light.base) ? null : color }))}
+                    style={{ background: color }}
                   />
-                  <p className="mt-1 text-micro text-muted-foreground">
-                    {sample.label}
-                  </p>
-                  <p className="text-micro font-medium">{sample.color}</p>
-                </div>
+                ))}
+              </div>
+              {isBaseValid ? (
+                <span className="tv-identity-help is-mono">{currentBase} · Dentro da faixa deste tema.</span>
+              ) : (
+                <span className="tv-identity-error">
+                  Fora da faixa do tema {preset.label}. O cardápio ficaria ilegível, e o servidor vai recusar.
+                </span>
+              )}
+            </div>
+
+            <div className="tv-identity-field">
+              <span id="identity-accent-label" className="tv-identity-label">Cor de destaque</span>
+              <div className="tv-identity-swatches" role="group" aria-labelledby="identity-accent-label">
+                {accentOptions.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    aria-label={`Cor de destaque ${color}`}
+                    aria-pressed={sameColor(currentAccent, color)}
+                    onClick={() => setChoice((current) => ({ ...current, accent: sameColor(color, preset.light.accent) ? null : color }))}
+                    style={{ background: color }}
+                  />
+                ))}
+              </div>
+              {isAccentValid ? (
+                <span className="tv-identity-help"><span className="is-mono">{currentAccent}</span> · O matiz é mantido nas duas versões do cardápio.</span>
+              ) : (
+                <span className="tv-identity-error">
+                  {accentReadsOnLight
+                    ? 'Não fica legível na versão escura do cardápio. Escolha outra cor de destaque.'
+                    : 'Pouco contraste com este fundo. Escolha outra cor de destaque.'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="tv-identity-field">
+            <span id="identity-density-label" className="tv-identity-label">Densidade</span>
+            <div className="tv-identity-segmented" role="group" aria-labelledby="identity-density-label">
+              {DENSITIES.map((density) => (
+                <button
+                  key={density.value}
+                  type="button"
+                  aria-pressed={choice.density === density.value}
+                  onClick={() => setChoice((current) => ({ ...current, density: density.value }))}
+                >
+                  {density.label}
+                </button>
               ))}
             </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={() => setAccentAccepted(true)}
-            >
-              <RiCheckLine className="size-4" />
-              Entendi, usar assim
-            </Button>
+            <span className="tv-identity-help">
+              Compacto recolhe a descrição e aperta a linha. Serve a cardápio de centenas de itens, como rotisserie e self-service.
+            </span>
           </div>
-        ) : null}
-
-        <div>
-          <p className="text-small font-medium">Densidade</p>
-          <div className="mt-3 flex gap-2">
-            {(['confortavel', 'compacto'] as Density[]).map((d) => (
-              <Button
-                key={d}
-                type="button"
-                variant={choice.density === d ? 'default' : 'outline'}
-                onClick={() => setChoice((currentChoice) => ({ ...currentChoice, density: d }))}
-              >
-                {d === 'confortavel' ? 'Confortável' : 'Compacto'}
-              </Button>
-            ))}
-          </div>
-          <p className="mt-2 text-small text-muted-foreground">
-            Compacto recolhe a descrição e aperta a linha. Serve a cardápio de
-            centenas de itens, como rotisserie e self-service.
-          </p>
-        </div>
+        </section>
 
         <div className="tv-identity-savebar">
-          <span>{hasChanges ? 'Alterações pendentes' : 'Tudo salvo'}</span>
-          <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={save}
-            disabled={
-              pending ||
-              !hasChanges ||
-              !isBaseValid ||
-              !isAccentValid ||
-              (needsAcceptance && !accentAccepted)
-            }
-          >
-            {pending ? <Spinner className="size-4" /> : <RiCheckLine className="size-4" />}
-            {pending ? 'Salvando…' : 'Salvar identidade'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setChoice((currentChoice) => ({ ...currentChoice, base: null, accent: null }))
-              setAccentTouched(false)
-              setAccentAccepted(false)
-            }}
-          >
-            <RiArrowGoBackLine className="size-4" />
-            Restaurar as cores do tema
-          </Button>
+          <span role="status">{pending ? 'Salvando…' : hasChanges ? 'Alterações pendentes' : 'Tudo salvo'}</span>
+          <div>
+            <button
+              type="button"
+              className="tv-identity-reset"
+              onClick={() => setChoice((current) => ({ ...current, base: null, accent: null }))}
+            >
+              <LuUndo2 aria-hidden="true" />
+              <span className="tv-savebar-long">Restaurar as cores do tema</span>
+              <span className="tv-savebar-short">Restaurar cores</span>
+            </button>
+            <button type="button" className="tv-identity-save" aria-disabled={!canSave} onClick={save}>
+              {pending ? <Spinner className="size-3.5" aria-hidden="true" /> : <LuCheck aria-hidden="true" />}
+              <span className="tv-savebar-long">Salvar identidade</span>
+              <span className="tv-savebar-short">Salvar</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <FloatingRestaurantPreview
-        renderPreview={(mode) => <ThemePreview theme={choice} name={name} mode={mode} />}
-      />
+      <IdentityPreview {...previewData} />
+      <FloatingRestaurantPreview renderPreview={(mode) => <ThemePreview {...previewData} mode={mode} />} />
     </div>
   )
 }

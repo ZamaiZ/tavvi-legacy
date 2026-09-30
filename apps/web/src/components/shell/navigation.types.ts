@@ -28,6 +28,21 @@ export type NavGroup = {
 
 export type NavItem = NavLeaf | NavGroup
 
+export type MobileTabIcon = 'mail' | 'store' | 'menu' | 'service' | 'team' | 'settings'
+
+// Aba da tab bar do celular. `exact` acende só na rota exata (o Cardápio é
+// prefixo de todas as outras); `match` acende também em outras rotas
+// (Ajustes em Identidade e Contato).
+export type MobileTab = {
+  key: string
+  href: string
+  label: string
+  icon: MobileTabIcon
+  match?: string[]
+  exact?: boolean
+  badge?: number
+}
+
 export type TavviShellConfig = {
   homeHref: string
   userLabel: string | null

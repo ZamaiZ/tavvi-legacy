@@ -1,8 +1,10 @@
-import { TavviAuthShell } from '@/features/auth/components/tavvi/tavvi-auth-shell'
-import { TavviSignInForm } from '@/features/auth/components/tavvi/tavvi-sign-in-form'
+import type { Viewport } from 'next'
+import { ConsoleSignInShell } from '@/features/auth/components/tavvi/console-sign-in-shell'
+import { ConsoleSignInForm } from '@/features/auth/components/tavvi/console-sign-in-form'
 import { safeNextPath } from '@/domain/common'
 
 export const metadata = { title: 'Entrar' }
+export const viewport: Viewport = { themeColor: '#0D0C0A' }
 
 export default async function Page({
   searchParams,
@@ -13,23 +15,13 @@ export default async function Page({
   const safeNext = safeNextPath(next === '/' ? undefined : next, '/restaurantes')
 
   return (
-    <TavviAuthShell
-      variant="painel"
-      badge="Painel · Acesso do restaurante"
-      title="Painel do restaurante"
-      subtitle="Entre para cuidar do seu cardápio."
-    >
-      <TavviSignInForm
+    <ConsoleSignInShell territory="painel">
+      <ConsoleSignInForm
         next={safeNext}
-        hint="Conta do restaurante"
-        emailPlaceholder="voce@seurestaurante.com"
+        hint="Acesso do restaurante"
+        emailPlaceholder="voce@restaurante.com.br"
         ctaLabel="Entrar no painel"
-        footer={(
-          <p className="px-1 text-center text-xs leading-4 font-medium text-tv-subtle text-pretty">
-            Recebeu um convite? Abra o link enviado ao seu e-mail.
-          </p>
-        )}
       />
-    </TavviAuthShell>
+    </ConsoleSignInShell>
   )
 }

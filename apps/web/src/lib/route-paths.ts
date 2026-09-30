@@ -18,6 +18,8 @@ const externalRestaurantSections: Record<string, string> = {
   identidade: 'identity',
   equipe: 'team',
   contato: 'contact',
+  servico: 'service',
+  ajustes: 'settings',
 }
 
 const internalFirstSegments: Record<PrivateTerritory, Record<string, string>> = {

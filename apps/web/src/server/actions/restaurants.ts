@@ -1,5 +1,6 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import * as readDal from '@/server/dal/restaurant-read'
 import * as writeDal from '@/server/dal/restaurant-write'
 import {
@@ -26,6 +27,15 @@ export async function setPublishedAction(
     // exatamente isso.
     revalidateLists()
   })
+}
+
+// Formulário do assistente ("Pular e montar o cardápio" / "Ir para o
+// cardápio"): grava a marca e leva ao cardápio. Daí em diante o botão
+// "Primeiros passos" some do cabeçalho.
+export async function completeOnboardingAction(formData: FormData): Promise<void> {
+  const restaurantId = String(formData.get('restaurantId') ?? '')
+  revalidateRestaurant(await writeDal.completeOnboarding({ restaurantId }))
+  redirect(`/restaurantes/${restaurantId}`)
 }
 
 export async function updateIdentityAction(

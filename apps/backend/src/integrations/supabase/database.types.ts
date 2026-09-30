@@ -11,9 +11,9 @@ export type Database = {
         Relationships: []
       }
       restaurants: {
-        Row: { id: string; name: string; slug: string; segment: string | null; status: Database['public']['Enums']['restaurant_status']; deleted_at: string | null; created_at: string; updated_at: string; created_by: string | null; contact: Json; cover_path: string | null; currency: string; description: string | null; logo_path: string | null; theme: Json; timezone: string }
+        Row: { id: string; name: string; slug: string; segment: string | null; status: Database['public']['Enums']['restaurant_status']; deleted_at: string | null; created_at: string; updated_at: string; created_by: string | null; contact: Json; cover_path: string | null; currency: string; description: string | null; logo_path: string | null; onboarding_completed_at: string | null; theme: Json; timezone: string }
         Insert: { id?: string; name: string; slug: string; segment?: string | null; status?: Database['public']['Enums']['restaurant_status']; deleted_at?: string | null }
-        Update: { name?: string; slug?: string; segment?: string | null; status?: Database['public']['Enums']['restaurant_status']; deleted_at?: string | null }
+        Update: { name?: string; slug?: string; segment?: string | null; status?: Database['public']['Enums']['restaurant_status']; deleted_at?: string | null; onboarding_completed_at?: string | null }
         Relationships: []
       }
     }

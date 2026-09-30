@@ -1,6 +1,6 @@
 import 'server-only'
 import { plainTextSchema, slugSchema, uuidSchema } from '@/domain/common'
-import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
+import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPickerDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
 import type { MemberRole } from '@/domain/invite'
 import { nextSlugCandidate, slugify } from '@/lib/slug'
 import { rateLimitIdentity } from '@/server/security/client-ip'
@@ -78,36 +78,42 @@ export async function listRestaurantsForAdmin(): Promise<RestaurantAdminDTO[]> {
   return ((data ?? []) as AdminRow[]).map(toAdminDTO)
 }
 
-export async function listMyRestaurants(): Promise<RestaurantMemberDTO[]> {
-  await requireUser()
+export async function listMyRestaurants(): Promise<RestaurantPickerDTO[]> {
+  const user = await requireUser()
 
   const supabase = await db()
   // O !inner em memberships limita aos restaurantes de que a pessoa
-  // participa. A RLS ja garantiria isso; o filtro explicito existe porque
-  // a DAL nao delega sua decisao ao banco -- as duas camadas concordam, e
-  // uma falha em qualquer uma e contida pela outra.
+  // participa, e o filtro em memberships.user_id traz o papel DELA (e não o
+  // de outro membro do mesmo restaurante). A RLS ja garantiria o recorte; o
+  // filtro explicito existe porque a DAL nao delega sua decisao ao banco.
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, memberships!inner(user_id)',
+      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, onboarding_completed_at, memberships!inner(user_id, role)',
     )
+    .eq('memberships.user_id', user.id)
     .is('deleted_at', null)
     .order('name')
 
   if (error) throw new Error(`Não foi possível listar: ${error.message}`)
 
-  return (data ?? []).map((row) => ({
-    id: row.id as string,
-    slug: row.slug as string,
-    name: row.name as string,
-    description: row.description as string | null,
-    status: row.status as RestaurantStatus,
-    logoPath: row.logo_path as string | null,
-    coverPath: row.cover_path as string | null,
-    contact: (row.contact ?? {}) as Record<string, string>,
-    segment: row.segment as string | null,
-    theme: row.theme,
-  }))
+  return (data ?? []).map((row) => {
+    const membership = (row.memberships as { role: MemberRole }[] | null)?.[0]
+    return {
+      id: row.id as string,
+      slug: row.slug as string,
+      name: row.name as string,
+      description: row.description as string | null,
+      status: row.status as RestaurantStatus,
+      logoPath: row.logo_path as string | null,
+      coverPath: row.cover_path as string | null,
+      contact: (row.contact ?? {}) as Record<string, string>,
+      segment: row.segment as string | null,
+      theme: row.theme,
+      onboardingCompletedAt: row.onboarding_completed_at as string | null,
+      role: membership?.role ?? null,
+    }
+  })
 }
 
 export async function getRestaurantForMember(
@@ -120,7 +126,7 @@ export async function getRestaurantForMember(
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme',
+      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, onboarding_completed_at',
     )
     .eq('id', id)
     .is('deleted_at', null)
@@ -144,6 +150,7 @@ export async function getRestaurantForMember(
     contact: (data.contact ?? {}) as Record<string, string>,
     segment: data.segment as string | null,
     theme: data.theme,
+    onboardingCompletedAt: data.onboarding_completed_at as string | null,
   }
 }
 

@@ -15,17 +15,17 @@ export function PageHeader({
 }) {
   return (
     <header className={`mb-[18px] flex flex-col justify-between gap-4 sm:flex-row sm:items-end ${className ?? ''}`}>
-      <div className="min-w-0 max-w-[560px]">
+      <div className="flex min-w-0 max-w-[560px] flex-col gap-[3px]">
         {eyebrow ? (
-          <p className="mb-1 text-[11.5px] font-medium text-[var(--tv-gold-text)]">
+          <p className="text-[11.5px] font-medium leading-[1.45] text-[var(--tv-gold-text)]">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-[22px] font-semibold leading-[1.2] tracking-[-0.022em]">
+        <h1 className="text-[22px] font-semibold leading-[1.45] tracking-[-0.022em]">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1.5 max-w-[560px] text-[13px] leading-[1.45] text-[var(--tv-text-2)]">
+          <p className="max-w-[560px] text-[13px] leading-[1.45] text-[var(--tv-text-2)]">
             {description}
           </p>
         ) : null}

@@ -1,58 +1,57 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-// A tela de identidade é a mais pesada do painel: ela carrega as nove fontes
-// de tema. A pré-visualização agora flutua fora do fluxo, então o esqueleto
-// mantém apenas a coluna de edição estável.
+// O esqueleto repete a grade da página — os dois cartões à esquerda e a
+// prévia de 300 px à direita —, para nada pular quando o conteúdo chega.
 export default function Loading() {
   return (
-    <main className="tavvi-page">
-      <div className="mb-8 space-y-2">
-        <Skeleton className="h-9 w-56" />
-        <Skeleton className="h-4 w-80" />
+    <main className="tv-identity-page">
+      <div className="mb-[18px] space-y-2">
+        <Skeleton className="h-3 w-12" />
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-4 w-72" />
       </div>
 
       <div className="tv-identity-layout">
-      <div className="tavvi-surface space-y-6 p-5 sm:p-6">
+        <div className="tv-identity-main">
           {/* Logo e capa. */}
-          <div className="grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="size-24 rounded-lg" />
-              <Skeleton className="h-24 w-full rounded-xl" />
+          <div className="tv-identity-card">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-48" />
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-24 w-full rounded-lg" />
-              <Skeleton className="h-24 w-full rounded-xl" />
+            <div className="tv-brand-tiles">
+              <Skeleton className="aspect-square rounded-xl" />
+              <Skeleton className="rounded-xl" />
             </div>
           </div>
 
-          {/* Segmento. */}
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
-
-          {/* Os oito temas. */}
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-36" />
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {/* Tipo, temas, cores e densidade. */}
+          <div className="tv-identity-card is-theme">
+            <div className="max-w-[320px] space-y-1.5">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-8 w-full rounded-lg" />
+            </div>
+            <div className="tv-identity-themes">
               {[0, 1, 2, 3, 4, 5, 6, 7].map((tema) => (
-                <Skeleton key={tema} className="h-20 rounded-lg" />
+                <Skeleton key={tema} className="h-[88px] rounded-[11px]" />
               ))}
             </div>
+            <div className="tv-identity-colors">
+              {[0, 1].map((cor) => (
+                <div key={cor} className="space-y-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-[26px] w-[166px] rounded-full" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="h-[30px] w-[190px] rounded-[9px]" />
           </div>
+        </div>
 
-          {/* As duas cores. */}
-          <div className="grid gap-6 sm:grid-cols-2">
-            {[0, 1].map((cor) => (
-              <div key={cor} className="space-y-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-11 w-full rounded-md" />
-              </div>
-            ))}
-          </div>
-      </div>
+        <div className="tv-identity-aside">
+          <Skeleton className="h-3 w-28 self-start" />
+          <Skeleton className="h-[520px] w-[260px] rounded-[34px]" />
+        </div>
       </div>
     </main>
   )

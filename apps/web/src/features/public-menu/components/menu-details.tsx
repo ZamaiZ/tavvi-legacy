@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet'
 import type { MenuItemDTO } from '@/domain/menu'
 import { ALL_THEME_FONT_VARIABLES } from '@/lib/fonts'
-import { formatPriceBRL } from '@/lib/format'
+import { formatCents } from '@/lib/money'
 
 // A descrição inteira e as variações moram aqui, e não sobre a foto. Texto
 // longo empurrando a mídia é o que transforma um feed numa página comprida
@@ -93,14 +93,14 @@ export function MenuDetails({
                       )}
                     </span>
                     <span className="menu-accent shrink-0 font-semibold">
-                      {formatPriceBRL(variant.priceCents)}
+                      {formatCents(variant.priceCents)}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="menu-accent mt-6 px-4 pb-4 text-[1.125rem] font-semibold">
-                {formatPriceBRL(item.basePriceCents)}
+                {formatCents(item.basePriceCents)}
               </p>
             )}
           </>

@@ -8,6 +8,8 @@ import { Progress, ProgressLabel } from '@/components/ui/progress'
 import { uuidSchema } from '@/domain/common'
 import { requireRestaurantAdmin } from '@/server/dal/auth'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
+import { completeOnboardingAction } from '@/server/actions/restaurants'
+import { themeSchema } from '@/domain/theme'
 
 export const metadata = { title: 'Configurar restaurante' }
 
@@ -32,6 +34,10 @@ export default async function Page({
 
   const { passo: requestedStep } = await searchParams
   const currentStep = requestedStep === 'contato' ? 'contato' : 'identidade'
+  const parsedTheme = themeSchema.safeParse(restaurant.theme ?? {})
+  const previewTheme = parsedTheme.success
+    ? parsedTheme.data
+    : { preset: 'grao' as const, base: null, accent: null, density: 'confortavel' as const }
 
   return (
     <main className="tavvi-page">
@@ -74,14 +80,14 @@ export default async function Page({
             coverPath={restaurant.coverPath}
           />
         ) : (
-          <div className="max-w-[560px]">
-            <ProfileForm
-              restaurantId={restaurant.id}
-              name={restaurant.name}
-              description={restaurant.description}
-              contact={restaurant.contact}
-            />
-          </div>
+          <ProfileForm
+            restaurantId={restaurant.id}
+            name={restaurant.name}
+            description={restaurant.description}
+            contact={restaurant.contact}
+            theme={previewTheme}
+            coverPath={restaurant.coverPath}
+          />
         )}
 
         {/* Pular é visível nos dois passos, e não escondido num canto. O
@@ -99,12 +105,14 @@ export default async function Page({
             </Link>
           ) : null}
 
-          <Link
-            href={`/restaurantes/${restaurant.id}`}
-            className={buttonVariants({ variant: 'ghost' })}
-          >
-            {currentStep === 'identidade' ? 'Pular e montar o cardápio' : 'Ir para o cardápio'}
-          </Link>
+          {/* Formulário, e não link: sair do assistente grava a marca que
+              esconde "Primeiros passos" do cabeçalho do cardápio. */}
+          <form action={completeOnboardingAction}>
+            <input type="hidden" name="restaurantId" value={restaurant.id} />
+            <button type="submit" className={buttonVariants({ variant: 'ghost' })}>
+              {currentStep === 'identidade' ? 'Pular e montar o cardápio' : 'Ir para o cardápio'}
+            </button>
+          </form>
         </div>
       </Reveal>
     </main>

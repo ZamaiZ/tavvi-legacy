@@ -1,133 +1,109 @@
 'use client'
 
-import { RiDeleteBinLine, RiFilmLine } from 'react-icons/ri'
-import { cn } from 'cn'
-import { ReorderButtons } from '@/features/menu-editor/components/reorder-buttons'
+import type { SyntheticEvent } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { LuFilm, LuImageUp, LuTrash2, LuX } from 'react-icons/lu'
 import {
-  Attachment,
-  AttachmentAction,
-  AttachmentActions,
-  AttachmentContent,
-  AttachmentDescription,
-  AttachmentMedia,
-  AttachmentTitle,
-  AttachmentTrigger,
-} from '@/components/ui/attachment'
-import { Progress } from '@/components/ui/progress'
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import type { MediaStatus } from '@/lib/media/types'
-import { formatFileSize } from '@/lib/format'
 
-// O `state` do primitivo mapeia direto do nosso estado. É para isso que ele
-// tem esse prop — e é aí que a classe `shimmer`, que a Fase 5 precisou
-// definir à mão, finalmente aparece.
-const ATTACHMENT_STATE: Record<
-  MediaStatus,
-  'idle' | 'uploading' | 'processing' | 'error' | 'done'
-> = {
-  pending: 'idle',
-  compressing: 'processing',
-  uploading: 'uploading',
-  error: 'error',
-  ready: 'done',
-}
+// Menus e listas portados mandam os eventos pela árvore do React até o
+// tile, mas não estão dentro dele no DOM: esses nunca iniciam arrasto.
+const fromInside = (event: SyntheticEvent) => event.currentTarget.contains(event.target as Node)
 
-// Uma mídia da lista. Serve GRAVADA e PENDENTE, de propósito: no feed a
-// ordem das duas é a mesma ordem de telas, e mostrá-las em listas separadas
-// esconderia do dono exatamente o que o cliente vai ver primeiro.
-export function MediaItem({
+// Tile quadrado da grade de mídia (README §7.5, "Editar item"). Serve mídia
+// GRAVADA e PENDENTE: no feed a ordem das duas é a mesma ordem de telas.
+//
+// O tile inteiro arrasta com o mouse ou o toque; o botão interno seleciona
+// para o enquadramento e é o ativador do teclado (espaço pega, Enter
+// seleciona). O "remover" nunca inicia arrasto. No desktop, o botão direito
+// oferece "Definir como capa" (só para mídia gravada) e "Remover".
+export function MediaTile({
+  id,
   title,
-  description,
   previewUrl,
-  kind,
   state,
   progress,
-  mediaError,
-  first,
-  last,
+  cover,
   busy,
-  onMoveUp,
-  onMoveDown,
-  onRemove,
   selected = false,
   onSelect,
+  onRemove,
+  onMakeCover,
 }: {
+  id: string
   title: string
-  description?: string
   /** `null` num vídeo sem capa: cai no ícone de filme. */
   previewUrl: string | null
-  kind: 'image' | 'video'
   state: MediaStatus
   progress: number
-  mediaError?: string
-  first: boolean
-  last: boolean
+  cover: boolean
   busy: boolean
-  onMoveUp: () => void
-  onMoveDown: () => void
-  onRemove: () => void
   selected?: boolean
   onSelect?: () => void
+  onRemove: () => void
+  /** Leva a mídia para a primeira posição, a mesma ação do arrastar. */
+  onMakeCover?: () => void
 }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: busy })
+  const working = state === 'uploading' || state === 'compressing'
+  const label = `${title}${cover ? ' (capa)' : ''}`
+
   return (
-    <Attachment
-      orientation="vertical"
-      size="sm"
-      state={ATTACHMENT_STATE[state]}
-      className={cn(
-        'w-[132px] rounded-xl transition-[border-color,box-shadow] duration-150',
-        selected && 'border-primary ring-2 ring-primary/10',
-      )}
-    >
-      {onSelect ? (
-        <AttachmentTrigger
-          aria-label={`Selecionar ${title} para ajustar o enquadramento`}
-          aria-pressed={selected}
+    <ContextMenu>
+      <ContextMenuTrigger
+        render={
+          <div
+            ref={setNodeRef}
+            style={{ transform: CSS.Transform.toString(transform), transition }}
+            className={`tv-media-tile${selected ? ' is-selected' : ''}${isDragging ? ' is-dragging' : ''}${state === 'error' ? ' is-error' : ''}`}
+            onMouseDown={(event) => { if (fromInside(event)) listeners?.onMouseDown?.(event) }}
+            onTouchStart={(event) => { if (fromInside(event)) listeners?.onTouchStart?.(event) }}
+          />
+        }
+      >
+        <button
+          ref={setActivatorNodeRef}
+          type="button"
+          className="tv-media-select"
+          {...attributes}
+          aria-pressed={onSelect ? selected : undefined}
+          aria-label={onSelect ? `${label}. Selecionar para ajustar o enquadramento` : label}
+          onKeyDown={(event) => listeners?.onKeyDown?.(event)}
           onClick={onSelect}
-          className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        />
-      ) : null}
-      <AttachmentMedia variant={previewUrl ? 'image' : 'icon'}>
-        {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt="" />
-        ) : (
-          <RiFilmLine aria-hidden="true" />
-        )}
-      </AttachmentMedia>
-
-      <AttachmentContent>
-        {/* A primeira mídia é a tela que ABRE o prato no feed. Dizer isso é o
-            que transforma "ordem" em decisão consciente. */}
-        <AttachmentTitle className="text-xs">
-          {first ? 'Abre o prato' : title}
-        </AttachmentTitle>
-        <AttachmentDescription className="text-[0.6875rem]">
-          {mediaError ?? description ?? (kind === 'video' ? 'Vídeo' : 'Foto')}
-        </AttachmentDescription>
-
-        {state === 'uploading' || state === 'compressing' ? (
-          <Progress value={progress} className="mt-2" />
-        ) : null}
-      </AttachmentContent>
-
-      <AttachmentActions>
-        <ReorderButtons
-          label={title}
-          isFirst={first}
-          isLast={last}
-          disabled={busy}
-          onUp={onMoveUp}
-          onDown={onMoveDown}
-        />
-        <AttachmentAction
-          variant="destructive"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {previewUrl ? <img src={previewUrl} alt="" draggable={false} /> : <LuFilm aria-hidden="true" />}
+        </button>
+        {cover ? <span className="tv-media-cover" aria-hidden="true">Capa</span> : null}
+        <button
+          type="button"
+          className="tv-media-remove"
           aria-label={`Remover ${title}`}
           disabled={busy}
+          onMouseDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
           onClick={onRemove}
         >
-          <RiDeleteBinLine />
-        </AttachmentAction>
-      </AttachmentActions>
-    </Attachment>
+          <LuX aria-hidden="true" />
+        </button>
+        {working ? (
+          <span className="tv-media-progress" role="progressbar" aria-label={`Enviando ${title}`} aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
+            <span style={{ width: `${progress}%` }} />
+          </span>
+        ) : null}
+      </ContextMenuTrigger>
+      <ContextMenuContent width="sm" aria-label={`Ações de ${title}`}>
+        <ContextMenuItem disabled={cover || !onMakeCover || busy} onClick={onMakeCover}><LuImageUp aria-hidden="true" /><span>Definir como capa</span></ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem variant="destructive" disabled={busy} onClick={onRemove}><LuTrash2 aria-hidden="true" /><span>Remover</span></ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

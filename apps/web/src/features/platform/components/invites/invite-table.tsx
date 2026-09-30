@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { LuBan, LuCircleCheck, LuClock3, LuChevronRight, LuMail, LuRotateCcw } from 'react-icons/lu'
+import { LuBan, LuCircleCheck, LuClock3, LuChevronRight, LuCopy, LuMail, LuPanelRightOpen, LuRotateCcw } from 'react-icons/lu'
 import { inviteState, type InviteState, type PlatformInviteDTO } from '@/domain/invite'
 import { formatLong, formatShort } from '@/lib/format-date'
+import { copyText } from '@/lib/copy-text'
 import { isMobileViewport, markStackedFromList } from '@/lib/viewport'
 import { revokeInviteAction } from '@/server/actions/invites'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { toast } from '@/components/ui/toast'
 import { useConsoleActions } from '@/components/shell/console-shell'
 import { ListHero, NewInviteButton } from '../list-hero'
@@ -119,21 +121,30 @@ export function InviteList({ invites, query, filter, selectedId }: {
           const state = inviteState(invite)
           const title = invite.email ?? 'Qualquer e-mail'
           const rotateLabel = state === 'pending' ? 'Gerar novo link' : 'Gerar novo convite'
-          return <div role="row" key={invite.id} className={`tv-table-row tv-invite-columns${openId === invite.id ? ' is-selected' : ''}`}>
-            <button type="button" className="tv-row-hit" aria-label={`Abrir convite para ${invite.email ?? 'qualquer e-mail'}`} onClick={() => showInvite(invite.id)} />
-            <div role="cell" className="tv-table-cell">
-              <span className="tv-row-icon"><LuMail aria-hidden="true" /></span>
-              <span className="tv-row-copy"><strong className="tv-row-title">{title}</strong><small className="tv-row-meta">{inviteMeta(invite, state)}</small></span>
-            </div>
-            <div role="cell"><TvBadge state={state} /></div>
-            <div role="cell" className="tv-date-cell">{formatShort(invite.createdAt)}</div>
-            <div role="cell" className="tv-date-cell">{formatShort(invite.expiresAt)}</div>
-            <div role="cell" className="tv-row-actions">
-              {state === 'pending' ? <button type="button" className="is-danger" aria-label="Revogar convite" title="Revogar convite" onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /></button> : null}
-              <button type="button" aria-label={rotateLabel} title={rotateLabel} onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /></button>
-              <LuChevronRight className="tv-row-chevron" aria-hidden="true" />
-            </div>
-          </div>
+          return <ContextMenu key={invite.id}>
+            <ContextMenuTrigger render={<div role="row" className={`tv-table-row tv-invite-columns${openId === invite.id ? ' is-selected' : ''}`} />}>
+              <button type="button" className="tv-row-hit" aria-label={`Abrir convite para ${invite.email ?? 'qualquer e-mail'}`} onClick={() => showInvite(invite.id)} />
+              <div role="cell" className="tv-table-cell">
+                <span className="tv-row-icon"><LuMail aria-hidden="true" /></span>
+                <span className="tv-row-copy"><strong className="tv-row-title">{title}</strong><small className="tv-row-meta">{inviteMeta(invite, state)}</small></span>
+              </div>
+              <div role="cell"><TvBadge state={state} /></div>
+              <div role="cell" className="tv-date-cell">{formatShort(invite.createdAt)}</div>
+              <div role="cell" className="tv-date-cell">{formatShort(invite.expiresAt)}</div>
+              <div role="cell" className="tv-row-actions">
+                {state === 'pending' ? <button type="button" className="is-danger" aria-label="Revogar convite" title="Revogar convite" onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /></button> : null}
+                <button type="button" aria-label={rotateLabel} title={rotateLabel} onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /></button>
+                <LuChevronRight className="tv-row-chevron" aria-hidden="true" />
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent aria-label={`Ações do convite para ${title}`}>
+              <ContextMenuItem onClick={() => showInvite(invite.id)}><LuPanelRightOpen aria-hidden="true" /><span>Abrir</span></ContextMenuItem>
+              {invite.email ? <ContextMenuItem onClick={() => void copyText(invite.email!, 'E-mail copiado')}><LuCopy aria-hidden="true" /><span>Copiar e-mail</span></ContextMenuItem> : null}
+              <ContextMenuSeparator />
+              <ContextMenuItem onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /><span>{rotateLabel}</span></ContextMenuItem>
+              {state === 'pending' ? <ContextMenuItem variant="destructive" onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /><span>Revogar convite</span></ContextMenuItem> : null}
+            </ContextMenuContent>
+          </ContextMenu>
         })}
       </div>
       <div className="tv-mobile-cards">{filtered.map((invite) => { const state = inviteState(invite); return <button type="button" key={invite.id} className="tv-mobile-card" onClick={() => showInvite(invite.id)}><span className="tv-row-icon"><LuMail /></span><span className="tv-mobile-card-copy"><strong>{invite.email ?? 'Qualquer e-mail'}</strong><small>{inviteMeta(invite, state)}</small></span><TvBadge state={state} /><LuChevronRight className="tv-row-chevron" /></button> })}</div>

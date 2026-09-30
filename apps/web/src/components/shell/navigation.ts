@@ -1,4 +1,4 @@
-import type { NavGroup, NavItem, NavLeaf } from './navigation.types'
+import type { MobileTab, NavGroup, NavItem, NavLeaf } from './navigation.types'
 import { toExternalPath } from '@/lib/route-paths'
 
 export function getAdminNavigation(): NavItem[] {
@@ -109,6 +109,19 @@ export function getRestaurantNavigation(
   ]
 }
 
+// Tab bar do painel no celular (Tavvi Mobile.dc.html, tabsB). Equipe só
+// para administrador; Identidade e Contato moram dentro de Ajustes.
+export function getRestaurantMobileTabs(restaurantId: string, canEdit: boolean): MobileTab[] {
+  const root = `/restaurantes/${restaurantId}`
+  const tabs: MobileTab[] = [
+    { key: 'menu', href: root, label: 'Cardápio', icon: 'menu', exact: true },
+    { key: 'service', href: `${root}/servico`, label: 'Serviço', icon: 'service' },
+  ]
+  if (canEdit) tabs.push({ key: 'team', href: `${root}/equipe`, label: 'Equipe', icon: 'team' })
+  tabs.push({ key: 'settings', href: `${root}/ajustes`, label: 'Ajustes', icon: 'settings', match: [`${root}/identidade`, `${root}/contato`] })
+  return tabs
+}
+
 export function externalPathname(pathname: string) {
   return toExternalPath(pathname)
 }
@@ -122,11 +135,26 @@ export function flattenNavItems(items: NavItem[]): NavLeaf[] {
   return items.flatMap((item) => (item.kind === 'leaf' ? [item] : item.children))
 }
 
-export function getActiveHref(pathname: string, items: NavItem[]) {
+// Só o endereço MAIS específico acende. O Cardápio é `/restaurantes/{id}`, que
+// é prefixo de Identidade, Contato e Equipe; por prefixo simples ele ficaria
+// marcado junto com qualquer outra página do restaurante.
+export function pickActiveHref(pathname: string, hrefs: readonly string[]) {
   const current = externalPathname(pathname)
-  return flattenNavItems(items)
-    .filter((item) => isHrefActive(current, item.href))
-    .sort((a, b) => b.href.length - a.href.length)[0]?.href
+  return hrefs
+    .filter((href) => isHrefActive(current, href))
+    .sort((a, b) => b.length - a.length)[0]
+}
+
+// Primeiros passos não tem item próprio na navegação: o passo de identidade
+// acende Identidade e o de contato acende Contato (README §6.1).
+export function navigationPathname(pathname: string, step: string | null) {
+  const match = /^\/restaurantes\/([^/]+)\/comecar\/?$/.exec(externalPathname(pathname))
+  if (!match) return pathname
+  return `/restaurantes/${match[1]}/${step === 'contato' ? 'contato' : 'identidade'}`
+}
+
+export function getActiveHref(pathname: string, items: NavItem[]) {
+  return pickActiveHref(pathname, flattenNavItems(items).map((item) => item.href))
 }
 
 export function isGroupActive(pathname: string, group: NavGroup) {

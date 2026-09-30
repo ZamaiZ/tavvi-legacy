@@ -6,6 +6,7 @@ import type { RestaurantDetailDTO, RestaurantStatus } from '@/domain/restaurant'
 import { slugSchema } from '@/domain/common'
 import { updateRestaurantSlugAction, setRestaurantStatusAction, softDeleteRestaurantAction } from '@/server/actions/restaurants'
 import { toast } from '@/components/ui/toast'
+import { restaurantInitials } from '@/lib/initials'
 
 export const restaurantStatusOptions: { value: RestaurantStatus; label: string; hint: string }[] = [
   { value: 'draft', label: 'Rascunho', hint: 'Invisível para o público' },
@@ -13,10 +14,7 @@ export const restaurantStatusOptions: { value: RestaurantStatus; label: string; 
   { value: 'suspended', label: 'Suspenso', hint: 'Cardápio fora do ar' },
 ]
 
-export function restaurantInitials(name: string) {
-  const words = name.trim().split(/\s+/).filter((word) => word.length > 2 || /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(word))
-  return words.slice(0, 2).map((word) => word[0]).join('').toUpperCase() || 'R'
-}
+export { restaurantInitials }
 
 // Estado e ações do detalhe do restaurante, compartilhados pela gaveta e
 // página desktop e pela tela empilhada do celular.

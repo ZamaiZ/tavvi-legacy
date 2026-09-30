@@ -1,20 +1,10 @@
 'use client'
 
 import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
 import { ContactPreview } from '@/features/workspace/components/contact-preview'
 import { FloatingRestaurantPreview } from '@/features/workspace/components/floating-restaurant-preview'
-import {
-  RiInstagramLine,
-  RiMapPinLine,
-  RiPhoneLine,
-  RiWhatsappLine,
-} from 'react-icons/ri'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { IconField } from '@/components/ui/field-icon'
-import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import type { ActionResult } from '@/server/actions/result'
 import type { ThemeChoice } from '@/domain/theme'
@@ -52,12 +42,14 @@ export function ProfileForm({
   description,
   contact,
   theme,
+  coverPath,
 }: {
   restaurantId: string
   name: string
   description: string | null
   contact: Record<string, string>
   theme: ThemeChoice
+  coverPath: string | null
 }) {
   const original = useMemo<ProfileValues>(() => ({
     name,
@@ -113,108 +105,154 @@ export function ProfileForm({
     setValues(saved)
   }
 
+  const preview = {
+    theme,
+    name: values.name,
+    description: values.description,
+    phone: values.phone,
+    whatsapp: values.whatsapp,
+    instagram: values.instagram,
+    address: values.address,
+    coverPath,
+  }
+
   return (
     <>
-    <form action={formAction} className="tv-profile-form space-y-4">
-      <section className="tavvi-surface space-y-4 p-5 sm:p-6">
-        <div><h2 className="text-lg font-semibold">Sobre</h2><p className="mt-1 text-sm text-muted-foreground">Informações que apresentam o restaurante.</p></div>
-        <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="name">Nome</FieldLabel>
-          <Input id="name" name="name" value={values.name} onChange={(event) => update('name', event.target.value)} required />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="description">Descrição</FieldLabel>
-          <Textarea
-            id="description"
-            name="description"
-            rows={3}
-            maxLength={500}
-            value={values.description}
-            onChange={(event) => update('description', event.target.value)}
-          />
-          <span className="text-right text-xs text-muted-foreground">{values.description.length}/500</span>
-        </Field>
-        </FieldGroup>
-      </section>
-      <section className="tavvi-surface space-y-4 p-5 sm:p-6">
-        <div><h2 className="text-lg font-semibold">Canais</h2><p className="mt-1 text-sm text-muted-foreground">Telefone e WhatsApp são guardados com o código do Brasil (55).</p></div>
-        <FieldGroup>
-        {/* Os MESMOS ícones que vão para os atalhos do cardápio público. O
-            dono reconhece o que está preenchendo, e reconhece de novo quando
-            vê o resultado na tela do cliente. `IconField` já existia e já era
-            usado em outra tela; aqui era campo sem ícone. */}
-        <IconField
-          id="phone"
-          name="phone"
-          label="Telefone"
-          icon={<RiPhoneLine />}
-          value={values.phone}
-          onChange={(event) => update('phone', displayPhone(event.target.value))}
-        />
-        <IconField
-          id="whatsapp"
-          name="whatsapp"
-          label="WhatsApp"
-          icon={<RiWhatsappLine />}
-          value={values.whatsapp}
-          onChange={(event) => update('whatsapp', displayPhone(event.target.value))}
-        />
-        <IconField
-          id="instagram"
-          name="instagram"
-          label="Instagram"
-          icon={<RiInstagramLine />}
-          value={values.instagram}
-          onChange={(event) => update('instagram', event.target.value.replace(/^@+/, ''))}
-          maxLength={60}
-          pattern="[A-Za-z0-9._]{1,60}"
-          title="Use apenas letras, números, ponto e sublinhado."
-        />
-        </FieldGroup>
-      </section>
-      <section className="tavvi-surface space-y-4 p-5 sm:p-6">
-        <div><h2 className="text-lg font-semibold">Endereço</h2><p className="mt-1 text-sm text-muted-foreground">Um campo simples para o endereço exibido no cardápio.</p></div>
-        <IconField
-          id="address"
-          name="address"
-          label="Endereço físico"
-          icon={<RiMapPinLine />}
-          value={values.address}
-          onChange={(event) => update('address', event.target.value)}
-          maxLength={200}
-        />
-      </section>
+    <div className="tv-contact-layout">
+      <form action={formAction} className="tv-contact-form">
+        <section className="tv-contact-card">
+          <div className="tv-contact-card-head">
+            <h2>Sobre</h2>
+            <p>Informações que apresentam o restaurante.</p>
+          </div>
+          <label className="tv-contact-field">
+            <span className="tv-contact-label">Nome</span>
+            <input
+              id="name"
+              name="name"
+              className="tv-contact-input"
+              value={values.name}
+              onChange={(event) => update('name', event.target.value)}
+              required
+            />
+          </label>
+          <div className="tv-contact-field">
+            <label htmlFor="description" className="tv-contact-label">Descrição</label>
+            <textarea
+              id="description"
+              name="description"
+              className="tv-contact-input tv-contact-textarea"
+              rows={3}
+              maxLength={500}
+              aria-describedby="description-count"
+              value={values.description}
+              onChange={(event) => update('description', event.target.value)}
+            />
+            <span id="description-count" className="tv-contact-count">{values.description.length}/500</span>
+          </div>
+        </section>
+        <section className="tv-contact-card">
+          <div className="tv-contact-card-head">
+            <h2>Canais</h2>
+            <p>Telefone e WhatsApp são guardados com o código do Brasil (55).</p>
+          </div>
+          {/* Os mesmos ícones dos atalhos da prévia: o dono reconhece o que
+              preenche quando vê o resultado na tela do cliente. O rótulo
+              envolve a caixa inteira, então clicar no ícone foca o campo. */}
+          <label className="tv-contact-field">
+            <span className="tv-contact-label">Telefone</span>
+            <span className="tv-contact-input tv-contact-control">
+              <LuPhone aria-hidden="true" />
+              <input
+                id="phone"
+                name="phone"
+                inputMode="tel"
+                value={values.phone}
+                onChange={(event) => update('phone', displayPhone(event.target.value))}
+              />
+            </span>
+          </label>
+          <label className="tv-contact-field">
+            <span className="tv-contact-label">WhatsApp</span>
+            <span className="tv-contact-input tv-contact-control">
+              <LuMessageCircle aria-hidden="true" />
+              <input
+                id="whatsapp"
+                name="whatsapp"
+                inputMode="tel"
+                value={values.whatsapp}
+                onChange={(event) => update('whatsapp', displayPhone(event.target.value))}
+              />
+            </span>
+          </label>
+          <label className="tv-contact-field">
+            <span className="tv-contact-label">Instagram</span>
+            <span className="tv-contact-input tv-contact-control">
+              <LuInstagram aria-hidden="true" />
+              <span className="tv-contact-prefix" aria-hidden="true">@</span>
+              <input
+                id="instagram"
+                name="instagram"
+                value={values.instagram}
+                onChange={(event) => update('instagram', event.target.value.replace(/^@+/, ''))}
+                maxLength={60}
+                pattern="[A-Za-z0-9._]{1,60}"
+                title="Use apenas letras, números, ponto e sublinhado."
+              />
+            </span>
+          </label>
+        </section>
+        <section className="tv-contact-card">
+          <div className="tv-contact-card-head">
+            <h2>Endereço</h2>
+            <p>Um campo simples para o endereço exibido no cardápio.</p>
+          </div>
+          <label className="tv-contact-field">
+            <span className="tv-contact-label">Endereço físico</span>
+            <span className="tv-contact-input tv-contact-control">
+              <LuMapPin aria-hidden="true" />
+              <input
+                id="address"
+                name="address"
+                value={values.address}
+                onChange={(event) => update('address', event.target.value)}
+                maxLength={200}
+              />
+            </span>
+          </label>
+        </section>
 
-      {state && !state.ok ? (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      ) : null}
+        {state && !state.ok ? (
+          <p role="alert" className="tv-contact-error">
+            {state.error}
+          </p>
+        ) : null}
 
-      <div className="tv-profile-savebar">
-        <span>{dirty ? 'Alterações não salvas' : 'Tudo salvo'}</span>
-        <div className="flex gap-2">
-          {dirty ? <Button type="button" variant="outline" disabled={pending} onClick={discard}>Descartar</Button> : null}
-          <Button type="submit" disabled={pending || !dirty} className="min-w-36">
-            {pending ? <Spinner className="size-4" /> : null}
-            {pending ? 'Salvando…' : 'Salvar'}
-          </Button>
+        <div className="tv-contact-savebar">
+          <span aria-live="polite">{dirty ? 'Alterações não salvas' : 'Tudo salvo'}</span>
+          <div>
+            {dirty ? (
+              <button type="button" className="tv-contact-discard" disabled={pending} onClick={discard}>
+                Descartar
+              </button>
+            ) : null}
+            <button type="submit" className="tv-contact-save" disabled={pending || !dirty} aria-busy={pending}>
+              {pending ? <Spinner className="size-3.5" /> : null}
+              {pending ? 'Salvando…' : 'Salvar'}
+            </button>
+          </div>
         </div>
-      </div>
-    </form>
-    <FloatingRestaurantPreview
-      renderPreview={(mode) => <ContactPreview
-        theme={theme}
-        name={values.name}
-        description={values.description}
-        phone={values.phone}
-        whatsapp={values.whatsapp}
-        instagram={values.instagram}
-        address={values.address}
-        mode={mode}
-      />}
-    />
+      </form>
+      <aside className="tv-contact-preview" aria-labelledby="contact-preview-label">
+        <span id="contact-preview-label" className="tv-contact-preview-label">Prévia do cardápio</span>
+        <ContactPreview {...preview} />
+      </aside>
+    </div>
+    {/* Abaixo de 1024 px não cabe a coluna da prévia: volta o botão
+        flutuante, com o mesmo celular dentro. */}
+    <div className="tv-contact-floating">
+      <FloatingRestaurantPreview renderPreview={(mode) => <ContactPreview {...preview} mode={mode} />} />
+    </div>
     </>
   )
 }

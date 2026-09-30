@@ -41,6 +41,11 @@ export const setPublishedSchema = z.object({
   published: z.boolean(),
 })
 
+// Concluir ou pular o assistente de primeiros passos.
+export const completeOnboardingSchema = z.object({
+  restaurantId: uuidSchema,
+})
+
 // DTOs: o que sai da DAL. Nunca a linha crua do banco.
 export type RestaurantPublicDTO = {
   slug: string
@@ -74,7 +79,12 @@ export type RestaurantMemberDTO = {
   // `unknown` de propósito: quem sabe a forma da coluna é o `themeSchema`,
   // não este DTO. Tipar aqui seria mentir sobre dado ainda não validado.
   theme: unknown
+  /** Nulo enquanto o dono não concluiu nem pulou os primeiros passos. */
+  onboardingCompletedAt: string | null
 }
+
+// O seletor precisa do papel da pessoa em cada restaurante.
+export type RestaurantPickerDTO = RestaurantMemberDTO & { role: MemberRole | null }
 
 export const updateSlugSchema = z.object({
   restaurantId: uuidSchema,

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { ProfileForm } from '@/features/workspace/components/profile-form'
 import { PageHeader } from '@/components/shell/page-header'
+import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { uuidSchema } from '@/domain/common'
 import { requireRestaurantAdmin } from '@/server/dal/auth'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
@@ -27,12 +28,13 @@ export default async function Page({
     : { preset: 'grao' as const, base: null, accent: null, density: 'confortavel' as const }
 
   return (
-      <main className="tavvi-page">
+    <main className="tv-contact-page">
+      <MobileNavBar backHref={`/restaurantes/${restaurant.id}/ajustes`} backLabel="Ajustes" />
       <PageHeader
         className="tv-page-header"
         eyebrow="Informações públicas"
-        title="Nome e contato"
-        description="Estes dados aparecem no topo do cardápio e ajudam o cliente a encontrar ou chamar o restaurante."
+        title="Contato"
+        description="Telefone, WhatsApp e endereço viram botões no topo do cardápio."
       />
       <ProfileForm
         restaurantId={restaurant.id}
@@ -40,6 +42,7 @@ export default async function Page({
         description={restaurant.description}
         contact={restaurant.contact}
         theme={previewTheme}
+        coverPath={restaurant.coverPath}
       />
     </main>
   )

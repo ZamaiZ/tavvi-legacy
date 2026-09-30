@@ -1,15 +1,16 @@
 'use client'
 
-import { RiArrowDownSLine, RiArrowUpSLine } from 'react-icons/ri'
-import { Button } from '@/components/ui/button'
+import { LuChevronDown, LuChevronLeft, LuChevronRight, LuChevronUp } from 'react-icons/lu'
 
+// Setas de ordem: só aparecem com "Ordenar" ligado. 26×26, borda line2.
 export function ReorderButtons({
   label,
   isFirst,
   isLast,
-  disabled,
+  disabled = false,
   onUp,
   onDown,
+  orientation = 'vertical',
 }: {
   label: string
   isFirst: boolean
@@ -17,35 +18,19 @@ export function ReorderButtons({
   disabled?: boolean
   onUp: () => void
   onDown: () => void
+  orientation?: 'vertical' | 'horizontal'
 }) {
+  const vertical = orientation === 'vertical'
+  const Before = vertical ? LuChevronUp : LuChevronLeft
+  const After = vertical ? LuChevronDown : LuChevronRight
   return (
-    <div
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-border/70 bg-muted/20 p-0.5"
-      role="group"
-      aria-label={`Ordenar ${label}`}
-    >
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="rounded-sm disabled:opacity-25"
-        disabled={disabled || isFirst}
-        onClick={onUp}
-        aria-label={`Mover ${label} para cima`}
-      >
-        <RiArrowUpSLine className="size-4" />
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="rounded-sm disabled:opacity-25"
-        disabled={disabled || isLast}
-        onClick={onDown}
-        aria-label={`Mover ${label} para baixo`}
-      >
-        <RiArrowDownSLine className="size-4" />
-      </Button>
+    <div className="tv-reorder" role="group" aria-label={`Ordenar ${label}`}>
+      <button type="button" className="tv-parrow" disabled={disabled || isFirst} onClick={onUp} aria-label={`Mover ${label} para ${vertical ? 'cima' : 'a esquerda'}`}>
+        <Before aria-hidden="true" />
+      </button>
+      <button type="button" className="tv-parrow" disabled={disabled || isLast} onClick={onDown} aria-label={`Mover ${label} para ${vertical ? 'baixo' : 'a direita'}`}>
+        <After aria-hidden="true" />
+      </button>
     </div>
   )
 }
-

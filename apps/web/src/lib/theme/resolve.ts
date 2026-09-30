@@ -77,6 +77,9 @@ function faceToVars(
     '--m-ink': pickByContrast(base, face.ink),
     '--m-muted': pickByContrast(base, face.muted),
     '--m-line': lineFor(base, face.line),
+    // Fundo dos atalhos de contato que não são o principal. Mesma regra do
+    // fio: decide pela luminosidade do fundo, não pelo nome da face.
+    '--m-chip': hexToOklch(base).l >= 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.08)',
     '--m-accent': accent,
     // O texto SOBRE o destaque: escolhe a melhor candidata contra o destaque
     // JÁ DERIVADO — derivar depois de escolher inverteria o par — e DEPOIS

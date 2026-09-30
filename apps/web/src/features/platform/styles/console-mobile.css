@@ -1,18 +1,10 @@
 /* Console da plataforma no celular. Referência: o app do console
    (Tavvi Mobile.dc.html, telefone da esquerda) e os prints do handoff.
    Regra da casa: tudo aqui vale só abaixo de 768 px e só no console
-   ([data-surface="console"]). Painel do restaurante e desktop não passam
-   por este arquivo. */
-
-.tv-tabbar { display: none; }
-
-@media (min-width: 768px) {
-  .tv-m-only { display: none !important; }
-}
+   ([data-surface="console"]). A base comum (tab bar, grupos, pílulas,
+   sheet) está em mobile-base.css. */
 
 @media (max-width: 767px) {
-  [data-surface="console"] .tv-d-only { display: none !important; }
-
   /* Tokens do celular. Os apelidos (--tv-field, --tv-panel...) são
      redeclarados aqui porque herdam já resolvidos do território: sem isso
      continuariam com as cores do desktop. */
@@ -59,161 +51,6 @@
     background: var(--tv-bg);
   }
   [data-surface="console"] .tv-console-page { width: 100%; padding: 0 var(--tv-gutter); }
-
-  /* Tab bar do iOS: três destinos, rótulo sempre visível, dourado só na ativa. */
-  [data-surface="console"] .tv-tabbar {
-    position: fixed;
-    z-index: 45;
-    inset: auto 0 0;
-    height: var(--tv-tabbar-height);
-    padding: 7px 0 env(safe-area-inset-bottom);
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: .5px solid var(--tv-line-2);
-    background: var(--tv-bar);
-    -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    backdrop-filter: blur(20px) saturate(1.6);
-  }
-  [data-surface="console"] .tv-tabbar-item {
-    min-height: 44px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    color: var(--tv-text-3);
-    font-size: 10.5px;
-    font-weight: 500;
-    line-height: 1.2;
-    text-decoration: none;
-  }
-  [data-surface="console"] .tv-tabbar-item.is-active { color: var(--tv-gold-text); }
-  [data-surface="console"] .tv-tabbar-item:active { opacity: .6; }
-  [data-surface="console"] button.tv-tabbar-item { padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; }
-  [data-surface="console"] .tv-tabbar-icon { position: relative; width: 24px; height: 24px; }
-  [data-surface="console"] .tv-tabbar-icon > svg { width: 24px; height: 24px; stroke-width: 1.7; }
-  [data-surface="console"] .tv-tabbar-badge {
-    position: absolute;
-    top: -3px;
-    left: calc(50% + 6px);
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: var(--tv-gold);
-    color: #17150F;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 18px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* O toast mora fora do shell (portal no body): sobe acima da tab bar. */
-  body:has([data-surface="console"]) [data-slot="toast-viewport"] {
-    bottom: calc(49px + env(safe-area-inset-bottom) + 12px);
-  }
-
-  /* Primitivos das telas do celular. */
-  [data-surface="console"] .tv-m-title {
-    margin: 0 4px 12px;
-    color: var(--tv-text);
-    font-size: 32px;
-    line-height: 1.15;
-    font-weight: 700;
-    letter-spacing: -.025em;
-  }
-  [data-surface="console"] .tv-m-subtitle { margin: -8px 4px 14px; color: var(--tv-text-2); font-size: 14px; line-height: 1.4; }
-  [data-surface="console"] .tv-m-navbar { position: relative; height: 44px; display: flex; align-items: center; }
-  [data-surface="console"] .tv-m-back {
-    position: relative;
-    z-index: 1;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    color: var(--tv-gold-text);
-    font-size: 17px;
-    text-decoration: none;
-  }
-  [data-surface="console"] .tv-m-back svg { width: 24px; height: 24px; margin-left: -6px; stroke-width: 2.2; }
-  [data-surface="console"] .tv-m-back:active { opacity: .5; }
-  [data-surface="console"] .tv-m-navbar-title {
-    position: absolute;
-    left: 50%;
-    margin: 0;
-    transform: translateX(-50%);
-    color: var(--tv-text);
-    font-size: 17px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  [data-surface="console"] .tv-group-label {
-    margin: 22px 16px 6px;
-    color: var(--tv-text-3);
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: .02em;
-    text-transform: uppercase;
-  }
-  [data-surface="console"] .tv-group { overflow: hidden; border-radius: 14px; background: var(--tv-surface); }
-  [data-surface="console"] .tv-group.is-spaced { margin-top: 22px; }
-  [data-surface="console"] .tv-group-row {
-    position: relative;
-    min-height: 46px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    color: var(--tv-text);
-    font-size: 15px;
-  }
-  [data-surface="console"] .tv-group-row > :last-child { color: var(--tv-text-2); text-align: right; }
-  [data-surface="console"] .tv-group-row + .tv-group-row::before {
-    position: absolute;
-    top: 0;
-    left: 16px;
-    right: 0;
-    height: .5px;
-    background: var(--tv-line-2);
-    content: '';
-  }
-  [data-surface="console"] .tv-group-note { margin: 6px 16px 0; color: var(--tv-text-3); font-size: 13px; line-height: 1.4; }
-  [data-surface="console"] .tv-group-error { margin: 6px 16px 0; color: var(--tv-danger); font-size: 13px; }
-  [data-surface="console"] .tv-group-empty { margin: 0; padding: 16px; color: var(--tv-text-2); font-size: 14px; }
-  [data-surface="console"] .tv-group-danger {
-    width: 100%;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 0;
-    background: transparent;
-    color: var(--tv-danger);
-    font-size: 16px;
-  }
-  [data-surface="console"] .tv-group-danger svg { width: 17px; height: 17px; }
-  [data-surface="console"] .tv-group-danger:active { background: var(--tv-danger-soft); }
-  [data-surface="console"] .tv-m-pill {
-    width: 100%;
-    min-height: 50px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 0;
-    border-radius: 999px;
-    font-size: 16px;
-    font-weight: 600;
-  }
-  [data-surface="console"] .tv-m-pill svg { width: 17px; height: 17px; }
-  [data-surface="console"] .tv-m-pill.is-primary { background: var(--tv-btn); color: var(--tv-btn-text); }
-  [data-surface="console"] .tv-m-pill.is-secondary { background: var(--tv-surface); color: var(--tv-text); }
-  [data-surface="console"] .tv-m-pill.is-danger { background: var(--tv-danger-soft); color: var(--tv-danger); }
-  [data-surface="console"] .tv-m-pill:disabled { opacity: .4; }
-  [data-surface="console"] .tv-m-pill:active:not(:disabled) { opacity: .75; }
 }
 
 /* Confirmações: alerta do iOS. */
@@ -451,8 +288,6 @@
 }
 
 /* Novo convite: sheet do iOS (print novo-convite). */
-@keyframes tv-sheet-m-rise { from { transform: translateY(100%); } to { transform: none; } }
-
 @media (max-width: 767px) {
   [data-surface="console"] .tv-sheet-scrim { background: var(--tv-scrim); }
   [data-surface="console"] .tv-invite-sheet.is-mobile {
@@ -462,7 +297,7 @@
     left: 0;
     width: auto;
     max-height: none;
-    padding: 8px 16px calc(34px + env(safe-area-inset-bottom));
+    padding: 0 16px calc(34px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -474,43 +309,9 @@
     box-shadow: 0 -10px 40px rgba(0,0,0,.2);
     animation: tv-sheet-m-rise 300ms cubic-bezier(.2,.8,.2,1) both;
   }
-  /* height/padding/justify zerados: a regra desktop `.tv-invite-sheet > header` também casa aqui. */
-  [data-surface="console"] .tv-sheet-m-head { height: auto; padding: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: 14px; }
-  [data-surface="console"] .tv-sheet-m-handle { align-self: center; width: 36px; height: 5px; border-radius: 999px; background: var(--tv-line-2); }
-  [data-surface="console"] .tv-sheet-m-nav { height: 32px; display: grid; grid-template-columns: 72px minmax(0, 1fr) 72px; align-items: center; }
-  [data-surface="console"] .tv-sheet-m-nav h2 { margin: 0; overflow: hidden; color: var(--tv-text); font-size: 17px; font-weight: 600; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-  [data-surface="console"] .tv-sheet-m-cancel { justify-self: start; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--tv-gold-text); font-size: 17px; }
-  [data-surface="console"] .tv-sheet-m-cancel:disabled { opacity: .5; }
-  [data-surface="console"] .tv-sheet-m-body { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 14px; }
-  [data-surface="console"] .tv-sheet-m-lead { margin: 0 4px; color: var(--tv-text-2); font-size: 14px; line-height: 1.4; }
-  [data-surface="console"] .tv-sheet-m-field { height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border-radius: 14px; background: var(--tv-surface); color: var(--tv-text-3); }
-  [data-surface="console"] .tv-sheet-m-field:focus-within { box-shadow: 0 0 0 2px var(--tv-gold-soft); }
-  [data-surface="console"] .tv-sheet-m-field svg { width: 17px; height: 17px; flex: 0 0 auto; }
-  [data-surface="console"] .tv-sheet-m-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--tv-text); font-size: 16px; }
-  [data-surface="console"] .tv-sheet-m-field input::placeholder { color: var(--tv-text-3); }
-  [data-surface="console"] .tv-sheet-m-field input:read-only { color: var(--tv-text-2); }
-  [data-surface="console"] .tv-sheet-m-note { margin: -6px 16px 0; color: var(--tv-text-3); font-size: 13px; line-height: 1.4; }
-  [data-surface="console"] .tv-sheet-m-validity { height: 52px; padding: 0 8px 0 16px; display: flex; align-items: center; gap: 12px; border-radius: 14px; background: var(--tv-surface); }
-  [data-surface="console"] .tv-sheet-m-validity > span:first-child { flex: 1; color: var(--tv-text); font-size: 16px; }
-  [data-surface="console"] .tv-sheet-m-validity output { color: var(--tv-text); font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
-  [data-surface="console"] .tv-sheet-m-stepper { display: flex; align-items: center; border-radius: 9px; background: var(--tv-neutral-soft); }
-  [data-surface="console"] .tv-sheet-m-stepper button { width: 46px; height: 32px; display: grid; place-items: center; border: 0; background: transparent; color: var(--tv-text); touch-action: manipulation; }
-  [data-surface="console"] .tv-sheet-m-stepper button:disabled { opacity: .35; }
-  [data-surface="console"] .tv-sheet-m-stepper button:active:not(:disabled) { opacity: .6; }
-  [data-surface="console"] .tv-sheet-m-stepper svg { width: 16px; height: 16px; }
-  [data-surface="console"] .tv-sheet-m-stepper i { width: 1px; height: 18px; background: var(--tv-line-2); }
-  [data-surface="console"] .tv-sheet-m-spacer { flex: 1; }
-  [data-surface="console"] .tv-sheet-m-cta { min-height: 52px; }
-  [data-surface="console"] .tv-sheet-m-cta .tv-spinner { width: 17px; height: 17px; border-color: color-mix(in srgb, var(--tv-btn-text) 30%, transparent); border-top-color: var(--tv-btn-text); }
-  [data-surface="console"] .tv-sheet-m-error { margin: 0 4px; color: var(--tv-danger); font-size: 13px; }
-  [data-surface="console"] .tv-sheet-m-done { padding-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-  [data-surface="console"] .tv-sheet-m-done > span { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-ok-soft); color: var(--tv-ok); }
-  [data-surface="console"] .tv-sheet-m-done svg { width: 24px; height: 24px; stroke-width: 2.2; }
-  [data-surface="console"] .tv-sheet-m-done h3 { margin: 4px 0 0; color: var(--tv-text); font-size: 22px; font-weight: 700; }
-  [data-surface="console"] .tv-sheet-m-done p { margin: 0; color: var(--tv-text-2); font-size: 14px; }
-  [data-surface="console"] .tv-sheet-m-link { padding: 12px 14px; border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); font-size: 13px; line-height: 1.45; word-break: break-all; -webkit-user-select: all; user-select: all; }
-  [data-surface="console"] .tv-sheet-m-warning { padding: 12px 14px; display: flex; gap: 8px; border-radius: 14px; background: var(--tv-warn-soft); color: var(--tv-warn); font-size: 13px; line-height: 1.4; }
-  [data-surface="console"] .tv-sheet-m-warning svg { width: 16px; height: 16px; margin-top: 1px; flex: 0 0 auto; }
+  /* Alça e "Cancelar · título" presos no topo; o resto rola por baixo. Os
+     8 px de cima saem do sheet para o cabeçalho, para ele colar na borda. */
+  [data-surface="console"] .tv-invite-sheet.is-mobile > .tv-sheet-m-head { position: sticky; z-index: 2; top: 0; flex: 0 0 auto; margin: 0 -16px -6px; padding: 8px 16px 6px; background: var(--tv-bg); }
 }
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {

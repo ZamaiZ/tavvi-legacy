@@ -10,6 +10,8 @@
 .tv-cl-foot { display: flex; align-items: center; gap: 8px; color: #7C766B; font-size: 11.5px; }
 .tv-cl-wordmark { width: 40px; height: auto; opacity: .55; }
 .tv-cl-dot { width: 3px; height: 3px; border-radius: 50%; background: #7C766B; }
+.tv-cl-areas { margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; list-style: none; }
+.tv-cl-areas li { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border: 1px solid rgba(255,248,235,.12); border-radius: 999px; color: #A6A094; font-size: 12px; }
 
 .tv-cl-form { width: 100%; display: flex; flex-direction: column; }
 .tv-cl-field { display: flex; flex-direction: column; }
@@ -67,7 +69,8 @@
 }
 
 @media (max-width: 1023px) {
-  :root:has(.tv-cl), :root:has(.tv-cl) body, .admin-territory:has(.tv-cl) { background: #0D0C0A; }
+  :root:has(.tv-cl), :root:has(.tv-cl) body, .admin-territory:has(.tv-cl), .workspace-territory:has(.tv-cl) { background: #0D0C0A; }
+  .tv-cl-areas { display: none; }
   .tv-cl { position: relative; padding: max(24px, calc(env(safe-area-inset-top) + 20px)) 20px max(34px, calc(env(safe-area-inset-bottom) + 16px)); display: flex; flex-direction: column; overflow-x: hidden; background: #0D0C0A; color: #F2EEE6; }
   .tv-cl::before { position: absolute; top: 40px; right: -110px; width: 340px; height: 340px; background: url('/brand/tavvi-brandmark-gold-on-dark.png') no-repeat center / contain; opacity: .07; content: ''; pointer-events: none; }
   .tv-cl > * { position: relative; z-index: 1; width: 100%; max-width: 390px; margin-inline: auto; }

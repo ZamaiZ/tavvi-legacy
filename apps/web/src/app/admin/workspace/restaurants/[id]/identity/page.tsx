@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { IdentityForm } from '@/features/workspace/components/identity-form'
 import { PageHeader } from '@/components/shell/page-header'
+import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { uuidSchema } from '@/domain/common'
 import { requireRestaurantAdmin } from '@/server/dal/auth'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
@@ -25,12 +26,13 @@ export default async function Page({
   await requireRestaurantAdmin(restaurant.id)
 
   return (
-    <main className="tavvi-page">
+    <main className="tv-identity-page">
+      <MobileNavBar backHref={`/restaurantes/${restaurant.id}/ajustes`} backLabel="Ajustes" />
       <PageHeader
         className="tv-page-header"
-        eyebrow="Personalização"
+        eyebrow="Marca"
         title="Identidade"
-        description="Defina a marca, as cores e a atmosfera que o cliente encontra no cardápio."
+        description="Logo, capa, tema e cores do cardápio público."
       />
       <IdentityForm
         restaurantId={restaurant.id}

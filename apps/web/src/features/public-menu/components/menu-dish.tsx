@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { MenuItemDTO } from '@/domain/menu'
-import { formatPriceBRL } from '@/lib/format'
+import { formatCents } from '@/lib/money'
 import { MenuMedia } from './menu-media'
 
 // Uma coluna do feed: o rolador vertical das mídias, e um rodapé que NÃO se
@@ -149,7 +149,7 @@ export function MenuDish({
 
             <span className="menu-accent shrink-0 text-[1.0625rem] font-semibold">
               {lowestVariantPrice === null ? (
-                formatPriceBRL(item.basePriceCents)
+                formatCents(item.basePriceCents)
               ) : (
                 <>
                   <span
@@ -158,7 +158,7 @@ export function MenuDish({
                   >
                     a partir de
                   </span>
-                  {formatPriceBRL(lowestVariantPrice)}
+                  {formatCents(lowestVariantPrice)}
                 </>
               )}
             </span>

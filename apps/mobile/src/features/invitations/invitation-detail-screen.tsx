@@ -12,6 +12,7 @@ import { DetailHero } from '@/components/primitives/detail-hero'
 import { DetailSkeleton } from '@/components/primitives/detail-skeleton'
 import { SecondaryCTA } from '@/components/primitives/secondary-cta'
 import { StateCard } from '@/components/primitives/state-card'
+import { toast } from '@/components/primitives/toast'
 import { TonalButton } from '@/components/primitives/tonal-button'
 import { RevokeDialog } from './revoke-dialog'
 import { CreateInvitationSheet } from './create-invitation-sheet'
@@ -42,7 +43,7 @@ export function InvitationDetailScreen({ id }: { id: string }) {
 
   async function confirmRevoke() {
     if (!invite) return
-    revoke.mutate(invite.id, { onSuccess: () => { setDialog(false); void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning) } })
+    revoke.mutate(invite.id, { onSuccess: () => { setDialog(false); void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); toast.show('Convite revogado') } })
   }
   const body = query.isLoading ? <DetailSkeleton kind="invitation" />
     : query.isError || !invite || !state ? <StateCard error title="Não foi possível carregar" message="Verifique sua conexão e tente novamente." retry actionLabel="Tentar novamente" actionIcon={RotateCcw} onAction={() => void query.refetch()} />

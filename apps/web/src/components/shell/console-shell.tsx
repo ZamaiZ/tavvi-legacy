@@ -3,10 +3,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
-import { ConsoleTabBar } from './console-tab-bar'
+import { MobileTabBar } from './mobile-tab-bar'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
-import type { ConsoleConfig } from './console-config'
+import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -32,6 +32,17 @@ export function useConsoleInvite() {
 export function useConsoleAccount() {
   const context = useContext(ConsoleAccountContext)
   if (!context) throw new Error('useConsoleAccount precisa estar dentro de ConsoleShell')
+  return context
+}
+
+type RestaurantShellValue = RestaurantShellInfo & { email: string | null }
+const RestaurantShellContext = createContext<RestaurantShellValue | null>(null)
+
+// Restaurante atual, os restaurantes da pessoa e se ela edita. Lido por
+// Ajustes, pelo sheet de troca e pelo seletor do sidebar.
+export function useRestaurantShell() {
+  const context = useContext(RestaurantShellContext)
+  if (!context) throw new Error('useRestaurantShell precisa estar dentro do ConsoleShell de um restaurante')
   return context
 }
 
@@ -75,6 +86,8 @@ export function ConsoleShell({
     accountTabRef.current?.focus()
   }, [])
   const accountContext = useMemo(() => ({ open: accountSheetOpen, email, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email])
+  const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email } : null), [config.restaurant, email])
+  const mobileTabs = (config.mobileTabs ?? []).map((tab) => (tab.key === 'invites' ? { ...tab, badge: counts.pendingInvites } : tab))
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const editable = event.target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable)
@@ -92,10 +105,9 @@ export function ConsoleShell({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [mode])
 
-  // No celular a barra do navegador acompanha o fundo agrupado do console,
-  // inclusive quando o tema escolhido difere do tema do sistema.
+  // No celular a barra do navegador acompanha o fundo agrupado (console e
+  // painel), inclusive quando o tema escolhido difere do tema do sistema.
   useEffect(() => {
-    if (surface !== 'console') return
     const root = document.documentElement
     const sync = () => {
       const color = root.classList.contains('dark') ? '#0D0C0A' : '#F2F0EB'
@@ -105,11 +117,12 @@ export function ConsoleShell({
     const observer = new MutationObserver(sync)
     observer.observe(root, { attributes: true, attributeFilter: ['class'] })
     return () => observer.disconnect()
-  }, [surface])
+  }, [])
 
   return <ConsoleActionsContext.Provider value={context}>
     <ConsoleInviteContext.Provider value={inviteContext}>
       <ConsoleAccountContext.Provider value={accountContext}>
+        <RestaurantShellContext.Provider value={restaurantContext}>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
             items={leaves.map((leaf) => ({
@@ -120,23 +133,29 @@ export function ConsoleShell({
               count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : undefined,
             }))}
             mode={mode}
-            contextLabel={config.contextDescription === 'Console' ? 'Tavvi' : config.contextLabel === 'Painel' ? config.contextDescription ?? 'Restaurante' : config.contextLabel ?? 'Tavvi'}
-            contextDescription={config.contextDescription === 'Console' ? 'Console' : config.contextLabel === 'Painel' ? `Painel · ${config.userDescription?.split(' · ')[0] ?? 'Equipe'}` : config.contextDescription ?? 'Gerenciar'}
+            identity={config.sidebar}
             email={email}
             accountOpen={accountOpen}
             accountButtonRef={accountButtonRef}
             onSearch={() => setPaletteOpen(true)}
             onAccount={() => setAccountOpen((open) => !open)}
             onToggle={toggleRailMode}
-            mobileChrome={surface !== 'console'}
+            mobileChrome={surface === 'console' ? 'none' : 'header'}
+            switcher={config.restaurant ? { restaurants: config.restaurant.restaurants, currentId: config.restaurant.restaurantId } : undefined}
           />
           <main className="tv-console-main">{children}</main>
-          {surface === 'console' ? <ConsoleTabBar pendingCount={counts.pendingInvites} accountOpen={accountSheetOpen} accountButtonRef={accountTabRef} onAccount={() => setAccountSheetOpen(true)} /> : null}
+          {mobileTabs.length > 0 ? (
+            <MobileTabBar
+              tabs={mobileTabs}
+              account={surface === 'console' ? { open: accountSheetOpen, buttonRef: accountTabRef, onOpen: () => setAccountSheetOpen(true) } : undefined}
+            />
+          ) : null}
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
           {accountOpen ? <AccountPopover email={email} description={description} onClose={closeAccount} /> : null}
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>
+        </RestaurantShellContext.Provider>
       </ConsoleAccountContext.Provider>
     </ConsoleInviteContext.Provider>
   </ConsoleActionsContext.Provider>

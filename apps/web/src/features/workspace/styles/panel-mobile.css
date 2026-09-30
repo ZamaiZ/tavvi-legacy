@@ -1,0 +1,430 @@
+/* Painel do restaurante no celular (Tavvi Mobile.dc.html, telefone da
+   direita). Tudo abaixo de 768 px e só com o shell do restaurante
+   ([data-surface="restaurant"]). A base comum está em mobile-base.css.
+   Os tokens ficam no território, e não no shell, para valerem também nos
+   sheets e alertas portados para `.workspace-territory`. */
+
+@media (max-width: 767px) {
+  .workspace-territory:has([data-surface="restaurant"]) {
+    --tv-gutter: 16px;
+    --tv-tabbar-height: calc(49px + env(safe-area-inset-bottom));
+    --tv-mheader-height: calc(48px + env(safe-area-inset-top));
+    --tv-bg: #F2F0EB;
+    --tv-scrim: rgba(22,20,15,.28);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dark .workspace-territory:has([data-surface="restaurant"]),
+  .workspace-territory.dark:has([data-surface="restaurant"]) {
+    --tv-bg: #0D0C0A;
+    --tv-surface: #1A1916;
+    --tv-surface-2: #211F1C;
+    --tv-gold-soft: rgba(208,172,110,.13);
+    --tv-ok-soft: rgba(134,197,149,.13);
+    --tv-warn-soft: rgba(224,180,101,.13);
+    --tv-danger-soft: rgba(238,140,128,.13);
+    --tv-scrim: rgba(0,0,0,.5);
+  }
+
+  /* Fundo por trás do "elástico" do Safari e da área segura. */
+  html:has([data-surface="restaurant"]),
+  html:has([data-surface="restaurant"]) body { background: #F2F0EB; }
+  html.dark:has([data-surface="restaurant"]),
+  html.dark:has([data-surface="restaurant"]) body { background: #0D0C0A; }
+}
+
+/* Cabeçalho e área principal do painel no celular (Tavvi Mobile.dc.html:
+   barra de 48 px translúcida sob a área segura). */
+@media (max-width: 767px) {
+  [data-surface="restaurant"] .tv-mobile-header {
+    height: var(--tv-mheader-height);
+    padding: env(safe-area-inset-top) 4px 0 16px;
+    gap: 10px;
+    border-bottom: .5px solid var(--tv-line-2);
+    background: var(--tv-bar);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+  [data-surface="restaurant"] .tv-mobile-context { gap: 0; line-height: 1.2; }
+  [data-surface="restaurant"] .tv-mobile-context strong { font-size: 15px; font-weight: 600; }
+  [data-surface="restaurant"] .tv-mobile-context small { font-size: 11.5px; }
+  [data-surface="restaurant"] .tv-mobile-search { color: var(--tv-text-2); }
+  [data-surface="restaurant"] .tv-mobile-search svg { width: 19px; height: 19px; }
+  [data-surface="restaurant"] .tv-mobile-search:active { opacity: .5; }
+  [data-surface="restaurant"] .tv-console-main {
+    min-height: 100dvh;
+    padding: var(--tv-mheader-height) 0 calc(var(--tv-tabbar-height) + 24px);
+    overflow-x: clip;
+    background: var(--tv-bg);
+  }
+}
+
+/* Páginas do painel no celular (bMenu, bService, bTeam): conteúdo 14 px
+   abaixo do cabeçalho, margens de 16, blocos com 12 entre si. */
+@media (max-width: 767px) {
+  .workspace-territory .tv-mp { min-width: 0; padding: 14px var(--tv-gutter) 0; display: flex; flex-direction: column; gap: 12px; color: var(--tv-text); }
+  .workspace-territory .tv-mp-head { display: flex; flex-direction: column; gap: 12px; }
+  .workspace-territory .tv-mp-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .workspace-territory .tv-mp-title { margin: 0 4px; color: var(--tv-text); font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -.025em; }
+  .workspace-territory .tv-mp-action { height: 34px; padding: 0 14px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 14px; font-weight: 600; }
+  .workspace-territory .tv-mp-action svg { width: 15px; height: 15px; }
+  .workspace-territory .tv-mp-action:active { opacity: .75; }
+  .workspace-territory .tv-mp-action:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+  .workspace-territory .tv-mp-lead { margin: -6px 4px 0; color: var(--tv-text-2); font-size: 14px; line-height: 1.4; }
+  .workspace-territory .tv-mp-lead.is-team { margin-top: -4px; font-size: 13.5px; }
+  .workspace-territory .tv-mp-refresh { margin: 0; color: var(--tv-text-3); font-size: 13px; text-align: center; }
+
+  /* Serviço (bService): grade de 2 colunas, blocos de 104 px. */
+  .workspace-territory .tv-service { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .workspace-territory .tv-service-tile { min-height: 104px; padding: 12px; gap: 4px; border: 0; border-radius: 16px; background: var(--tv-surface); box-shadow: none; transition: transform 120ms var(--tv-ease), background-color 150ms var(--tv-ease); }
+  .workspace-territory .tv-service-tile.is-soldout { background: var(--tv-danger-soft); }
+  .workspace-territory .tv-service-state { gap: 5px; font-size: 12px; }
+  .workspace-territory .tv-service-state > span { width: 7px; height: 7px; }
+  .workspace-territory .tv-service-tile > strong { font-size: 15px; line-height: 1.25; }
+  .workspace-territory .tv-service-tile > small { font-size: 13px; }
+  .workspace-territory .tv-service-tile:not([aria-disabled="true"]):active { transform: scale(.98); }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .workspace-territory .tv-service-tile { transition: none; }
+}
+
+/* Ajustes (bMore): título, grupos com 16 px entre si, linhas de 50 px. */
+@media (max-width: 767px) {
+  .workspace-territory .tv-msettings { gap: 6px; }
+  .workspace-territory .tv-msettings > .tv-mp-title { margin-bottom: 8px; }
+  .workspace-territory .tv-msettings > .tv-group + .tv-group { margin-top: 16px; }
+  .workspace-territory .tv-mlink { position: relative; width: 100%; min-height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; font-size: 15px; text-align: left; text-decoration: none; }
+  .workspace-territory .tv-mlink:last-child { border-bottom: 0; }
+  .workspace-territory .tv-mlink:active { background: var(--tv-active); }
+  .workspace-territory .tv-mlink:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+  .workspace-territory .tv-mlink-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-neutral-soft); color: var(--tv-text); }
+  .workspace-territory .tv-mlink-icon.is-gold { background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+  .workspace-territory .tv-mlink-icon svg { width: 16px; height: 16px; }
+  .workspace-territory .tv-mlink-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  .workspace-territory .tv-mlink-copy small { color: var(--tv-text-3); font-size: 12px; }
+  .workspace-territory .tv-mlink-value { flex: 0 0 auto; color: var(--tv-text-3); }
+  .workspace-territory .tv-mlink > svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--tv-text-3); }
+  .workspace-territory .tv-group-danger:disabled { opacity: .6; }
+  .workspace-territory .tv-msettings-email { margin: 10px 0 0; color: var(--tv-text-3); font-size: 12.5px; text-align: center; }
+
+  /* Marca do restaurante no sheet "Seus restaurantes". */
+  .workspace-territory .tv-mrest-mark { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; overflow: hidden; border-radius: 10px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 13px; font-weight: 600; }
+  .workspace-territory .tv-mrest-mark.is-logo { border: 1px solid var(--tv-line); background: var(--tv-surface); }
+  .workspace-territory .tv-mrest-mark.is-logo img { width: 100%; height: 100%; padding: 3px; object-fit: contain; }
+}
+
+/* Identidade e Contato no celular: telas empilhadas a partir de Ajustes.
+   Mesmo conteúdo; mudam o topo, as margens e o que flutua sobre a tab bar. */
+@media (max-width: 767px) {
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) { padding: 0 var(--tv-gutter) calc(var(--tv-tabbar-height) + 24px); }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) > .tv-m-navbar { margin-left: -4px; }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header { margin-bottom: 14px; gap: 0; }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header > div > p:first-child { display: none; }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header h1 { margin: 0 4px; font-size: 28px; font-weight: 700; line-height: 1.15; letter-spacing: -.025em; }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header > div > p:last-child { margin: 4px 4px 0; font-size: 14px; line-height: 1.4; }
+  /* Barra de salvar: status numa linha e, embaixo, os botões de 44 px
+     dividindo toda a largura. Nada quebra nem vaza. Os 52 px à direita são
+     do botão da prévia, na mesma altura. */
+  .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) { bottom: calc(var(--tv-tabbar-height) + 12px); margin-right: 52px; padding: 10px; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; border-radius: 20px; }
+  .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) > span { min-width: 0; padding: 0 6px; overflow: hidden; font-size: 13px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) > div { min-width: 0; flex: none; display: flex; gap: 8px; }
+  .workspace-territory :is(.tv-identity-reset, .tv-identity-save, .tv-contact-discard, .tv-contact-save) { min-width: 0; height: 44px; flex: 1 1 0; justify-content: center; padding: 0 10px; font-size: 15px; }
+  .workspace-territory .tv-identity-reset { border: 1px solid var(--tv-line-2); background: var(--tv-surface); }
+  .workspace-territory :is(.tv-identity-reset, .tv-identity-save) svg { width: 16px; height: 16px; flex-basis: 16px; }
+  .workspace-territory :is(.tv-identity-reset, .tv-identity-save) > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .workspace-territory .tv-savebar-long { display: none; }
+  .workspace-territory .tv-savebar-short { display: inline; }
+  .workspace-territory .tv-floating-preview { right: 16px; bottom: calc(var(--tv-tabbar-height) + 12px); }
+  .workspace-territory .tv-floating-preview-trigger { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border: 0; border-radius: 50%; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); }
+  .workspace-territory .tv-floating-preview-trigger > span { display: none; }
+  .workspace-territory .tv-floating-preview-trigger svg { width: 20px; height: 20px; }
+}
+
+/* Cardápio no celular (bMenu). */
+@media (max-width: 767px) {
+  /* Cartão de publicação. */
+  .workspace-territory .tv-mpub { padding: 14px; display: flex; flex-direction: column; gap: 10px; border-radius: 18px; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); }
+  .workspace-territory .tv-mpub-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .workspace-territory .tv-mpub-pill { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: #17150F; color: #F2EEE6; font-size: 12.5px; font-weight: 500; }
+  .workspace-territory .tv-mpub-pill svg { width: 13px; height: 13px; }
+  .workspace-territory .tv-mpub-button { height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #FFFFFF; color: #17150F; font: inherit; font-size: 14px; font-weight: 600; }
+  .workspace-territory .tv-mpub-button:disabled { opacity: .45; }
+  .workspace-territory .tv-mpub-button:active:not(:disabled) { opacity: .75; }
+  .workspace-territory .tv-mpub-desc { margin: 0; font-size: 13.5px; line-height: 1.4; }
+  .workspace-territory .tv-mpub-chip { padding: 8px 10px; display: flex; align-items: center; gap: 7px; border: 0; border-radius: 11px; background: var(--tv-hero-chip); color: inherit; font: inherit; font-size: 13px; text-align: left; }
+  .workspace-territory .tv-mpub-chip svg { width: 15px; height: 15px; flex: 0 0 auto; }
+  .workspace-territory button.tv-mpub-chip:active { opacity: .75; }
+
+  /* Filtros. */
+  .workspace-territory .tv-mchips { margin: 0 calc(var(--tv-gutter) * -1); padding: 0 var(--tv-gutter); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .workspace-territory .tv-mchips::-webkit-scrollbar { display: none; }
+  .workspace-territory .tv-mchip { height: 32px; padding: 0 12px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 14px; font-weight: 500; }
+  .workspace-territory .tv-mchip[aria-pressed="true"] { background: var(--tv-btn); color: var(--tv-btn-text); }
+  .workspace-territory .tv-mchip > span { font-size: 12px; opacity: .55; }
+  .workspace-territory .tv-mchip:active { opacity: .75; }
+
+  /* Grupos de categoria. */
+  .workspace-territory .tv-mcats { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: calc(var(--tv-mheader-height) + 12px); }
+  .workspace-territory .tv-mcat { display: flex; flex-direction: column; gap: 6px; }
+  .workspace-territory .tv-mcat-head { width: 100%; padding: 8px 4px 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border: 0; background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
+  .workspace-territory button.tv-mcat-head:active { opacity: .6; }
+  .workspace-territory .tv-mcat-name { min-width: 0; overflow: hidden; font-size: 17px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-mcat-name small { margin-left: 6px; color: var(--tv-text-3); font-size: 13px; font-weight: 400; }
+  .workspace-territory .tv-mcat-count { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 2px; color: var(--tv-text-3); font-size: 13px; }
+  .workspace-territory .tv-mcat-count svg { width: 14px; height: 14px; align-self: center; }
+  .workspace-territory .tv-mgroup { overflow: hidden; border-radius: 14px; background: var(--tv-surface); }
+
+  /* Linha do item. */
+  /* `pan-y`: a rolagem vertical é do navegador (e cancela o segurar); só o
+     arrasto horizontal vira deslize da linha (use-row-gestures). */
+  .workspace-territory .tv-mrow { position: relative; padding: 10px 12px; display: flex; align-items: center; gap: 12px; border-bottom: .5px solid var(--tv-line); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: pan-y pinch-zoom; }
+  .workspace-territory .tv-mgroup > .tv-mrow:last-child { border-bottom: 0; }
+  .workspace-territory .tv-mrow:has(> button.tv-mrow-main:active) { background: var(--tv-active); }
+  .workspace-territory .tv-mrow-main { min-width: 0; flex: 1; padding: 0; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
+  .workspace-territory .tv-mrow.is-hidden .tv-mrow-main { opacity: .5; }
+  .workspace-territory .tv-mthumb { width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center; border-radius: 11px; object-fit: cover; }
+  .workspace-territory .tv-mthumb.is-video { border: 1px solid var(--tv-line); background: repeating-linear-gradient(135deg, var(--tv-gold-soft) 0 6px, var(--tv-surface-2) 6px 12px); }
+  .workspace-territory .tv-mthumb.is-empty { border: 1px dashed var(--tv-line-2); background: var(--tv-surface-2); color: var(--tv-warn); }
+  .workspace-territory .tv-mthumb svg { width: 17px; height: 17px; }
+  .workspace-territory .tv-mrow-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .workspace-territory .tv-mrow-copy strong { overflow: hidden; font-size: 15px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-mrow-meta { display: flex; align-items: center; gap: 6px; }
+  .workspace-territory .tv-mrow-meta > span:first-child { color: var(--tv-text-2); font-size: 13.5px; }
+  .workspace-territory .tv-mrow-meta .is-soldout { text-decoration: line-through; }
+  .workspace-territory .tv-mrow-nophoto { color: var(--tv-warn); font-size: 11px; font-weight: 600; }
+  .workspace-territory .tv-mrow-hidden { color: var(--tv-text-3); font-size: 11.5px; }
+  .workspace-territory .tv-mrow-state { flex: 0 0 auto; color: var(--tv-text-2); font-size: 13px; }
+  .workspace-territory .tv-mrow-state.is-soldout { color: var(--tv-danger); }
+  /* Âncora do menu de segurar: invisível, no canto direito da linha. */
+  .workspace-territory .tv-mrow-menu { position: absolute; top: 50%; right: 12px; width: 1px; height: 1px; padding: 0; overflow: hidden; border: 0; opacity: 0; pointer-events: none; }
+  .workspace-territory .tv-madd { width: 100%; min-height: 48px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 15px; font-weight: 500; text-align: left; }
+  .workspace-territory .tv-madd svg { width: 18px; height: 18px; }
+  .workspace-territory .tv-madd:active { background: var(--tv-active); }
+  .workspace-territory .tv-mgroup-empty { margin: 0; padding: 12px 16px; border-bottom: .5px solid var(--tv-line); color: var(--tv-text-3); font-size: 13px; }
+  .workspace-territory .tv-mgroup > .tv-mgroup-empty:last-child { border-bottom: 0; }
+
+  /* Estados. */
+  .workspace-territory .tv-mempty { padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .workspace-territory .tv-mempty-icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+  .workspace-territory .tv-mempty-icon svg { width: 24px; height: 24px; }
+  .workspace-territory .tv-mempty h2 { margin: 4px 0 0; font-size: 17px; font-weight: 600; }
+  .workspace-territory .tv-mempty p { max-width: 300px; margin: 0; color: var(--tv-text-2); font-size: 14px; line-height: 1.4; }
+  .workspace-territory .tv-mempty-chips { margin-top: 8px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .workspace-territory .tv-mnone { padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .workspace-territory .tv-mnone strong { font-size: 15px; font-weight: 600; }
+  .workspace-territory .tv-mnone span { color: var(--tv-text-2); font-size: 13px; }
+}
+
+/* Mídia no sheet de item (print "editar item"): 3 colunas, raio 12,
+   "Capa" de 18 px, "Adicionar" tracejado com câmera. */
+@media (max-width: 767px) {
+  .workspace-territory .tv-media.is-mobile { gap: 8px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-tile { border: 0; border-radius: 12px; background: repeating-linear-gradient(135deg, var(--tv-gold-soft) 0 7px, var(--tv-surface) 7px 14px); }
+  .workspace-territory .tv-media.is-mobile .tv-media-cover { top: 6px; left: 6px; height: 18px; padding: 0 7px; font-size: 10.5px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-remove { width: 22px; height: 22px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-remove::after { position: absolute; inset: -11px; content: ''; }
+  .workspace-territory .tv-media.is-mobile .tv-media-add { border-radius: 12px; background: transparent; font-size: 12px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-add svg { width: 18px; height: 18px; }
+  .workspace-territory .tv-media.is-mobile .tv-media-note,
+  .workspace-territory .tv-media.is-mobile .tv-pfield-error { margin: 0 16px; font-size: 13px; line-height: 1.4; }
+  .workspace-territory .tv-media.is-mobile .tv-media-note { color: var(--tv-text-3); }
+  .workspace-territory .tv-frow-price input { field-sizing: content; min-width: 4ch; }
+}
+
+/* Equipe no celular (bTeam) e sheets do membro e do convite. */
+@media (max-width: 767px) {
+  .workspace-territory .tv-mp > .tv-group-label { margin: 10px 16px -6px; }
+  .workspace-territory .tv-mmember { width: 100%; padding: 0 0 0 14px; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
+  .workspace-territory .tv-mmember:active { background: var(--tv-active); }
+  .workspace-territory .tv-mmember:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+  .workspace-territory .tv-mavatar { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12.5px; font-weight: 700; }
+  .workspace-territory .tv-minvite-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); }
+  .workspace-territory .tv-minvite-icon svg { width: 16px; height: 16px; }
+  .workspace-territory .tv-mmember-body { position: relative; min-width: 0; min-height: 60px; flex: 1; padding-right: 14px; display: flex; align-items: center; gap: 8px; }
+  .workspace-territory .tv-mmember:not(:last-child) .tv-mmember-body::after { position: absolute; right: 0; bottom: 0; left: 0; height: .5px; background: var(--tv-line-2); content: ''; }
+  .workspace-territory .tv-mmember-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  .workspace-territory .tv-mmember-copy strong { overflow: hidden; font-size: 15px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-mmember-copy small { overflow: hidden; color: var(--tv-text-3); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-mmember-role { flex: 0 0 auto; color: var(--tv-text-2); font-size: 13px; }
+  .workspace-territory .tv-mmember-body > svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--tv-text-3); }
+  .workspace-territory .tv-mteam-alone { padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .workspace-territory .tv-mteam-alone strong { font-size: 15px; font-weight: 600; }
+  .workspace-territory .tv-mteam-alone span { max-width: 300px; color: var(--tv-text-2); font-size: 13px; line-height: 1.4; }
+
+  /* Topo dos sheets de membro e de convite (como o detalhe de convite do console). */
+  .workspace-territory .tv-mprofile { padding: 16px; display: flex; flex-direction: column; gap: 12px; border-radius: 20px; background: var(--tv-surface); }
+  .workspace-territory .tv-mprofile-avatar { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 18px; font-weight: 700; }
+  .workspace-territory .tv-mprofile-top { display: flex; align-items: center; justify-content: space-between; }
+  .workspace-territory .tv-mprofile-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+  .workspace-territory .tv-mprofile-icon svg { width: 20px; height: 20px; }
+  .workspace-territory .tv-mprofile-pill { height: 24px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12.5px; font-weight: 500; }
+  .workspace-territory .tv-mprofile h3 { margin: 0; color: var(--tv-text); font-size: 21px; font-weight: 700; line-height: 1.2; letter-spacing: -.02em; word-break: break-all; }
+  .workspace-territory .tv-mprofile p { margin: 3px 0 0; color: var(--tv-text-2); font-size: 14px; }
+  .workspace-territory .tv-mprofile-action { margin-top: 8px; }
+
+  /* Convidar: link em mono e a linha Papel no padrão da Validade (o gatilho
+     do Combobox variant="row" é button.tv-frow.is-nav + className). */
+  .workspace-territory .tv-sheet-m-link { font-family: var(--tv-mono); }
+  .workspace-territory .tv-frow.tv-sheet-m-role { min-height: 52px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--tv-surface); }
+  .workspace-territory .tv-sheet-m-role .tv-frow-value { color: var(--tv-text); font-weight: 500; }
+}
+
+/* Sheet do iOS do painel (§0.6). */
+@keyframes tv-msheet-push { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 767px) {
+  .workspace-territory .tv-msheet-scrim { position: fixed; z-index: 70; inset: 0; background: var(--tv-scrim); transition: opacity 300ms var(--tv-ease); }
+  .workspace-territory .tv-msheet-scrim[data-starting-style],
+  .workspace-territory .tv-msheet-scrim[data-ending-style] { opacity: 0; }
+  .workspace-territory .tv-msheet {
+    position: fixed;
+    z-index: 71;
+    top: max(62px, calc(env(safe-area-inset-top) + 12px));
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    border-radius: 14px 14px 0 0;
+    background: var(--tv-bg);
+    color: var(--tv-text);
+    box-shadow: 0 -10px 40px rgba(0,0,0,.2);
+    outline: 0;
+    transition: transform 300ms var(--tv-ease);
+  }
+  .workspace-territory .tv-msheet.is-content { top: auto; max-height: calc(100dvh - max(62px, calc(env(safe-area-inset-top) + 12px))); }
+  .workspace-territory .tv-msheet[data-starting-style] { transform: translateY(100%); }
+  .workspace-territory .tv-msheet[data-ending-style] { transform: translateY(100%); transition-duration: 200ms; }
+  .workspace-territory .tv-msheet-grip { position: relative; flex: 0 0 auto; display: flex; justify-content: center; touch-action: none; }
+  .workspace-territory .tv-msheet-grip::before { position: absolute; inset: -10px 0 -12px; content: ''; }
+  .workspace-territory .tv-msheet-grip > span { width: 36px; height: 5px; border-radius: 999px; background: var(--tv-line-2); }
+  /* O corpo é quem rola (a alça fica fora). A barra é o primeiro filho e
+     gruda no topo dele, com o fundo do sheet por baixo do que passa. Os
+     botões têm 44 px de toque; o -6 embaixo devolve o respiro de 14 px até
+     o primeiro grupo. */
+  .workspace-territory .tv-msheet-body { min-height: 0; flex: 1 1 auto; padding: 0 var(--tv-gutter) calc(30px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; overflow-y: auto; overscroll-behavior: contain; }
+  .workspace-territory .tv-msheet-nav { position: sticky; z-index: 2; top: 0; flex: 0 0 auto; height: 44px; margin: 0 calc(var(--tv-gutter) * -1) -6px; padding: 0 var(--tv-gutter); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--tv-bg); }
+  .workspace-territory .tv-msheet-title { position: absolute; top: 50%; left: 50%; max-width: 52%; margin: 0; overflow: hidden; transform: translate(-50%, -50%); color: var(--tv-text); font-size: 17px; font-weight: 600; text-align: center; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+  .workspace-territory .tv-msheet-cancel,
+  .workspace-territory .tv-msheet-back,
+  .workspace-territory .tv-msheet-action { position: relative; z-index: 1; min-height: 44px; padding: 0; display: inline-flex; align-items: center; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 17px; white-space: nowrap; }
+  .workspace-territory .tv-msheet-back { gap: 2px; margin-left: -6px; }
+  .workspace-territory .tv-msheet-back svg { width: 24px; height: 24px; stroke-width: 2.2; }
+  .workspace-territory .tv-msheet-action { margin-left: auto; font-weight: 600; }
+  .workspace-territory .tv-msheet-action:disabled { opacity: .4; }
+  .workspace-territory .tv-msheet-action[aria-busy="true"] { opacity: 1; }
+  .workspace-territory .tv-msheet-action .tv-spinner { width: 17px; height: 17px; }
+  .workspace-territory .tv-msheet-cancel:active,
+  .workspace-territory .tv-msheet-back:active,
+  .workspace-territory .tv-msheet-action:active:not(:disabled) { opacity: .5; }
+  .workspace-territory .tv-msheet-screen { min-height: 0; flex: 1 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .workspace-territory .tv-msheet-screen[hidden] { display: none; }
+  .workspace-territory .tv-msheet-screen.is-pushed { animation: tv-msheet-push 250ms var(--tv-ease) both; }
+  .workspace-territory .tv-msheet-label { margin: 4px 16px -8px; color: var(--tv-text-3); font-size: 13px; font-weight: 400; letter-spacing: .02em; text-transform: uppercase; }
+
+  /* Linhas de formulário agrupadas (bEdit, bMore). */
+  .workspace-territory .tv-frow { position: relative; width: 100%; min-height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; text-align: left; text-decoration: none; }
+  .workspace-territory .tv-frow:last-child { border-bottom: 0; }
+  .workspace-territory .tv-frow > span:first-child { flex: 0 0 auto; }
+  .workspace-territory .tv-frow input { min-width: 0; flex: 1; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 16px; text-align: right; }
+  .workspace-territory .tv-frow input:focus { color: var(--tv-text); }
+  .workspace-territory .tv-frow input::placeholder { color: var(--tv-text-3); }
+  .workspace-territory .tv-frow.is-left input { text-align: left; }
+  .workspace-territory .tv-frow.is-toggle { min-height: 50px; padding: 0 12px 0 16px; cursor: pointer; }
+  .workspace-territory .tv-frow.is-nav { cursor: pointer; }
+  .workspace-territory .tv-frow.is-nav:active { background: var(--tv-active); }
+  .workspace-territory .tv-frow:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+  .workspace-territory .tv-frow-value { min-width: 0; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; color: var(--tv-text-3); text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-frow-value svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .workspace-territory .tv-frow-price { min-width: 0; flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; color: var(--tv-text-2); }
+  .workspace-territory .tv-frow-price input { flex: 0 1 auto; max-width: 100%; }
+  .workspace-territory .tv-frow-trail { min-width: 0; display: inline-flex; align-items: center; gap: 4px; color: var(--tv-text-2); }
+  .workspace-territory .tv-frow-icon { position: relative; width: 28px; height: 28px; margin-right: -6px; display: grid; place-items: center; border: 0; background: transparent; color: var(--tv-text-3); }
+  .workspace-territory .tv-frow-icon::after { position: absolute; inset: -8px; content: ''; }
+  .workspace-territory .tv-frow-icon svg { width: 17px; height: 17px; }
+  .workspace-territory .tv-frow-icon:active { color: var(--tv-danger); }
+  .workspace-territory .tv-frow-link { min-height: 44px; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 16px; font-weight: 600; }
+  .workspace-territory .tv-farea { display: block; width: 100%; min-height: calc(4.2em + 24px); padding: 12px 16px; border: 0; outline: 0; resize: none; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; line-height: 1.4; field-sizing: content; }
+  .workspace-territory .tv-farea::placeholder { color: var(--tv-text-3); }
+  .workspace-territory .tv-choice { width: 100%; min-height: 48px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
+  .workspace-territory .tv-choice:last-child { border-bottom: 0; }
+  .workspace-territory .tv-choice > span:not([class]) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .workspace-territory .tv-choice strong { overflow: hidden; font-size: 16px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-choice small { color: var(--tv-text-3); font-size: 13px; line-height: 1.35; }
+  .workspace-territory .tv-choice > svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--tv-gold-text); stroke-width: 2.4; }
+  .workspace-territory .tv-choice:active:not(:disabled) { background: var(--tv-active); }
+  .workspace-territory .tv-choice:disabled { opacity: .5; }
+  .workspace-territory .tv-choice.is-restaurant { min-height: 60px; }
+  .workspace-territory .tv-choice.is-restaurant strong { font-size: 15px; font-weight: 500; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .workspace-territory .tv-msheet,
+  .workspace-territory .tv-msheet-scrim { transition: none; }
+  .workspace-territory .tv-msheet-screen.is-pushed { animation: none; }
+}
+
+/* Confirmação do painel no celular: alerta do iOS, como o do console. */
+@media (max-width: 767px) {
+  .workspace-territory .tv-pconfirm { width: 270px; padding: 0; gap: 0; overflow: hidden; border-radius: 14px; }
+  .workspace-territory .tv-pconfirm-icon { display: none; }
+  .workspace-territory .tv-pconfirm-title { padding: 19px 16px 0; font-size: 17px; line-height: 22px; font-weight: 600; }
+  .workspace-territory .tv-pconfirm-text { padding: 4px 16px 18px; font-size: 13px; line-height: 18px; }
+  .workspace-territory .tv-pconfirm-actions { margin: 0; gap: 0; border-top: .5px solid var(--tv-line-2); }
+  .workspace-territory .tv-pconfirm-cancel,
+  .workspace-territory .tv-pconfirm-confirm { height: 44px; border: 0; border-radius: 0; background: transparent; color: var(--tv-gold-text); font-size: 17px; font-weight: 400; }
+  .workspace-territory .tv-pconfirm-confirm { border-left: .5px solid var(--tv-line-2); font-weight: 600; }
+  .workspace-territory .tv-pconfirm.is-destructive .tv-pconfirm-confirm { background: transparent; color: var(--tv-danger); }
+  .workspace-territory .tv-pconfirm-cancel:active,
+  .workspace-territory .tv-pconfirm-confirm:active { background: var(--tv-active); }
+}
+
+/* Toast no topo em todo o celular (spec do painel §0.9; spec de
+   componentes §3.1). Fora do território: o viewport é portado para o body.
+   Sem camada, vence as classes do Tailwind do toast.tsx, que são todas de
+   `transform` (e não de `translate`). */
+@media (max-width: 767px) {
+  [data-slot="toast-viewport"][data-placement="top"] { top: calc(env(safe-area-inset-top) + 10px); right: 16px; bottom: auto; left: 16px; z-index: 95; width: auto; max-width: none; margin: 0; }
+  [data-slot="toast-viewport"][data-placement="top"][data-offset="header"] { top: calc(env(safe-area-inset-top) + 58px); }
+  [data-slot="toast"][data-placement="top"] {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: max-content;
+    max-width: 100%;
+    height: auto;
+    border: 0;
+    border-radius: 999px;
+    background: #17150F;
+    color: #F2EEE6;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    transform-origin: top center;
+    transform: translateX(-50%) translateY(calc(var(--toast-index) * 6px + var(--toast-swipe-movement-y, 0px))) scale(calc(1 - var(--toast-index) * .05));
+    transition: transform 280ms cubic-bezier(.2,.8,.2,1), opacity 200ms;
+  }
+  [data-slot="toast"][data-placement="top"][data-starting-style],
+  [data-slot="toast"][data-placement="top"][data-ending-style] { opacity: 0; transform: translateX(-50%) translateY(-150%); }
+  [data-slot="toast"][data-placement="top"][data-limited] { opacity: 0; }
+  [data-slot="toast"][data-placement="top"]::after { content: none; }
+  [data-slot="toast"][data-placement="top"]:has([data-slot="toast-description"]) { border-radius: 20px; }
+  [data-slot="toast"][data-placement="top"] [data-slot="toast-content"] { min-height: 40px; padding: 10px 16px 10px 12px; gap: 8px; }
+  [data-slot="toast"][data-placement="top"] [data-slot="toast-title"] { color: #F2EEE6; font-size: 14px; font-weight: 500; line-height: 20px; }
+  [data-slot="toast"][data-placement="top"] [data-slot="toast-description"] { color: #A6A094; font-size: 13px; line-height: 18px; }
+  [data-slot="toast"][data-placement="top"] [data-slot="toast-close"],
+  [data-slot="toast"][data-placement="top"] [data-slot="toast-action"] { display: none; }
+  .tv-toast-icon { display: grid; flex: 0 0 auto; color: #D0AC6E; }
+  .tv-toast-icon svg { width: 17px; height: 17px; }
+  .tv-toast-icon.is-error { color: #EE8C80; }
+  .tv-toast-icon.is-warning { color: #E0B465; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  [data-slot="toast"][data-placement="top"] { transition: none; }
+}

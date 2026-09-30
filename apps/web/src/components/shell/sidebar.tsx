@@ -1,12 +1,15 @@
 'use client'
 
-import { useSyncExternalStore, type Ref } from 'react'
+import { useCallback, useRef, useState, useSyncExternalStore, type Ref } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { LuBookOpen, LuChevronsUpDown, LuContact, LuMail, LuPalette, LuPanelLeft, LuPanelLeftOpen, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
 import { setCommandPaletteOpen } from './command-palette-store'
+import { navigationPathname, pickActiveHref } from './navigation'
 import { toExternalPath } from '@/lib/route-paths'
 import type { RailMode } from './rail-store'
+import type { RestaurantSwitchEntry } from './console-config'
+import { RestaurantSwitcher } from './restaurant-switcher'
 
 const icons = {
   mail: LuMail,
@@ -17,6 +20,43 @@ const icons = {
   contact: LuContact,
   team: LuUsers,
 } as const
+
+export type SidebarBrand =
+  | { kind: 'tavvi' }
+  | { kind: 'restaurant'; logoUrl: string | null; initials: string }
+
+// O que o topo da sidebar mostra em cada contexto: a marca Tavvi no console e
+// no seletor de restaurantes; dentro de um restaurante, a logo dele ou, sem
+// logo, as iniciais no dourado.
+export type SidebarIdentity = {
+  brand: SidebarBrand
+  title: string
+  subtitle: string
+  section: string
+  accountDescription: string
+}
+
+function BrandMark({ brand }: { brand: SidebarBrand }) {
+  if (brand.kind === 'restaurant' && brand.logoUrl) {
+    return (
+      <span className="tv-sidebar-mark is-logo">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={brand.logoUrl} alt="" />
+      </span>
+    )
+  }
+  if (brand.kind === 'restaurant') {
+    return <span className="tv-sidebar-mark is-initials" aria-hidden="true">{brand.initials}</span>
+  }
+  return (
+    <span className="tv-sidebar-mark">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="tv-brandmark-light" src="/brand/tavvi-brandmark-gold-on-light.png" alt="" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="tv-brandmark-dark" src="/brand/tavvi-brandmark-gold-on-dark.png" alt="" />
+    </span>
+  )
+}
 
 export type SidebarEntry = {
   href: string
@@ -45,34 +85,46 @@ function shortcut(modifier: string, key: string) {
 export function Sidebar({
   items,
   mode,
-  contextLabel,
-  contextDescription,
+  identity,
   email,
   accountOpen = false,
   accountButtonRef,
   onSearch,
   onAccount,
   onToggle,
-  mobileChrome = true,
+  mobileChrome = 'full',
+  switcher,
 }: {
   items: SidebarEntry[]
   mode: RailMode
-  contextLabel: string
-  contextDescription: string
+  identity: SidebarIdentity
   email: string | null
   accountOpen?: boolean
   accountButtonRef?: Ref<HTMLButtonElement>
   onSearch?: () => void
   onAccount: () => void
   onToggle: () => void
-  mobileChrome?: boolean
+  /** Celular: `full` (cabeçalho com conta e abas, seletor de restaurantes),
+      `header` (só o cabeçalho, painel com tab bar) ou `none` (console). */
+  mobileChrome?: 'full' | 'header' | 'none'
+  /** Com 2 ou mais restaurantes, o bloco da marca vira o seletor. */
+  switcher?: { restaurants: RestaurantSwitchEntry[]; currentId: string }
 }) {
   const pathname = toExternalPath(usePathname())
+  // As rotas com sidebar são dinâmicas (leem cookie e sessão), então a busca
+  // já existe no render do servidor e não suspende.
+  const step = useSearchParams().get('passo')
+  const activeHref = pickActiveHref(navigationPathname(pathname, step), items.map((item) => item.href))
   const modifier = useModifierKey()
   const expanded = mode === 'pinned'
   const initial = email?.trim().slice(0, 1).toUpperCase() || 'A'
-  const accountDescription = contextDescription === 'Console' ? 'Administrador da plataforma' : 'Acessar conta'
-  const active = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const [switchOpen, setSwitchOpen] = useState(false)
+  const switchButtonRef = useRef<HTMLButtonElement>(null)
+  const closeSwitch = useCallback(() => {
+    setSwitchOpen(false)
+    switchButtonRef.current?.focus()
+  }, [])
+  const canSwitch = Boolean(switcher && switcher.restaurants.length > 1)
   const openSearch = () => {
     onSearch?.()
     setCommandPaletteOpen(true)
@@ -81,7 +133,7 @@ export function Sidebar({
   function links(mobile = false) {
     return items.map((item) => {
       const Icon = icons[item.icon]
-      const selected = active(item.href)
+      const selected = item.href === activeHref
       return (
         <Link
           key={item.href}
@@ -103,11 +155,27 @@ export function Sidebar({
     <>
       <aside className={`tv-sidebar${expanded ? ' is-expanded' : ''}`} aria-label="Navegação principal">
         <div className="tv-sidebar-brand">
-          <span className="tv-sidebar-mark">
-            <img className="tv-brandmark-light" src="/brand/tavvi-brandmark-gold-on-light.png" alt="" />
-            <img className="tv-brandmark-dark" src="/brand/tavvi-brandmark-gold-on-dark.png" alt="" />
-          </span>
-          <span className="tv-sidebar-brand-copy"><strong>{contextLabel}</strong><small>{contextDescription}</small></span>
+          {canSwitch ? (
+            <button
+              ref={switchButtonRef}
+              type="button"
+              className="tv-sidebar-switch"
+              aria-haspopup="dialog"
+              aria-expanded={switchOpen}
+              aria-label={`Trocar de restaurante. Atual: ${identity.title}`}
+              title={expanded ? undefined : 'Trocar de restaurante'}
+              onClick={() => setSwitchOpen((open) => !open)}
+            >
+              <BrandMark brand={identity.brand} />
+              <span className="tv-sidebar-brand-copy"><strong>{identity.title}</strong><small>{identity.subtitle}</small></span>
+              <LuChevronsUpDown aria-hidden="true" className="tv-sidebar-switch-icon" />
+            </button>
+          ) : (
+            <>
+              <BrandMark brand={identity.brand} />
+              <span className="tv-sidebar-brand-copy"><strong>{identity.title}</strong><small>{identity.subtitle}</small></span>
+            </>
+          )}
           <button type="button" className="tv-sidebar-collapse" aria-label="Recolher menu" title={`Recolher (${shortcut(modifier, 'B')})`} onClick={onToggle}>
             <LuPanelLeft aria-hidden="true" />
           </button>
@@ -124,7 +192,7 @@ export function Sidebar({
           <span aria-hidden="true">Buscar</span>
           <kbd aria-hidden="true">{shortcut(modifier, 'K')}</kbd>
         </button>
-        <div className="tv-sidebar-section-label">{contextDescription === 'Console' ? 'Plataforma' : contextDescription.startsWith('Painel') ? 'Restaurante' : 'Gerenciar'}</div>
+        <div className="tv-sidebar-section-label">{identity.section}</div>
         <nav className="tv-sidebar-nav">{links()}</nav>
 
         <div className="tv-sidebar-footer">
@@ -142,23 +210,21 @@ export function Sidebar({
             onClick={onAccount}
           >
             <span className="tv-sidebar-avatar" aria-hidden="true">{initial}</span>
-            <span className="tv-sidebar-account-copy"><strong>{email ?? 'Conta'}</strong><small>{accountDescription}</small></span>
+            <span className="tv-sidebar-account-copy"><strong>{email ?? 'Conta'}</strong><small>{identity.accountDescription}</small></span>
             <LuChevronsUpDown aria-hidden="true" />
           </button>
         </div>
       </aside>
+      {switchOpen && switcher ? <RestaurantSwitcher restaurants={switcher.restaurants} currentId={switcher.currentId} onClose={closeSwitch} /> : null}
 
-      {mobileChrome ? <>
+      {mobileChrome !== 'none' ? <>
         <header className="tv-mobile-header">
-          <span className="tv-sidebar-mark">
-            <img className="tv-brandmark-light" src="/brand/tavvi-brandmark-gold-on-light.png" alt="" />
-            <img className="tv-brandmark-dark" src="/brand/tavvi-brandmark-gold-on-dark.png" alt="" />
-          </span>
-          <span className="tv-mobile-context"><strong>{contextLabel}</strong><small>{contextDescription}</small></span>
+          <BrandMark brand={identity.brand} />
+          <span className="tv-mobile-context"><strong>{identity.title}</strong><small>{identity.subtitle}</small></span>
           <button type="button" className="tv-mobile-search" aria-label="Buscar páginas" onClick={openSearch}><LuSearch /></button>
-          <button type="button" className="tv-mobile-account" aria-label="Abrir conta" onClick={onAccount}>{initial}</button>
+          {mobileChrome === 'full' ? <button type="button" className="tv-mobile-account" aria-label="Abrir conta" onClick={onAccount}>{initial}</button> : null}
         </header>
-        <nav className="tv-mobile-tabs" aria-label="Navegação principal">{links(true)}</nav>
+        {mobileChrome === 'full' ? <nav className="tv-mobile-tabs" aria-label="Navegação principal">{links(true)}</nav> : null}
       </> : null}
     </>
   )

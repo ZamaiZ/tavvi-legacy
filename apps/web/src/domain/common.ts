@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MAX_PRICE_CENTS } from '@/lib/money'
 
 export const uuidSchema = z.uuid({ error: 'Identificador inválido' })
 
@@ -13,7 +14,7 @@ export const slugSchema = z
 export const priceCentsSchema = z
   .int({ error: 'O preço precisa ser um número inteiro de centavos' })
   .min(0, { error: 'O preço não pode ser negativo' })
-  .max(99_999_999, { error: 'Preço acima do limite' })
+  .max(MAX_PRICE_CENTS, { error: 'Preço acima do limite' })
 
 export const positionSchema = z.int().min(0).max(10_000)
 

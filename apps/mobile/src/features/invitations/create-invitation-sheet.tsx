@@ -8,6 +8,7 @@ import type { LucideIcon } from 'lucide-react-native'
 import { AppText } from '@/components/primitives/app-text'
 import { ConfirmDialog } from '@/components/primitives/confirm-dialog'
 import { PrimaryCTA } from '@/components/primitives/primary-cta'
+import { toast } from '@/components/primitives/toast'
 import type { PlatformInvitation } from '@tavvi/api-contracts'
 import { radii, useAppTheme } from '@/theme'
 import { useQueryClient } from '@tanstack/react-query'
@@ -65,7 +66,12 @@ export function CreateInvitationSheet({ open, onOpenChange, initialEmail = '', i
       setCopyError('Não foi possível copiar. Pressione e segure o link para copiá-lo.')
     }
   }
-  async function finish() { await queryClient.invalidateQueries({ queryKey: invitationKeys.all }); onComplete?.(); reset() }
+  async function finish() {
+    await queryClient.invalidateQueries({ queryKey: invitationKeys.all })
+    onComplete?.()
+    reset()
+    toast.show(rotateInviteId ? 'Novo link gerado' : 'Convite criado')
+  }
 
   return <>
   <BottomSheet isPresented={open} onDismiss={dismiss} showDragIndicator={false} snapPoints={['half', 'full']} contentPadding={0} containerColor={colors.background}>

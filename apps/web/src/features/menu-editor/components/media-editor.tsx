@@ -1,18 +1,18 @@
 'use client'
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, useTransition } from 'react'
-import { RiImageLine } from 'react-icons/ri'
+import { useCallback, useEffect, useId, useImperativeHandle, useOptimistic, useRef, useState, useTransition } from 'react'
+import { closestCenter, DndContext, type DragEndEvent, type UniqueIdentifier } from '@dnd-kit/core'
+import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
+import { LuCamera, LuImagePlus } from 'react-icons/lu'
 import { MediaDropzone } from '@/features/menu-editor/components/media-dropzone'
 import { MediaFocal } from '@/features/menu-editor/components/media-focal'
-import { MediaItem } from '@/features/menu-editor/components/media-item'
-import { AttachmentGroup } from '@/components/ui/attachment'
-import { PanelEmptyState } from '@/features/workspace/components/panel-empty-state'
+import { MediaTile } from '@/features/menu-editor/components/media-item'
+import { panelAnnouncements, PANEL_DRAG_INSTRUCTIONS, usePanelSensors } from '@/features/menu-editor/lib/dnd'
 import { toast } from '@/components/ui/toast'
 import { MAX_MEDIA_PER_ITEM, MEDIA_LIMITS } from '@/domain/media'
 import type { OwnerMenuItemDTO } from '@/domain/menu'
 import type { PendingMedia } from '@/lib/media/types'
 import { publicMediaUrl } from '@/lib/media-url'
-import { formatFileSize } from '@/lib/format'
 import { uploadPendingMedia } from '@/features/menu-editor/components/media-upload'
 import {
   deleteItemMediaAction,
@@ -46,11 +46,14 @@ export function MediaEditor({
   media,
   ref,
   onPendingChange,
+  variant = 'panel',
 }: {
   itemId: string | null
   media: OwnerMenuItemDTO['media']
   ref?: React.Ref<MediaEditorHandle>
   onPendingChange?: (count: number) => void
+  /** `mobile`: grade de 3 colunas e "Adicionar" com câmera (sheet do celular). */
+  variant?: 'panel' | 'mobile'
 }) {
   const [pendingMedia, setPendingMedia] = useState<PendingMedia[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +64,9 @@ export function MediaEditor({
   )
 
   const savedMedia = [...media].sort((a, b) => a.position - b.position)
+  const dndId = useId()
+  const sensors = usePanelSensors()
+  const [orderedSaved, setOrderedSaved] = useOptimistic(savedMedia)
   const remainingSlots = Math.max(
     0,
     MAX_MEDIA_PER_ITEM - savedMedia.length - pendingMedia.length,
@@ -144,27 +150,10 @@ export function MediaEditor({
     })
   }
 
-  function movePending(index: number, direction: -1 | 1) {
-    setPendingMedia((current) => {
-      const destination = index + direction
-      if (destination < 0 || destination >= current.length) return current
-      const nextOrder = [...current]
-      const [moved] = nextOrder.splice(index, 1)
-      nextOrder.splice(destination, 0, moved)
-      return nextOrder
-    })
-  }
-
-  function moveSaved(index: number, direction: -1 | 1) {
+  function reorderSaved(nextOrder: typeof savedMedia) {
     if (!itemId) return
-    const destination = index + direction
-    if (destination < 0 || destination >= savedMedia.length) return
-
-    const nextOrder = [...savedMedia]
-    const [moved] = nextOrder.splice(index, 1)
-    nextOrder.splice(destination, 0, moved)
-
     startTransition(async () => {
+      setOrderedSaved(nextOrder)
       const result = await reorderItemMediaAction({
         itemId,
         order: nextOrder.map((entry, position) => ({
@@ -174,6 +163,23 @@ export function MediaEditor({
       })
       if (!result.ok) toast.add({ title: result.error, type: 'error' })
     })
+  }
+
+  // A ordem gravada só troca entre gravadas; a pendente só entre pendentes.
+  // A primeira de todas é a capa, a tela que abre o prato no feed.
+  function handleSortEnd({ active, over }: DragEndEvent) {
+    if (!over || active.id === over.id) return
+    const activeId = String(active.id)
+    const overId = String(over.id)
+    const savedFrom = orderedSaved.findIndex((entry) => entry.id === activeId)
+    const savedTo = orderedSaved.findIndex((entry) => entry.id === overId)
+    if (savedFrom >= 0 && savedTo >= 0) {
+      reorderSaved(arrayMove(orderedSaved, savedFrom, savedTo))
+      return
+    }
+    const pendingFrom = pendingMedia.findIndex((entry) => entry.localId === activeId)
+    const pendingTo = pendingMedia.findIndex((entry) => entry.localId === overId)
+    if (pendingFrom >= 0 && pendingTo >= 0) setPendingMedia((current) => arrayMove(current, pendingFrom, pendingTo))
   }
 
   function removeSaved(mediaId: string) {
@@ -218,88 +224,74 @@ export function MediaEditor({
   )
 
   const busy = transitionPending || uploading
+  const tileIds = [...orderedSaved.map((entry) => entry.id), ...pendingMedia.map((entry) => entry.localId)]
+  const coverId = tileIds[0] ?? null
+  const describeTile = (id: UniqueIdentifier) => `Mídia ${tileIds.indexOf(String(id)) + 1}`
+  const failed = pendingMedia.filter((entry) => entry.status === 'error' && entry.error)
 
   return (
-    <div className="space-y-3">
-      {savedMedia.length === 0 && pendingMedia.length === 0 ? (
-        <PanelEmptyState
-          density="compact"
-          icon={<RiImageLine />}
-          title="Este item ainda não tem mídia"
-          description="Fotos e vídeos colocam o prato no feed público e são necessários para publicar o cardápio."
-        />
-      ) : (
-        <AttachmentGroup className="scroll-fade-x scrollbar-none gap-2">
-          {savedMedia.map((entry, index) => (
-            <div key={entry.id} className="flex flex-col gap-2">
-              <MediaItem
-                title={entry.kind === 'video' ? 'Vídeo' : 'Foto'}
-                previewUrl={
-                  entry.kind === 'image'
-                    ? publicMediaUrl('image', entry.storagePath)
-                    : entry.posterPath
-                      ? publicMediaUrl('image', entry.posterPath)
-                      : null
-                }
-                kind={entry.kind}
-                state="ready"
-                progress={100}
-                first={index === 0}
-                last={index === savedMedia.length - 1 && pendingMedia.length === 0}
-                busy={busy}
-                selected={selectedMedia?.id === entry.id}
-                onSelect={() => setSelectedId(entry.id)}
-                onMoveUp={() => moveSaved(index, -1)}
-                onMoveDown={() => moveSaved(index, 1)}
-                onRemove={() => removeSaved(entry.id)}
-              />
-            </div>
-          ))}
-
-          {pendingMedia.map((pendingItem, index) => (
-            <MediaItem
-              key={pendingItem.localId}
-              title={pendingItem.file.name}
-              description={formatFileSize(pendingItem.file.size)}
-              previewUrl={pendingItem.kind === 'image' ? pendingItem.previewUrl : null}
-              kind={pendingItem.kind}
-              state={pendingItem.status}
-              progress={pendingItem.progress}
-              mediaError={pendingItem.error}
-              first={savedMedia.length === 0 && index === 0}
-              last={index === pendingMedia.length - 1}
-              busy={busy}
-              onMoveUp={() => movePending(index, -1)}
-              onMoveDown={() => movePending(index, 1)}
-              onRemove={() => removePending(pendingItem.localId)}
-            />
-          ))}
-        </AttachmentGroup>
-      )}
+    <div className={`tv-media${variant === 'mobile' ? ' is-mobile' : ''}`}>
+      <MediaDropzone onFiles={handleFiles} acceptedTypes={ACCEPTED_TYPES} disabled={busy} remaining={remainingSlots}>
+        {(openPicker) => (
+          <DndContext
+            id={dndId}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleSortEnd}
+            accessibility={{ announcements: panelAnnouncements(describeTile, describeTile), screenReaderInstructions: PANEL_DRAG_INSTRUCTIONS }}
+          >
+            <SortableContext items={tileIds} strategy={rectSortingStrategy}>
+              <div className="tv-media-grid">
+                {orderedSaved.map((entry) => (
+                  <MediaTile
+                    key={entry.id}
+                    id={entry.id}
+                    title={entry.kind === 'video' ? 'Vídeo' : 'Foto'}
+                    previewUrl={entry.kind === 'image' ? publicMediaUrl('image', entry.storagePath) : entry.posterPath ? publicMediaUrl('image', entry.posterPath) : null}
+                    state="ready"
+                    progress={100}
+                    cover={entry.id === coverId}
+                    busy={busy}
+                    selected={selectedMedia?.id === entry.id}
+                    onSelect={() => setSelectedId(entry.id)}
+                    onRemove={() => removeSaved(entry.id)}
+                    onMakeCover={() => reorderSaved([entry, ...orderedSaved.filter((other) => other.id !== entry.id)])}
+                  />
+                ))}
+                {pendingMedia.map((entry) => (
+                  <MediaTile
+                    key={entry.localId}
+                    id={entry.localId}
+                    title={entry.file.name}
+                    previewUrl={entry.kind === 'image' ? entry.previewUrl : null}
+                    state={entry.status}
+                    progress={entry.progress}
+                    cover={entry.localId === coverId}
+                    busy={busy}
+                    onRemove={() => removePending(entry.localId)}
+                  />
+                ))}
+                {remainingSlots > 0 ? (
+                  <button type="button" className="tv-media-add" disabled={busy} onClick={openPicker} aria-label={`Adicionar fotos ou vídeos. Cabem mais ${remainingSlots}.`}>
+                    {variant === 'mobile' ? <LuCamera aria-hidden="true" /> : <LuImagePlus aria-hidden="true" />}Adicionar
+                  </button>
+                ) : null}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </MediaDropzone>
 
       {selectedMedia ? <MediaFocal key={selectedMedia.id} media={selectedMedia} /> : null}
 
-      <MediaDropzone
-        onFiles={handleFiles}
-        acceptedTypes={ACCEPTED_TYPES}
-        disabled={busy}
-        remaining={remainingSlots}
-      />
-
       {pendingMedia.length > 0 ? (
-        <p className="text-small text-muted-foreground">
-          {pendingMedia.length === 1
-            ? '1 arquivo ainda não foi enviado.'
-            : `${pendingMedia.length} arquivos ainda não foram enviados.`}{' '}
+        <p className="tv-media-note">
+          {pendingMedia.length === 1 ? '1 arquivo ainda não foi enviado.' : `${pendingMedia.length} arquivos ainda não foram enviados.`}{' '}
           Eles sobem quando você salvar o item.
         </p>
       ) : null}
-
-      {error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
+      {failed.map((entry) => <p key={entry.localId} role="alert" className="tv-pfield-error">“{entry.file.name}”: {entry.error}</p>)}
+      {error ? <p role="alert" className="tv-pfield-error">{error}</p> : null}
     </div>
   )
 }

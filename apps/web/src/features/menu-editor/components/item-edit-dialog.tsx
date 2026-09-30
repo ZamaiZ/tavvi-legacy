@@ -1,43 +1,21 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { useState } from 'react'
+import { LuTrash2 } from 'react-icons/lu'
+import { Combobox } from '@/components/ui/combobox'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/components/ui/toast'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
-import { updateItemAction } from '@/server/actions/menu'
-import { MediaEditor, type MediaEditorHandle } from './media-editor'
-import { VariantsEditor } from './variants-editor'
+import { PanelConfirm } from '@/features/workspace/components/panel-confirm'
 import { DietaryTagsInput } from './dietary-tags-input'
+import { ItemPanel } from './item-panel'
+import { MediaEditor } from './media-editor'
+import { useItemEditSubmit } from './use-item-submit'
+import { VariantsEditor } from './variants-editor'
 
+// Editar item (README §7.5): painel lateral com mídia e variações em cima,
+// dados do item embaixo. A mídia nova sobe depois de o item ser salvo.
 export function ItemEditDialog({
   item,
   categories,
@@ -52,233 +30,126 @@ export function ItemEditDialog({
   const [visible, setVisible] = useState(item.isVisible)
   const [available, setAvailable] = useState(item.isAvailable)
   const [dietaryTags, setDietaryTags] = useState(item.dietaryTags)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [discardAlertOpen, setDiscardAlertOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const gripTouchY = useRef<number | null>(null)
-  const editorRef = useRef<MediaEditorHandle>(null)
+  const [priceCents, setPriceCents] = useState<number | null>(item.basePriceCents)
+  const [categoryId, setCategoryId] = useState(item.categoryId)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const { editorRef, pending, error, submit } = useItemEditSubmit({ item, onDone: () => onOpenChange(false) })
 
-  async function submit(formData: FormData) {
-    setPending(true)
-    setError(null)
-
-    const cents = Math.round(
-      Number(String(formData.get('price') ?? '').replace(',', '.')) * 100,
-    )
-    if (!Number.isFinite(cents) || cents < 0) {
-      setPending(false)
-      setError('Informe um preço válido, como 18,90.')
-      return
+  // Reabrir depois de cancelar mostra o que está salvo, e não o rascunho
+  // abandonado (ajuste de estado durante o render, como no Quadro).
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (open) {
+      setPriceCents(item.basePriceCents)
+      setCategoryId(item.categoryId)
     }
+  }
 
-    const result = await updateItemAction({
-      itemId: item.id,
-      categoryId: formData.get('categoryId'),
-      name: formData.get('name'),
-      description: formData.get('description') || undefined,
-      basePriceCents: cents,
+  // Preço e categoria vêm do estado; nome e descrição, do formulário. O
+  // hook confere o preço ("Informe o preço."), grava e sobe a mídia.
+  function save(formData: FormData) {
+    return submit({
+      name: String(formData.get('name') ?? ''),
+      categoryId,
+      description: String(formData.get('description') ?? ''),
+      basePriceCents: priceCents,
       dietaryTags,
       isVisible: visible,
       isAvailable: available,
     })
-
-    if (!result.ok) {
-      setPending(false)
-      setError(result.error)
-      return
-    }
-
-    const mediaUploaded =
-      (await editorRef.current?.uploadPending(item.id)) ?? true
-    setPending(false)
-
-    if (mediaUploaded) {
-      toast.add({ title: 'Item salvo', type: 'success' })
-      onOpenChange(false)
-      return
-    }
-
-    setError(
-      'O item foi salvo, mas alguma mídia não subiu. Veja o motivo em cada uma.',
-    )
   }
 
+  // Fechar com mídia ainda não enviada pede confirmação antes de descartar.
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       onOpenChange(true)
       return
     }
-
-    const pendingCount = editorRef.current?.getPendingCount() ?? 0
-    if (pendingCount > 0) {
-      setDiscardAlertOpen(true)
+    if ((editorRef.current?.getPendingCount() ?? 0) > 0) {
+      setDiscardOpen(true)
       return
     }
-
-    onOpenChange(false)
-  }
-
-  function discardPendingMedia() {
-    setDiscardAlertOpen(false)
     onOpenChange(false)
   }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className={`tv-item-sheet flex h-[min(860px,calc(100dvh-1.5rem))] max-h-[calc(100dvh-1.5rem)] w-[min(560px,calc(100vw-1.5rem))] max-w-[560px] flex-col gap-0 overflow-hidden p-0 sm:max-w-[560px] max-sm:h-[calc(100dvh-1rem)] max-sm:max-h-[calc(100dvh-1rem)] max-sm:max-w-[calc(100%-1rem)]${expanded ? ' is-expanded' : ''}`}>
-          <DialogHeader className="shrink-0 border-b border-border px-5 py-4 pr-14 sm:px-6">
-            <div className="tv-sheet-grip" onTouchStart={(event) => { gripTouchY.current = event.touches[0]?.clientY ?? null }} onTouchEnd={(event) => { const start = gripTouchY.current; gripTouchY.current = null; if (start === null) return; const delta = start - event.changedTouches[0].clientY; if (delta > 70) setExpanded(true); else if (delta < -110) handleOpenChange(false) }}>
-              <span aria-hidden="true" />
-              <button type="button" onClick={() => setExpanded((value) => !value)}>{expanded ? 'Reduzir' : 'Expandir'}</button>
+    <ItemPanel open={open} onOpenChange={handleOpenChange} title="Editar item" subtitle={item.name}>
+      <form action={save} className="tv-ipanel-form">
+        <div className="tv-ipanel-body">
+          <section className="tv-ipanel-media">
+            <div className="tv-ipanel-section-head">
+              <h3>Fotos e vídeos</h3>
+              <p>A primeira mídia abre o prato; selecione uma foto para ajustar o enquadramento.</p>
             </div>
-            <DialogTitle>Editar item</DialogTitle>
-            <DialogDescription>{item.name}</DialogDescription>
-          </DialogHeader>
-
-          <form action={submit} className="flex min-h-0 flex-1 flex-col">
-            <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-1">
-              <section className="order-2 border-b border-border p-5 sm:p-6">
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold">Dados do item</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Nome, preço, descrição e estado no cardápio.
-                  </p>
-                </div>
-
-                <FieldGroup className="gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="edit-name">Nome</FieldLabel>
-                    <Input id="edit-name" name="name" defaultValue={item.name} required />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel>Destaques e restrições</FieldLabel>
-                    <DietaryTagsInput value={dietaryTags} onChange={setDietaryTags} />
-                  </Field>
-
-                  <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_8rem] lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_8rem]">
-                    <Field>
-                      <FieldLabel htmlFor="edit-category">Categoria</FieldLabel>
-                      <NativeSelect
-                        id="edit-category"
-                        name="categoryId"
-                        defaultValue={item.categoryId}
-                        className="w-full"
-                      >
-                        {categories.map((category) => (
-                          <NativeSelectOption key={category.id} value={category.id}>
-                            {category.name}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
-                    </Field>
-
-                    <Field>
-                      <FieldLabel htmlFor="edit-price">Preço</FieldLabel>
-                      <Input
-                        id="edit-price"
-                        name="price"
-                        inputMode="decimal"
-                        defaultValue={(item.basePriceCents / 100).toFixed(2).replace('.', ',')}
-                        required
-                      />
-                    </Field>
-                  </div>
-
-                  <Field>
-                    <FieldLabel htmlFor="edit-description">Descrição</FieldLabel>
-                    <Textarea
-                      id="edit-description"
-                      name="description"
-                      rows={3}
-                      defaultValue={item.description ?? ''}
-                      className="min-h-20 py-2"
-                    />
-                    <FieldDescription className="text-xs">
-                      Texto simples; não aceita os caracteres menor e maior.
-                    </FieldDescription>
-                  </Field>
-
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                    <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-surface-1 px-3 py-2">
-                      <FieldLabel htmlFor="edit-visible">Visível</FieldLabel>
-                      <Switch
-                        id="edit-visible"
-                        checked={visible}
-                        onCheckedChange={(next) => setVisible(next)}
-                      />
-                    </div>
-                    <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-surface-1 px-3 py-2">
-                      <FieldLabel htmlFor="edit-available">Disponível</FieldLabel>
-                      <Switch
-                        id="edit-available"
-                        checked={available}
-                        onCheckedChange={(next) => setAvailable(next)}
-                      />
-                    </div>
-                  </div>
-                </FieldGroup>
-              </section>
-
-              <section className="order-1 flex flex-col gap-6 bg-surface-1/45 p-5 sm:p-6">
-                <div className="order-2">
-                  <div className="mb-3">
-                    <h3 className="text-sm font-semibold">Variações</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Tamanhos ou opções com preços diferentes.
-                    </p>
-                  </div>
-                  <VariantsEditor itemId={item.id} variants={item.variants} />
-                </div>
-
-                <div className="order-1 border-b border-border pb-5">
-                  <div className="mb-3">
-                    <h3 className="text-sm font-semibold">Fotos e vídeos</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      A primeira mídia abre o prato; selecione uma foto para ajustar o enquadramento.
-                    </p>
-                  </div>
-                  <MediaEditor ref={editorRef} itemId={item.id} media={item.media} />
-                </div>
-              </section>
+            <MediaEditor ref={editorRef} itemId={item.id} media={item.media} />
+            <div className="tv-ipanel-section-head is-spaced">
+              <h3>Variações</h3>
+              <p>Tamanhos ou opções com preços diferentes.</p>
             </div>
-
-            <DialogFooter className="shrink-0 border-t border-border bg-popover px-5 py-3 sm:items-center sm:justify-between sm:px-6">
-              <div className="min-h-5 flex-1">
-                {error ? <p role="alert" className="text-xs text-destructive">{error}</p> : null}
+            <VariantsEditor itemId={item.id} variants={item.variants} />
+          </section>
+          <section className="tv-ipanel-data">
+            <div className="tv-ipanel-section-head">
+              <h3>Dados do item</h3>
+              <p>Nome, preço, descrição e estado no cardápio.</p>
+            </div>
+            <label className="tv-pfield">
+              <span className="tv-pfield-label">Nome</span>
+              <input name="name" className="tv-pinput" defaultValue={item.name} required />
+            </label>
+            <div className="tv-pfield">
+              <span className="tv-pfield-label">Destaques e restrições</span>
+              <DietaryTagsInput value={dietaryTags} onChange={setDietaryTags} />
+            </div>
+            <div className="tv-ipanel-split">
+              <div className="tv-pfield">
+                <span className="tv-pfield-label">Categoria</span>
+                <Combobox
+                  label="Categoria"
+                  options={categories.map((category) => ({ value: category.id, label: category.name }))}
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
-                  Fechar
-                </Button>
-                <Button type="submit" disabled={pending}>
-                  {pending ? <Spinner className="size-4" /> : null}
-                  Salvar item
-                </Button>
-              </div>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={discardAlertOpen} onOpenChange={setDiscardAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar mídia pendente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Os arquivos ainda não enviados serão descartados ao fechar este item.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={discardPendingMedia}>
-              Descartar e fechar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+              <label className="tv-pfield">
+                <span className="tv-pfield-label">Preço</span>
+                <span className="tv-pprice">
+                  <span aria-hidden="true">R$</span>
+                  <CurrencyInput valueCents={priceCents} onValueChange={setPriceCents} required />
+                </span>
+              </label>
+            </div>
+            <label className="tv-pfield">
+              <span className="tv-pfield-label">Descrição</span>
+              <textarea name="description" rows={3} className="tv-pinput" defaultValue={item.description ?? ''} />
+              <span className="tv-pfield-help">Texto simples; não aceita os caracteres menor e maior.</span>
+            </label>
+            <div className="tv-ipanel-toggles">
+              <label className="tv-ptoggle">Visível<Switch checked={visible} onCheckedChange={(next) => setVisible(next)} /></label>
+              <label className="tv-ptoggle">Disponível<Switch checked={available} onCheckedChange={(next) => setAvailable(next)} /></label>
+            </div>
+          </section>
+        </div>
+        <footer className="tv-ipanel-foot">
+          <p role="alert" className="tv-ipanel-error">{error}</p>
+          <button type="button" className="tv-pbtn is-ghost" onClick={() => handleOpenChange(false)}>Fechar</button>
+          <button type="submit" className="tv-pbtn is-primary" disabled={pending}>
+            {pending ? <Spinner className="size-3.5" /> : null}Salvar item
+          </button>
+        </footer>
+      </form>
+      <PanelConfirm
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        icon={<LuTrash2 />}
+        title="Descartar mídia pendente?"
+        description="Os arquivos ainda não enviados serão descartados ao fechar este item."
+        confirmLabel="Descartar e fechar"
+        cancelLabel="Continuar editando"
+        destructive
+        onConfirm={() => onOpenChange(false)}
+      />
+    </ItemPanel>
   )
 }

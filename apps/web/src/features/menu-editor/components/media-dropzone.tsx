@@ -1,26 +1,27 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { RiUploadCloud2Line } from 'react-icons/ri'
-import { cn } from 'cn'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
-// A área de envio, no lugar do botão que existia até a Fase 4.
+// A área de envio envolve a grade de mídia inteira.
 //
 // Aceita os três caminhos que uma pessoa realmente usa: arrastar do
-// explorador, colar do clipboard, e clicar. Um input só, `multiple`, sem
-// separar foto de vídeo — no feed o cliente não distingue tipo, e o dono
-// também não deveria precisar escolher a gaveta antes de escolher o arquivo.
+// explorador, colar do clipboard, e clicar (o tile "Adicionar" chama
+// `openPicker`). Um input só, `multiple`, sem separar foto de vídeo — no feed
+// o cliente não distingue tipo, e o dono também não deveria precisar escolher
+// a gaveta antes de escolher o arquivo.
 export function MediaDropzone({
   onFiles,
   acceptedTypes,
   disabled = false,
   remaining,
+  children,
 }: {
   onFiles: (files: File[]) => void
   acceptedTypes: readonly string[]
   disabled?: boolean
-  /** Quantas telas ainda cabem. Zero desabilita e a área diz o teto. */
+  /** Quantas telas ainda cabem. Zero bloqueia soltar e colar. */
   remaining: number
+  children: (openPicker: () => void) => ReactNode
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   // Contador, e não booleano: `dragleave` dispara ao passar por cima de um
@@ -48,6 +49,8 @@ export function MediaDropzone({
 
   return (
     <div
+      className="tv-media-drop"
+      data-dragging={draggingOver || undefined}
       onDragEnter={(event) => {
         event.preventDefault()
         if (blocked) return
@@ -69,43 +72,8 @@ export function MediaDropzone({
         if (blocked) return
         onFiles(Array.from(event.dataTransfer.files))
       }}
-      className={cn(
-        'flex min-h-24 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-4 py-4 text-center transition-colors',
-        blocked
-          ? 'border-border bg-muted/30 text-muted-foreground'
-          : draggingOver
-            ? 'border-primary bg-primary/5 text-foreground'
-            : 'border-border bg-surface-1 text-muted-foreground hover:border-primary/50',
-      )}
     >
-      <RiUploadCloud2Line
-        className={cn('size-5', draggingOver ? 'text-primary' : undefined)}
-        aria-hidden="true"
-      />
-
-      {blocked ? (
-        <p className="text-small font-medium">
-          Este prato já está com todas as telas preenchidas.
-        </p>
-      ) : (
-        <>
-          <p className="text-small">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="font-medium text-foreground underline underline-offset-4"
-            >
-              Escolha os arquivos
-            </button>{' '}
-            ou arraste para cá. Também dá para colar.
-          </p>
-          <p className="text-micro text-muted-foreground">
-            Fotos e vídeos juntos. Cabem mais {remaining}{' '}
-            {remaining === 1 ? 'tela' : 'telas'}.
-          </p>
-        </>
-      )}
-
+      {children(() => inputRef.current?.click())}
       <input
         ref={inputRef}
         type="file"

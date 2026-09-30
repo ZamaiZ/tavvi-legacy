@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, type KeyboardEvent } from 'react'
-import { LuPlus, LuX } from 'react-icons/lu'
-import { Input } from '@/components/ui/input'
+import { useRef, useState, type KeyboardEvent } from 'react'
+import { LuX } from 'react-icons/lu'
 
 const suggestions = ['Vegetariano', 'Vegano', 'Sem glúten', 'Sem lactose', 'Picante', 'Contém castanhas']
 
+// Destaques e restrições: pílulas goldSoft; Enter ou vírgula adiciona;
+// Backspace no campo vazio tira a última; no máximo 10, até 30 caracteres.
 export function DietaryTagsInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -26,12 +28,26 @@ export function DietaryTagsInput({ value, onChange }: { value: string[]; onChang
       event.preventDefault()
       addTag(draft)
     }
+    if (event.key === 'Backspace' && draft === '' && value.length > 0) onChange(value.slice(0, -1))
   }
 
-  return <div className="tv-tag-editor">
-    <div className="tv-tag-list">{value.map((tag) => <span key={tag}>{tag}<button type="button" aria-label={`Remover ${tag}`} onClick={() => onChange(value.filter((entry) => entry !== tag))}><LuX /></button></span>)}</div>
-    <div className="tv-tag-add"><Input value={draft} maxLength={30} onChange={(event) => { setDraft(event.target.value); setError(null) }} onKeyDown={onKeyDown} placeholder="Adicionar destaque" aria-label="Adicionar destaque" /><button type="button" onClick={() => addTag(draft)} aria-label="Adicionar destaque"><LuPlus /></button></div>
-    <div className="tv-tag-suggestions" aria-label="Sugestões de destaque">{suggestions.map((tag) => <button key={tag} type="button" disabled={value.includes(tag) || value.length >= 10} onClick={() => addTag(tag)}>{tag}</button>)}</div>
-    {error ? <p role="alert">{error}</p> : null}
-  </div>
+  return (
+    <div className="tv-tags">
+      <div className="tv-tags-box" onClick={() => inputRef.current?.focus()}>
+        {value.map((tag) => (
+          <span key={tag} className="tv-tag">
+            {tag}
+            <button type="button" aria-label={`Remover ${tag}`} onClick={() => onChange(value.filter((entry) => entry !== tag))}><LuX aria-hidden="true" /></button>
+          </span>
+        ))}
+        <input ref={inputRef} value={draft} maxLength={30} onChange={(event) => { setDraft(event.target.value); setError(null) }} onKeyDown={onKeyDown} placeholder="Adicionar destaque" aria-label="Adicionar destaque" />
+      </div>
+      <div className="tv-tags-suggest" aria-label="Sugestões de destaque">
+        {suggestions.map((tag) => (
+          <button key={tag} type="button" disabled={value.includes(tag) || value.length >= 10} onClick={() => addTag(tag)}>+ {tag}</button>
+        ))}
+      </div>
+      {error ? <p role="alert" className="tv-pfield-error">{error}</p> : null}
+    </div>
+  )
 }

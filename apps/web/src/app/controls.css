@@ -1,0 +1,76 @@
+/* Primitivos compartilhados do console e do painel (spec de componentes
+   2026-09-30). Os popups vivem no <body>, por isso as regras não dependem do
+   território: os tokens --tv-* valem no documento inteiro. */
+
+/* Combobox: gatilho com cara de campo (§2.1). */
+.tv-combo-trigger { min-width: 0; height: 32px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: space-between; gap: 6px; border: 1px solid var(--tv-line-2); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; outline: 0; transition: border-color 150ms var(--tv-ease), box-shadow 150ms var(--tv-ease); }
+.tv-combo-trigger.is-xs { height: 24px; padding: 0 6px; border-radius: 6px; font-size: 11.5px; }
+.tv-combo-trigger.is-sm { height: 28px; border-radius: 7px; font-size: 12.5px; }
+.tv-combo-trigger.is-lg { height: 34px; border-radius: 9px; }
+.tv-combo-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-combo-trigger[data-placeholder] .tv-combo-value { color: var(--tv-text-3); }
+.tv-combo-trigger:focus-visible,
+.tv-combo-trigger[data-popup-open] { border-color: var(--tv-gold); box-shadow: 0 0 0 3px var(--tv-gold-soft); }
+.tv-combo-trigger:disabled,
+.tv-combo-trigger[data-disabled] { opacity: .5; cursor: default; }
+.tv-combo-chevron { flex: none; width: 14px; height: 14px; color: var(--tv-text-3); }
+
+/* Lista: acima do painel de item (z 51) e dos diálogos (z 50). */
+.tv-combo-positioner { z-index: 80; outline: 0; }
+.tv-combo-popup { min-width: var(--anchor-width); max-width: min(320px, var(--available-width)); padding: 5px; display: flex; flex-direction: column; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); font-family: var(--tv-font); outline: 0; transform-origin: var(--transform-origin); transition: opacity 150ms var(--tv-ease), transform 150ms var(--tv-ease); }
+.tv-combo-popup[data-starting-style],
+.tv-combo-popup[data-ending-style] { opacity: 0; transform: scale(.98); }
+.tv-combo-search { height: 30px; margin-bottom: 4px; padding: 0 8px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 8px; color: var(--tv-text-3); }
+.tv-combo-search:focus-within { border-color: var(--tv-line-2); }
+.tv-combo-search svg { flex: none; width: 14px; height: 14px; }
+.tv-combo-search input { min-width: 0; height: 100%; flex: 1; padding: 0; border: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 12.5px; outline: 0; }
+.tv-combo-search input::placeholder { color: var(--tv-text-3); }
+.tv-combo-list { max-height: min(280px, var(--available-height)); overflow-y: auto; overscroll-behavior: contain; outline: 0; }
+.tv-combo-item { height: 28px; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-radius: 6px; font-size: 12.5px; cursor: default; user-select: none; outline: 0; }
+.tv-combo-item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-combo-item[data-highlighted] { background: var(--tv-active); }
+.tv-combo-item[data-selected] { font-weight: 500; }
+.tv-combo-item[data-disabled] { opacity: .4; }
+.tv-combo-check { display: flex; color: var(--tv-gold-text); }
+.tv-combo-check svg { width: 14px; height: 14px; }
+.tv-combo-empty { padding: 10px 8px; color: var(--tv-text-3); font-size: 12.5px; }
+
+/* Combobox no celular: busca e lista dentro do MobileSheet (§2.1). A linha
+   de escolha é a .tv-choice do painel mobile. */
+.tv-combo-sheet-search { height: 38px; flex: 0 0 auto; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: 11px; background: var(--tv-neutral-soft); color: var(--tv-text-3); }
+.tv-combo-sheet-search svg { flex: none; width: 16px; height: 16px; }
+.tv-combo-sheet-search input { min-width: 0; height: 100%; flex: 1; padding: 0; border: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; outline: 0; }
+.tv-combo-sheet-search input::placeholder { color: var(--tv-text-3); }
+.tv-combo-sheet-list { flex: 0 0 auto; outline: 0; }
+.tv-combo-sheet-list:empty { display: none; }
+.tv-combo-sheet-empty { padding: 24px 16px; color: var(--tv-text-3); font-size: 15px; text-align: center; }
+
+/* Menu de contexto (§4.1): o mesmo desenho do menu "…" (panel.css). */
+.tv-ctx-positioner { z-index: 80; outline: 0; }
+.tv-ctx-popup { width: 210px; max-height: var(--available-height); padding: 5px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); font-family: var(--tv-font); outline: 0; transform-origin: var(--transform-origin); transition: opacity 120ms var(--tv-ease), transform 120ms var(--tv-ease); }
+.tv-ctx-popup.is-sm { width: 180px; }
+.tv-ctx-popup.is-sub { width: auto; min-width: 180px; max-width: 260px; max-height: min(320px, var(--available-height)); }
+.tv-ctx-popup[data-starting-style],
+.tv-ctx-popup[data-ending-style] { opacity: 0; transform: scale(.98); }
+.tv-ctx-item { height: 28px; min-height: 28px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 6px; color: var(--tv-text); font-size: 12.5px; cursor: default; user-select: none; outline: 0; }
+.tv-ctx-item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-ctx-item > svg { flex: none; width: 14px; height: 14px; color: var(--tv-text-2); }
+.tv-ctx-item.is-target > svg,
+.tv-ctx-item > svg.tv-ctx-sub-arrow { color: var(--tv-text-3); }
+.tv-ctx-item > svg.tv-ctx-sub-arrow { margin-left: auto; }
+.tv-ctx-item[data-highlighted],
+.tv-ctx-item[data-popup-open] { background: var(--tv-active); }
+.tv-ctx-item[data-variant="destructive"],
+.tv-ctx-item[data-variant="destructive"] > svg { color: var(--tv-danger); }
+.tv-ctx-item[data-variant="destructive"][data-highlighted] { background: var(--tv-danger-soft); }
+.tv-ctx-item[data-disabled] { opacity: .4; }
+.tv-ctx-check { margin-left: auto; display: flex; color: var(--tv-gold-text); }
+.tv-ctx-check svg { width: 14px; height: 14px; }
+.tv-ctx-separator { height: 1px; margin: 4px 2px; flex: none; background: var(--tv-line); }
+
+/* A linha ou o cartão com o menu aberto fica marcado, como a selecionada. */
+[data-slot="context-menu-trigger"][data-popup-open] { background: var(--tv-active); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-combo-trigger, .tv-combo-popup, .tv-ctx-popup { transition: none; }
+}

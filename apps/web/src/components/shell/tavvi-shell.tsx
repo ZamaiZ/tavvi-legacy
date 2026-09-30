@@ -5,17 +5,22 @@ import { cn } from 'cn'
 import { AccountPopover } from './account-popover'
 import { CommandPalette } from './command-palette'
 import { flattenNavItems } from './navigation'
-import { Sidebar } from './sidebar'
+import { Sidebar, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { TavviShellConfig } from './navigation.types'
 
 export function TavviShell({
   config,
+  sidebar,
+  itemCounts,
   children,
   className,
   initialRail = 'collapsed',
 }: {
   config: TavviShellConfig
+  sidebar: SidebarIdentity
+  /** Contador à direita de cada item, pela rota. */
+  itemCounts?: Record<string, number>
   children: React.ReactNode
   className?: string
   initialRail?: RailMode
@@ -34,6 +39,7 @@ export function TavviShell({
     label: item.label,
     description: item.description,
     icon: item.icon,
+    count: itemCounts?.[item.href],
   }))
 
   useEffect(() => {
@@ -55,8 +61,7 @@ export function TavviShell({
       <Sidebar
         items={entries}
         mode={mode}
-        contextLabel={config.contextLabel ?? 'Tavvi'}
-        contextDescription={config.contextDescription ?? 'Painel'}
+        identity={sidebar}
         email={config.userLabel}
         accountOpen={accountOpen}
         accountButtonRef={accountButtonRef}

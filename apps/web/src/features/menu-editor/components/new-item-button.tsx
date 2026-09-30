@@ -1,40 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { RiAddLine } from 'react-icons/ri'
-import { Button } from '@/components/ui/button'
+import { LuPlus } from 'react-icons/lu'
 import { ItemCreateDialog } from './item-create-dialog'
 
-// Mesmo papel do NewCategoryButton: a página é componente de servidor e o
-// diálogo é controlado por estado. Este é o pedacinho de cliente que segura
-// esse estado.
+// "Adicionar item" em dourado no rodapé da categoria, ou pílula com borda
+// ("chip") nos estados vazios. É o pedacinho de cliente que segura o estado
+// do diálogo.
 export function NewItemButton({
   restaurantId,
   categoryId,
   label = 'Adicionar item',
-  variant = 'ghost',
-  size = 'sm',
+  appearance = 'add',
 }: {
   restaurantId: string
   categoryId: string
   label?: string
-  variant?: 'ghost' | 'outline'
-  size?: 'sm' | 'default'
+  appearance?: 'add' | 'chip'
 }) {
   const [open, setOpen] = useState(false)
-
   return (
     <>
-      <Button variant={variant} size={size} onClick={() => setOpen(true)}>
-        <RiAddLine className="size-4" />
+      <button type="button" className={appearance === 'add' ? 'tv-add-item' : 'tv-pbtn is-sm'} onClick={() => setOpen(true)}>
+        <LuPlus aria-hidden="true" />
         {label}
-      </Button>
-      <ItemCreateDialog
-        restaurantId={restaurantId}
-        categoryId={categoryId}
-        open={open}
-        onOpenChange={setOpen}
-      />
+      </button>
+      <ItemCreateDialog restaurantId={restaurantId} categoryId={categoryId} open={open} onOpenChange={setOpen} />
     </>
   )
 }

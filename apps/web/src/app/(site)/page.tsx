@@ -20,7 +20,7 @@ export default function Page() {
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16 text-center font-sans">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[620px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[620px] -translate-x-1/2 rounded-full bg-tv-hero/25 blur-3xl"
       />
 
       <div className="relative max-w-[440px]">

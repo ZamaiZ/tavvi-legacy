@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { LuCircleCheck, LuChevronRight, LuPause, LuPencilLine, LuStore } from 'react-icons/lu'
+import { LuCircleCheck, LuChevronRight, LuCopy, LuExternalLink, LuPanelRightOpen, LuPause, LuPencilLine, LuStore } from 'react-icons/lu'
 import type { RestaurantAdminDTO, RestaurantDetailDTO } from '@/domain/restaurant'
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { copyText } from '@/lib/copy-text'
+import { publicMenuUrl } from '@/lib/public-menu-url'
 import { isMobileViewport, markStackedFromList } from '@/lib/viewport'
 import { Toolbar } from '../toolbar'
 import { ListHero } from '../list-hero'
@@ -76,14 +79,26 @@ export function RestaurantList({ restaurants, query, selectedId, selectedRestaur
           <span role="columnheader">Situação</span>
           <span role="columnheader"><span className="sr-only">Abrir</span></span>
         </div>
-        {filtered.map((restaurant) => <div role="row" key={restaurant.id} className={`tv-table-row tv-restaurant-columns${openId === restaurant.id ? ' is-selected' : ''}`}>
-          <button type="button" className="tv-row-hit" aria-label={`Abrir ${restaurant.name}`} onClick={() => open(restaurant.id)} />
-          <div role="cell" className="tv-table-cell"><span className="tv-row-icon is-initials" aria-hidden="true">{restaurantInitials(restaurant.name)}</span><strong className="tv-row-title">{restaurant.name}</strong></div>
-          <span role="cell" className="tv-slug-cell">/{restaurant.slug}</span>
-          <span role="cell" className="tv-text-cell">{restaurant.segment ?? 'Não informado'}</span>
-          <span role="cell"><TvBadge state={restaurant.status} /></span>
-          <span role="cell" className="tv-row-end"><LuChevronRight className="tv-row-chevron" aria-hidden="true" /></span>
-        </div>)}
+        {filtered.map((restaurant) => <ContextMenu key={restaurant.id}>
+          <ContextMenuTrigger render={<div role="row" className={`tv-table-row tv-restaurant-columns${openId === restaurant.id ? ' is-selected' : ''}`} />}>
+            <button type="button" className="tv-row-hit" aria-label={`Abrir ${restaurant.name}`} onClick={() => open(restaurant.id)} />
+            <div role="cell" className="tv-table-cell"><span className="tv-row-icon is-initials" aria-hidden="true">{restaurantInitials(restaurant.name)}</span><strong className="tv-row-title">{restaurant.name}</strong></div>
+            <span role="cell" className="tv-slug-cell">/{restaurant.slug}</span>
+            <span role="cell" className="tv-text-cell">{restaurant.segment ?? 'Não informado'}</span>
+            <span role="cell"><TvBadge state={restaurant.status} /></span>
+            <span role="cell" className="tv-row-end"><LuChevronRight className="tv-row-chevron" aria-hidden="true" /></span>
+          </ContextMenuTrigger>
+          <ContextMenuContent aria-label={`Ações de ${restaurant.name}`}>
+            <ContextMenuItem onClick={() => open(restaurant.id)}><LuPanelRightOpen aria-hidden="true" /><span>Abrir</span></ContextMenuItem>
+            <ContextMenuItem
+              disabled={restaurant.status !== 'active' || Boolean(restaurant.deletedAt)}
+              onClick={() => window.open(publicMenuUrl(rootDomain, restaurant.slug), '_blank', 'noopener,noreferrer')}
+            >
+              <LuExternalLink aria-hidden="true" /><span>Abrir cardápio</span>
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => void copyText(publicMenuUrl(rootDomain, restaurant.slug), 'Link copiado')}><LuCopy aria-hidden="true" /><span>Copiar link público</span></ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>)}
       </div>
       <div className="tv-mobile-cards">{filtered.map((restaurant) => <button type="button" key={restaurant.id} className="tv-mobile-card" onClick={() => open(restaurant.id)}><span className="tv-row-icon is-initials">{restaurantInitials(restaurant.name)}</span><span className="tv-mobile-card-copy"><strong>{restaurant.name}</strong><small>/{restaurant.slug} · {restaurant.segment ?? 'Não informado'}</small></span><TvBadge state={restaurant.status} /><LuChevronRight className="tv-row-chevron" /></button>)}</div>
     </>}

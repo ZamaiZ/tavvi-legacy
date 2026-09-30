@@ -1,0 +1,141 @@
+/* Equipe do painel — README §7.9 e o bloco `rTeam` do Tavvi Web.dc.html
+   (estilos inline = fonte da verdade). A tabela reaproveita o padrão de
+   tabela do §6.5 (`.tv-table-shell`, `.tv-table-head`, `.tv-row-*` em
+   console-page.css). Os diálogos são montados dentro de `.workspace-territory`
+   (use-territory-container.ts), por isso ficam sob o mesmo escopo. */
+
+.workspace-territory .tv-team-page { width: min(100%, 1120px); margin: 0 auto; padding: 26px 32px 72px; color: var(--tv-text); font-size: 13px; line-height: 1.45; letter-spacing: -0.003em; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-team-body { display: flex; flex-direction: column; gap: 18px; }
+
+.workspace-territory .tv-team-invite-button { height: 30px; padding: 0 14px 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--tv-btn); color: var(--tv-btn-text); font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.workspace-territory .tv-team-invite-button svg { width: 15px; height: 15px; }
+
+/* Papéis */
+.workspace-territory .tv-team-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.workspace-territory .tv-team-role { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
+.workspace-territory .tv-team-role-head { display: flex; align-items: center; justify-content: space-between; }
+.workspace-territory .tv-team-role-head strong { font-size: 13px; font-weight: 600; }
+.workspace-territory .tv-team-role-head > span { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.workspace-territory .tv-team-role p { margin: 0; color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-team-tag { align-self: flex-start; height: 19px; margin-top: 4px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--tv-neutral-soft); color: var(--tv-text-2); font-size: 10.5px; font-weight: 600; }
+.workspace-territory .tv-team-tag.is-edit { background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+
+/* Membros */
+.workspace-territory .tv-team-columns { grid-template-columns: minmax(0, 2fr) 150px 92px 92px; }
+.workspace-territory .tv-team-row { min-height: 52px; padding: 0 16px; display: grid; align-items: center; gap: 12px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-team-row:last-child { border-bottom: 0; }
+.workspace-territory .tv-team-person { min-width: 0; display: flex; align-items: center; gap: 11px; }
+.workspace-territory .tv-team-avatar { width: 30px; height: 30px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 11px; font-weight: 600; }
+.workspace-territory .tv-team-combo { width: 100%; }
+.workspace-territory .tv-team-combo:disabled { opacity: 1; color: var(--tv-text-2); cursor: default; }
+.workspace-territory .tv-team-actions { display: flex; justify-content: flex-end; }
+.workspace-territory .tv-team-remove { height: 26px; padding: 0 9px; display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-2); font-size: 12px; cursor: pointer; transition: background-color 150ms var(--tv-ease), color 150ms var(--tv-ease); }
+.workspace-territory .tv-team-remove svg { width: 13px; height: 13px; }
+.workspace-territory .tv-team-remove:hover:not(:disabled) { background: var(--tv-danger-soft); color: var(--tv-danger); }
+.workspace-territory .tv-team-remove:disabled { opacity: .5; cursor: default; }
+.workspace-territory .tv-team-self { color: var(--tv-text-3); font-size: 12px; }
+
+/* Convites pendentes */
+.workspace-territory .tv-team-invites { margin-top: 8px; display: flex; flex-direction: column; gap: 10px; }
+.workspace-territory .tv-team-invites h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.workspace-territory .tv-team-invite { min-height: 50px; padding: 0 16px; display: flex; align-items: center; gap: 11px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-team-invite:last-child { border-bottom: 0; }
+.workspace-territory .tv-team-invite-copy { flex: 1; }
+.workspace-territory .tv-team-pill { height: 20px; padding: 0 8px; display: inline-flex; flex-shrink: 0; align-items: center; gap: 5px; border-radius: 999px; background: var(--tv-neutral-soft); color: var(--tv-text-2); font-size: 11px; font-weight: 500; }
+.workspace-territory .tv-team-pill.is-pending { background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-team-pill i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.workspace-territory .tv-team-revoke { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; transition: background-color 150ms var(--tv-ease), color 150ms var(--tv-ease); }
+.workspace-territory .tv-team-revoke svg { width: 14px; height: 14px; }
+.workspace-territory .tv-team-revoke:hover:not(:disabled) { background: var(--tv-danger-soft); color: var(--tv-danger); }
+.workspace-territory .tv-team-revoke:disabled { opacity: .5; cursor: default; }
+
+/* Diálogos: fundo, novo convite e confirmação */
+.workspace-territory .tv-team-scrim { position: fixed; inset: 0; z-index: 70; background: var(--tv-scrim); transition: opacity 150ms var(--tv-ease); }
+.workspace-territory .tv-team-scrim.is-confirm { z-index: 80; }
+.workspace-territory .tv-team-scrim[data-starting-style],
+.workspace-territory .tv-team-scrim[data-ending-style] { opacity: 0; }
+
+.workspace-territory .tv-team-sheet,
+.workspace-territory .tv-team-confirm { position: fixed; top: 50%; left: 50%; max-width: calc(100vw - 24px); background: var(--tv-surface); box-shadow: var(--tv-pop); color: var(--tv-text); font-size: 13px; line-height: 1.45; letter-spacing: -0.003em; font-variant-numeric: tabular-nums; outline: 0; transform: translate(-50%, -50%); transition: opacity 150ms var(--tv-ease), transform 150ms var(--tv-ease); }
+.workspace-territory .tv-team-sheet[data-starting-style],
+.workspace-territory .tv-team-sheet[data-ending-style],
+.workspace-territory .tv-team-confirm[data-starting-style],
+.workspace-territory .tv-team-confirm[data-ending-style] { opacity: 0; transform: translate(-50%, -50%) scale(.98); }
+
+.workspace-territory .tv-team-sheet { z-index: 71; width: 420px; max-height: calc(100dvh - 24px); overflow-y: auto; padding: 18px 20px 20px; border-radius: 18px; }
+.workspace-territory .tv-team-sheet-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: var(--tv-neutral-soft); color: var(--tv-text-2); cursor: pointer; }
+.workspace-territory .tv-team-sheet-close svg { width: 15px; height: 15px; }
+.workspace-territory .tv-team-sheet-body { display: flex; flex-direction: column; gap: 12px; }
+.workspace-territory .tv-team-sheet-heading { padding-right: 30px; }
+.workspace-territory .tv-team-sheet-title { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+.workspace-territory .tv-team-sheet-description { margin: 3px 0 0; color: var(--tv-text-2); font-size: 12.5px; }
+.workspace-territory .tv-team-sheet-error { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--tv-danger-soft); color: var(--tv-danger); font-size: 12px; }
+
+.workspace-territory .tv-team-field { display: flex; flex-direction: column; gap: 5px; }
+.workspace-territory .tv-team-field-label { color: var(--tv-text-2); font-size: 12px; font-weight: 500; }
+.workspace-territory .tv-team-field-help { color: var(--tv-text-3); font-size: 11.5px; }
+.workspace-territory .tv-team-field-help.is-long { line-height: 1.5; }
+.workspace-territory .tv-team-input { height: 34px; padding: 0 10px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line-2); border-radius: 9px; transition: border-color 150ms var(--tv-ease); }
+.workspace-territory .tv-team-input:focus-within { border-color: var(--tv-gold); }
+.workspace-territory .tv-team-input svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--tv-text-3); }
+.workspace-territory .tv-team-input input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--tv-text); font-size: 13px; }
+.workspace-territory .tv-team-input input::placeholder { color: var(--tv-text-3); }
+.workspace-territory .tv-team-field-combo { width: 100%; }
+.workspace-territory .tv-team-stepper { height: 36px; padding: 0 3px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--tv-line-2); border-radius: 9px; }
+.workspace-territory .tv-team-stepper button { width: 30px; height: 28px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 7px; background: var(--tv-neutral-soft); color: var(--tv-text); cursor: pointer; }
+.workspace-territory .tv-team-stepper button:disabled { opacity: .4; cursor: default; }
+.workspace-territory .tv-team-stepper svg { width: 14px; height: 14px; }
+.workspace-territory .tv-team-stepper output { font-size: 13px; font-weight: 500; }
+
+.workspace-territory .tv-team-sheet-cta { height: 36px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 999px; background: var(--tv-btn); color: var(--tv-btn-text); font-size: 13px; font-weight: 500; cursor: pointer; }
+.workspace-territory form.tv-team-sheet-body .tv-team-sheet-cta { margin-top: 2px; }
+.workspace-territory .tv-team-sheet-cta svg { width: 15px; height: 15px; }
+.workspace-territory .tv-team-sheet-cta:disabled { opacity: .4; cursor: default; }
+.workspace-territory .tv-team-sheet-cta[aria-busy="true"] { opacity: 1; }
+.workspace-territory .tv-team-sheet-cta .tv-spinner { width: 14px; height: 14px; border-color: color-mix(in srgb, var(--tv-btn-text) 30%, transparent); border-top-color: var(--tv-btn-text); }
+
+.workspace-territory .tv-team-created-heading { padding-right: 30px; display: flex; align-items: flex-start; gap: 12px; }
+.workspace-territory .tv-team-created-heading > span { width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-team-created-heading > span svg { width: 18px; height: 18px; }
+.workspace-territory .tv-team-created-heading .tv-team-sheet-title { letter-spacing: inherit; }
+.workspace-territory .tv-team-warning { margin: 0; padding: 10px 12px; display: flex; gap: 8px; border-radius: 10px; background: var(--tv-warn-soft); color: var(--tv-warn); font-size: 12px; line-height: 1.5; }
+.workspace-territory .tv-team-warning svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+.workspace-territory .tv-team-link { padding: 10px 12px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface-2); font-family: var(--tv-mono); font-size: 11.5px; word-break: break-all; user-select: all; }
+.workspace-territory .tv-team-copy { height: 34px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--tv-line-2); border-radius: 999px; background: var(--tv-surface); color: var(--tv-text); font-size: 13px; font-weight: 500; cursor: pointer; }
+.workspace-territory .tv-team-copy svg { width: 14px; height: 14px; }
+
+.workspace-territory .tv-team-discard { position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 18px; background: var(--tv-surface); text-align: center; }
+.workspace-territory .tv-team-discard > span { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--tv-warn-soft); color: var(--tv-warn); }
+.workspace-territory .tv-team-discard > span svg { width: 18px; height: 18px; }
+.workspace-territory .tv-team-discard h2 { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+.workspace-territory .tv-team-discard p { margin: 0; color: var(--tv-text-2); font-size: 12.5px; }
+.workspace-territory .tv-team-discard > div { margin-top: 10px; display: flex; gap: 8px; }
+.workspace-territory .tv-team-discard button { height: 32px; padding: 0 14px; border-radius: 999px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.workspace-territory .tv-team-discard-back { border: 1px solid var(--tv-line-2); background: var(--tv-surface); color: var(--tv-text); }
+.workspace-territory .tv-team-discard-confirm { border: 0; background: var(--tv-danger-soft); color: var(--tv-danger); }
+
+.workspace-territory .tv-team-confirm { z-index: 81; width: 320px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 16px; text-align: center; }
+.workspace-territory .tv-team-confirm-icon { width: 40px; height: 40px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--tv-danger-soft); color: var(--tv-danger); }
+.workspace-territory .tv-team-confirm-icon svg { width: 18px; height: 18px; }
+.workspace-territory .tv-team-confirm h2 { margin: 0; font-size: 15px; font-weight: 600; text-wrap: balance; }
+.workspace-territory .tv-team-confirm p { margin: 0; color: var(--tv-text-2); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
+.workspace-territory .tv-team-confirm-actions { width: 100%; margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.workspace-territory .tv-team-confirm-actions button { height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 999px; font-size: 12.5px; cursor: pointer; }
+.workspace-territory .tv-team-confirm-cancel { border: 1px solid var(--tv-line-2); background: var(--tv-surface); color: var(--tv-text); font-weight: 500; }
+.workspace-territory .tv-team-confirm-action { border: 0; background: var(--tv-danger-soft); color: var(--tv-danger); font-weight: 600; }
+.workspace-territory .tv-team-confirm-actions button:disabled { cursor: default; }
+.workspace-territory .tv-team-confirm-action .tv-spinner { width: 14px; height: 14px; border-color: color-mix(in srgb, currentColor 30%, transparent); border-top-color: currentColor; }
+
+/* Foco visível dourado nos controles sem borda própria de foco. */
+.workspace-territory :is(.tv-team-invite-button, .tv-team-remove, .tv-team-revoke, .tv-team-sheet-close, .tv-team-stepper button, .tv-team-sheet-cta, .tv-team-copy, .tv-team-link, .tv-team-discard button, .tv-team-confirm-actions button):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+
+@media (max-width: 1023px) {
+  .workspace-territory .tv-team-page { padding: 26px 22px calc(126px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 767px) {
+  .workspace-territory .tv-team-page { padding: 22px 16px calc(120px + env(safe-area-inset-bottom)); }
+  /* Só o esqueleto de carregamento usa a grade no celular; a lista real
+     vira cartões. */
+  .workspace-territory .tv-team-columns { grid-template-columns: minmax(0, 1fr) 120px; }
+  .workspace-territory .tv-team-columns > :nth-child(n + 3) { display: none; }
+}

@@ -11,6 +11,8 @@
 .tv-sidebar-brand { min-width: 0; height: 40px; margin-bottom: 6px; padding: 0 4px; display: flex; align-items: center; gap: 9px; }
 .tv-sidebar-mark { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); }
 .tv-sidebar-mark img { width: 20px; height: 20px; object-fit: contain; }
+.tv-sidebar-mark.is-logo img { width: 100%; height: 100%; padding: 3px; object-fit: contain; }
+.tv-sidebar-mark.is-initials { border: 0; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 11px; font-weight: 650; letter-spacing: .02em; }
 .tv-brandmark-dark { display: none; }
 .dark .tv-brandmark-light { display: none; }
 .dark .tv-brandmark-dark { display: block; }
@@ -20,6 +22,13 @@
 .tv-sidebar-collapse { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; }
 .tv-sidebar-collapse:hover { background: var(--tv-hover); color: var(--tv-text); }
 .tv-sidebar-collapse svg { width: 16px; height: 16px; }
+
+/* Seletor de restaurante: o bloco da marca vira botão com 2+ restaurantes. */
+.tv-sidebar-switch { min-width: 0; height: 40px; flex: 1; margin: 0 0 0 -4px; padding: 0 4px; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: transparent; color: inherit; text-align: left; cursor: pointer; transition: background-color 150ms var(--tv-ease); }
+.tv-sidebar-switch:hover, .tv-sidebar-switch[aria-expanded="true"] { background: var(--tv-hover); }
+.tv-sidebar-switch-icon { width: 14px; height: 14px; flex: 0 0 14px; color: var(--tv-text-3); }
+.tv-sidebar:not(.is-expanded) .tv-sidebar-switch { height: auto; flex: 0 0 auto; margin: 0; padding: 0; }
+.tv-sidebar:not(.is-expanded) .tv-sidebar-switch-icon { display: none; }
 
 .tv-sidebar-search { width: 100%; height: 30px; flex: 0 0 30px; margin-bottom: 12px; padding: 0 9px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text-3); font-size: 12.5px; text-align: left; cursor: pointer; transition: border-color 150ms var(--tv-ease); }
 .tv-sidebar-search:hover { border-color: var(--tv-line-2); }
@@ -85,6 +94,23 @@
 .tv-signout-button:disabled { cursor: progress; opacity: .6; }
 .tv-signout-button svg, .tv-signout-button .tv-spinner { width: 14px; height: 14px; }
 
+/* Popover "Seus restaurantes". */
+.tv-switch-popover { position: fixed; z-index: 91; top: 52px; left: 10px; width: 272px; padding: 6px; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); transform-origin: left top; animation: tv-pop-in 150ms var(--tv-ease) both; }
+.tv-switch-label { padding: 6px 8px 4px; color: var(--tv-text-3); font-size: 11px; font-weight: 500; }
+.tv-switch-row { min-width: 0; height: 40px; padding: 0 8px; display: flex; align-items: center; gap: 9px; border-radius: 8px; color: var(--tv-text); text-decoration: none; outline: 0; }
+.tv-switch-row:hover, .tv-switch-row:focus-visible { background: var(--tv-active); }
+.tv-switch-mark { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; overflow: hidden; border-radius: 7px; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 10px; font-weight: 650; letter-spacing: .02em; }
+.tv-switch-mark.is-logo { border: 1px solid var(--tv-line); background: var(--tv-surface); }
+.tv-switch-mark.is-logo img { width: 100%; height: 100%; padding: 2px; object-fit: contain; }
+.tv-switch-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.tv-switch-copy strong { overflow: hidden; font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.tv-switch-copy small { color: var(--tv-text-3); font-size: 11px; }
+.tv-switch-row > svg { width: 14px; height: 14px; flex: 0 0 14px; color: var(--tv-gold-text); }
+.tv-switch-divider { height: 1px; margin: 4px 2px; border: 0; background: var(--tv-line); }
+.tv-switch-all { height: 32px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 8px; color: var(--tv-text-2); font-size: 12.5px; text-decoration: none; outline: 0; }
+.tv-switch-all:hover, .tv-switch-all:focus-visible { background: var(--tv-active); color: var(--tv-text); }
+.tv-switch-all svg { width: 14px; height: 14px; flex: 0 0 14px; }
+
 /* Paleta ⌘K. */
 .tv-command-scrim { position: fixed; z-index: 90; inset: 0; padding: 14vh 12px 0; display: flex; align-items: flex-start; justify-content: center; background: var(--tv-scrim); }
 .tv-command-box { width: min(540px, 100%); overflow: hidden; border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); animation: tv-pop-in 150ms var(--tv-ease) both; }
@@ -125,10 +151,9 @@
   .tv-mobile-tabs .tv-sidebar-link > small { display: none; }
   .tv-console-main { min-height: 100dvh; margin: 0; padding: 48px 0 calc(84px + env(safe-area-inset-bottom)); }
   .tv-account-popover { left: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(272px, calc(100vw - 24px)); }
-  .workspace-territory .tv-menu-page { padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tv-sidebar, .tv-console-main { transition: none; }
-  .tv-account-popover, .tv-command-box { animation: none; }
+  .tv-account-popover, .tv-command-box, .tv-switch-popover { animation: none; }
 }

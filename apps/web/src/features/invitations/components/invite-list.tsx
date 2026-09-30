@@ -1,40 +1,33 @@
 'use client'
 
-import { useTransition } from 'react'
-import { RiCloseCircleLine } from 'react-icons/ri'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useState, useTransition } from 'react'
+import { LuBan, LuCopy, LuMail } from 'react-icons/lu'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { toast } from '@/components/ui/toast'
-import {
-  INVITE_STATUS_LABELS,
-  inviteStatus,
-  MEMBER_ROLE_LABELS,
-  type InviteDTO,
-} from '@/domain/invite'
+import { MEMBER_ROLE_LABELS, type InviteDTO } from '@/domain/invite'
+import { TeamConfirmDialog } from '@/features/workspace/components/team-confirm-dialog'
+import { copyText } from '@/lib/copy-text'
+import { formatLong } from '@/lib/format-date'
 import { revokeInviteAction } from '@/server/actions/invites'
 
-export function InviteList({
-  invites,
-  showRole = false,
-}: {
-  invites: InviteDTO[]
-  /** O convite de plataforma é sempre administrador; mostrar a coluna ali
-      seria uma coluna com um valor só. */
-  showRole?: boolean
-}) {
+// Convites de equipe ainda em aberto. A página já entrega só os pendentes:
+// o resgatado virou membro, e o vencido ou revogado não abre mais nada.
+export function InviteList({ invites }: { invites: InviteDTO[] }) {
   const [pending, startTransition] = useTransition()
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
-  function revoke(id: string) {
+  function revoke() {
+    if (!confirmId) return
+    const id = confirmId
     startTransition(async () => {
       const result = await revokeInviteAction(id)
+      setConfirmId(null)
       toast.add(
         result.ok
           ? { title: 'Convite revogado', type: 'success' }
@@ -45,92 +38,63 @@ export function InviteList({
 
   return (
     <>
-    <div className="tavvi-surface hidden overflow-hidden md:block">
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-muted/35">
-          <TableHead>E-mail</TableHead>
-          {showRole ? <TableHead>Papel</TableHead> : null}
-          <TableHead>Situação</TableHead>
-          <TableHead>Prazo</TableHead>
-          <TableHead className="w-px" />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+      <ul className="tv-table-shell hidden md:block" aria-label="Convites pendentes">
         {invites.map((invite) => {
-          const status = inviteStatus(invite)
+          const title = invite.email ?? 'Qualquer e-mail'
           return (
-            <TableRow key={invite.id} className="h-16">
-              <TableCell>
-                {invite.email ?? (
-                  <span className="text-muted-foreground">Qualquer e-mail</span>
-                )}
-              </TableCell>
-              {showRole ? (
-                <TableCell>{MEMBER_ROLE_LABELS[invite.role]}</TableCell>
-              ) : null}
-              <TableCell>
-                <Badge
-                  variant={status === 'pendente' ? 'default' : 'secondary'}
+            <ContextMenu key={invite.id}>
+              <ContextMenuTrigger render={<li className="tv-team-invite" />}>
+                <span className="tv-row-icon">
+                  <LuMail aria-hidden="true" />
+                </span>
+                <span className="tv-row-copy tv-team-invite-copy">
+                  <strong className="tv-row-title">{title}</strong>
+                  <small className="tv-row-meta">
+                    Válido até {formatLong(invite.expiresAt)}
+                  </small>
+                </span>
+                <span className="tv-team-pill">{MEMBER_ROLE_LABELS[invite.role]}</span>
+                <span className="tv-team-pill is-pending">
+                  <i aria-hidden="true" />
+                  Pendente
+                </span>
+                <button
+                  type="button"
+                  className="tv-team-revoke"
+                  title="Revogar convite"
+                  aria-label={`Revogar convite para ${invite.email ?? 'qualquer e-mail'}`}
+                  disabled={pending}
+                  onClick={() => setConfirmId(invite.id)}
                 >
-                  {INVITE_STATUS_LABELS[status]}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {new Date(invite.expiresAt).toLocaleDateString('pt-BR')}
-              </TableCell>
-              <TableCell>
-                {/* Revogar só faz sentido no pendente: resgatado já virou
-                    vínculo, e vencido já não funciona. Oferecer a ação nos
-                    outros casos seria oferecer um clique que não faz nada. */}
-                {status === 'pendente' ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => revoke(invite.id)}
-                  >
-                    <RiCloseCircleLine className="size-4" />
-                    Revogar
-                  </Button>
+                  <LuBan aria-hidden="true" />
+                </button>
+              </ContextMenuTrigger>
+              <ContextMenuContent aria-label={`Ações do convite para ${title}`}>
+                {invite.email ? (
+                  <>
+                    <ContextMenuItem onClick={() => void copyText(invite.email!, 'E-mail copiado')}><LuCopy aria-hidden="true" /><span>Copiar e-mail</span></ContextMenuItem>
+                    <ContextMenuSeparator />
+                  </>
                 ) : null}
-              </TableCell>
-            </TableRow>
+                <ContextMenuItem variant="destructive" disabled={pending} onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /><span>Revogar convite</span></ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           )
         })}
-      </TableBody>
-    </Table>
-    </div>
-    <div className="grid gap-3 md:hidden">
-      {invites.map((invite) => {
-        const status = inviteStatus(invite)
-        return (
-          <article key={invite.id} className="tavvi-surface p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{invite.email ?? 'Qualquer e-mail'}</p>
-                {showRole ? (
-                  <p className="mt-1 text-sm text-muted-foreground">{MEMBER_ROLE_LABELS[invite.role]}</p>
-                ) : null}
-              </div>
-              <Badge variant={status === 'pendente' ? 'default' : 'secondary'}>
-                {INVITE_STATUS_LABELS[status]}
-              </Badge>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-3">
-              <p className="text-xs text-muted-foreground">
-                Válido até {new Date(invite.expiresAt).toLocaleDateString('pt-BR')}
-              </p>
-              {status === 'pendente' ? (
-                <Button variant="ghost" size="sm" disabled={pending} onClick={() => revoke(invite.id)}>
-                  <RiCloseCircleLine className="size-4" /> Revogar
-                </Button>
-              ) : null}
-            </div>
-          </article>
-        )
-      })}
-    </div>
+      </ul>
+
+      <TeamConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmId(null)
+        }}
+        icon={<LuBan />}
+        title="Revogar convite?"
+        description="O link deixará de funcionar imediatamente."
+        confirmLabel="Revogar"
+        pending={pending}
+        onConfirm={revoke}
+      />
     </>
   )
 }

@@ -62,29 +62,26 @@ export function FloatingRestaurantPreview({
   )
 }
 
+// O mesmo celular da prévia de Contato (260 × 520): a tela não depende da
+// altura da janela, então não achata no popover do telefone. A face (Claro
+// ou Escuro) já está no seletor do popover.
 export function PhonePreviewFrame({
-  mode,
   density,
   style,
   children,
 }: {
-  mode: PreviewMode
   density: Density
   style: CSSProperties
   children: ReactNode
 }) {
   return (
-    <div className="tv-phone-preview">
-      <p className="tv-phone-preview-mode-label">{mode === 'light' ? 'Claro' : 'Escuro'}</p>
-      <div className="tv-phone-preview-device">
-        <div className="tv-phone-preview-speaker" aria-hidden="true" />
-        <div
-          data-density={density}
-          className={`menu tv-phone-preview-screen ${ALL_THEME_FONT_VARIABLES}`}
-          style={style}
-        >
-          {children}
-        </div>
+    <div className="tv-preview-phone">
+      <div
+        data-density={density}
+        className={`menu tv-preview-phone-screen ${ALL_THEME_FONT_VARIABLES}`}
+        style={style}
+      >
+        {children}
       </div>
     </div>
   )

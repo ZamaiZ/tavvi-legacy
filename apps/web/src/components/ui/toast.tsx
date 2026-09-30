@@ -13,6 +13,7 @@ import {
   RiInformationLine,
   RiLoader4Line,
 } from "react-icons/ri"
+import { LuCircleAlert, LuCircleCheck, LuInfo, LuTriangleAlert } from "react-icons/lu"
 
 const toast = ToastPrimitive.createToastManager()
 
@@ -139,7 +140,32 @@ function ToastClose({
   )
 }
 
-function ToastIcon({ type }: { type: string | undefined }) {
+type ToastPlacement = "top" | "bottom"
+
+// Abaixo de 768 px o toast fica no topo, centralizado, em todas as
+// superfícies (Tavvi Mobile.dc.html, hasToastA e hasToastB). Toasts só
+// existem no cliente, depois de uma ação, então ler a tela aqui não diverge
+// da hidratação: no servidor e no primeiro render não há toast.
+function currentToastPlacement(): { placement: ToastPlacement; offset: "header" | "edge" } {
+  if (typeof window === "undefined" || !window.matchMedia("(max-width: 767px)").matches) {
+    return { placement: "bottom", offset: "edge" }
+  }
+  // O painel e a lista de restaurantes têm cabeçalho fixo de 48 px; o
+  // console não.
+  const header = document.querySelector(".tv-mobile-header")
+  return { placement: "top", offset: header ? "header" : "edge" }
+}
+
+function ToastIcon({ type, placement }: { type: string | undefined; placement: ToastPlacement }) {
+  if (placement === "top" && type !== "loading") {
+    const Icon = type === "error" ? LuCircleAlert : type === "warning" ? LuTriangleAlert : type === "info" ? LuInfo : LuCircleCheck
+    return (
+      <span data-slot="toast-icon" className={`tv-toast-icon is-${type ?? "success"}`}>
+        <Icon aria-hidden="true" />
+      </span>
+    )
+  }
+
   let icon: React.ReactNode = null
 
   if (type === "success") {
@@ -186,13 +212,18 @@ function ToastIcon({ type }: { type: string | undefined }) {
   )
 }
 
-function ToastList() {
+function ToastList({ placement }: { placement: ToastPlacement }) {
   const { toasts } = ToastPrimitive.useToastManager()
 
   return toasts.map((toastItem) => (
-    <Toast key={toastItem.id} toast={toastItem}>
+    <Toast
+      key={toastItem.id}
+      toast={toastItem}
+      data-placement={placement}
+      swipeDirection={placement === "top" ? "up" : undefined}
+    >
       <ToastContent>
-        <ToastIcon type={toastItem.type} />
+        <ToastIcon type={toastItem.type} placement={placement} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <ToastTitle />
           <ToastDescription />
@@ -204,6 +235,16 @@ function ToastList() {
   ))
 }
 
+function PlacedToasts() {
+  const { toasts } = ToastPrimitive.useToastManager()
+  const { placement, offset } = toasts.length > 0 ? currentToastPlacement() : { placement: "bottom" as const, offset: "edge" as const }
+  return (
+    <ToastViewport data-placement={placement} data-offset={offset}>
+      <ToastList placement={placement} />
+    </ToastViewport>
+  )
+}
+
 function Toaster({
   children,
   toastManager = toast,
@@ -213,9 +254,7 @@ function Toaster({
     <ToastProvider toastManager={toastManager} {...props}>
       {children}
       <ToastPortal>
-        <ToastViewport>
-          <ToastList />
-        </ToastViewport>
+        <PlacedToasts />
       </ToastPortal>
     </ToastProvider>
   )

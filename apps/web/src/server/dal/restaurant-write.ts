@@ -1,6 +1,6 @@
 import 'server-only'
 import { uuidSchema } from '@/domain/common'
-import { setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema } from '@/domain/restaurant'
+import { completeOnboardingSchema, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema } from '@/domain/restaurant'
 import type { RevalidationTarget } from '@/server/revalidate'
 import { getRestaurantRevalidationTarget } from './revalidation-target'
 import { countVisibleItemsWithoutMedia } from './menu-read'
@@ -67,6 +67,25 @@ export async function setRestaurantStatus(
     restaurantId: data.restaurantId,
     metadata: { status: data.status },
   })
+
+  return getRestaurantRevalidationTarget(data.restaurantId)
+}
+
+// Grava a marca uma vez só: o `is(null)` torna a segunda chamada inofensiva.
+export async function completeOnboarding(input: unknown): Promise<RevalidationTarget> {
+  const data = completeOnboardingSchema.parse(input)
+  await requireRestaurantAdmin(data.restaurantId)
+
+  const supabase = await db()
+  const { error } = await supabase
+    .from('restaurants')
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq('id', data.restaurantId)
+    .is('onboarding_completed_at', null)
+
+  if (error) {
+    throw new Error(`Não foi possível concluir os primeiros passos: ${error.message}`)
+  }
 
   return getRestaurantRevalidationTarget(data.restaurantId)
 }
