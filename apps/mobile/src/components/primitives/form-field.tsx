@@ -12,13 +12,13 @@ export function FormField({ label, error, hint, icon: Icon, style, secureTextEnt
   const [focused, setFocused] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const isPassword = Boolean(secureTextEntry)
-  const borderColor = error ? colors.dangerText : focused ? colors.accentText : colors.line
+  const borderColor = error ? colors.dangerText : focused ? colors.goldText : colors.line
 
   return (
     <View style={styles.wrapper}>
       <AppText variant="label">{label}</AppText>
-      <View style={[styles.field, { borderColor, backgroundColor: colors.field }, focused && { boxShadow: `0 0 0 4px ${colors.accentSurface}` }]}>
-        {Icon ? <Icon size={18} color={focused ? colors.accentText : colors.subtle} /> : null}
+      <View style={[styles.field, { borderColor, backgroundColor: colors.field }, focused && { boxShadow: `0 0 0 4px ${colors.goldSoft}` }]}>
+        {Icon ? <Icon size={18} color={focused ? colors.goldText : colors.subtle} /> : null}
         <TextInput
           {...props}
           secureTextEntry={isPassword && !revealed}

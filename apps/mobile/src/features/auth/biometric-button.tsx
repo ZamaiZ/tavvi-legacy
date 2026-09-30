@@ -2,9 +2,10 @@ import * as Haptics from 'expo-haptics'
 import { Fingerprint, ScanFace } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, StyleSheet } from 'react-native'
+import { AppText } from '@/components/primitives/app-text'
 import { useBiometricAvailability } from './use-biometric-availability'
 
-export type BiometricButtonColors = { field: string; border: string; text: string; muted: string }
+export type BiometricButtonColors = { field: string; border: string; text: string; muted: string; accent: string }
 
 export function BiometricButton({
   colors,
@@ -39,13 +40,14 @@ export function BiometricButton({
         setAuthenticating(true)
         void onBiometricSignIn().finally(() => setAuthenticating(false))
       }}
-      style={({ pressed }) => [styles.button, { backgroundColor: colors.field, borderColor: colors.border, opacity: enabled ? (pressed ? 0.72 : 1) : 0.42 }]}
+      style={({ pressed }) => [styles.button, { opacity: enabled ? (pressed ? 0.72 : 1) : 0.42 }]}
     >
-      <Icon accessible={false} size={22} strokeWidth={1.7} color={enabled ? colors.text : colors.muted} />
+      <Icon accessible={false} size={18} strokeWidth={1.7} color={enabled ? colors.accent : colors.muted} />
+      <AppText family="login" variant="caption" style={{ color: enabled ? colors.accent : colors.muted }}>{authenticating ? 'Reconhecendo…' : `Entrar com ${label}`}</AppText>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  button: { width: 58, height: 58, flexShrink: 0, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 20, borderCurve: 'continuous' },
+  button: { minHeight: 46, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, borderCurve: 'continuous' },
 })

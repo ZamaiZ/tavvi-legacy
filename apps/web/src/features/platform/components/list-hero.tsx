@@ -1,46 +1,41 @@
-'use client'
-
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import { LuPlus } from 'react-icons/lu'
-import { createNotchedPath } from '@/lib/notched-path'
 
-export function ListHero({ title, description, mobileDescription, summary, action }: {
+type HeroStat = {
+  label: string
+  value: number
+  icon: ReactNode
+  selected?: boolean
+  onClick?: () => void
+}
+
+export function ListHero({ title, description, mobileDescription, heroLabel, heroValue, heroDetail, heroActions, stats = [] }: {
   title: string
   description: string
   mobileDescription?: string
-  summary: string
-  action?: ReactNode
+  heroLabel: string
+  heroValue: number
+  heroDetail: string
+  heroActions?: ReactNode
+  stats?: HeroStat[]
 }) {
-  const ref = useRef<HTMLElement>(null)
-  const actionRef = useRef<HTMLDivElement>(null)
-  const [size, setSize] = useState({ width: 0, height: 0 })
-  const [actionSize, setActionSize] = useState({ width: 0, height: 0 })
-  useEffect(() => {
-    const measure = () => {
-      const rect = ref.current?.getBoundingClientRect()
-      if (rect) setSize({ width: rect.width, height: rect.height })
-      const actionRect = actionRef.current?.getBoundingClientRect()
-      if (actionRect) setActionSize({ width: actionRect.width, height: actionRect.height })
-    }
-    measure()
-    const observer = new ResizeObserver(measure)
-    if (ref.current) observer.observe(ref.current)
-    if (actionRef.current) observer.observe(actionRef.current)
-    return () => observer.disconnect()
-  }, [])
-  const notchW = action ? Math.min(size.width - 52, actionSize.width + 22) : 76
-  const notchH = action ? actionSize.height + 18 : 72
-  const path = size.width && size.height
-    ? createNotchedPath({ width: size.width, height: size.height, radius: 30, notchW, notchH, curve: 22 })
-    : ''
-  return <div className="relative">
-    <section ref={ref} className="tv-list-hero" style={path ? { clipPath: `path('${path}')` } : undefined}>
-      <Image src="/brand/tavvi-brandmark.png" width={340} height={340} alt="" aria-hidden="true" className="tv-hero-watermark" />
-      <div className="tv-hero-copy"><span className="tv-platform-pill"><i />Plataforma</span><div><h1>{title}<i>.</i></h1><p className="tv-hero-description">{description}</p><p className="tv-hero-description-mobile">{mobileDescription ?? description}</p></div></div>
-      <div className="tv-hero-footer"><p>{summary}</p></div>
-    </section>
-    {action && <div ref={actionRef} className="tv-hero-action">{action}</div>}
+  return <div className="tv-list-overview">
+    <header className="tv-list-heading">
+      <div><span className="tv-list-eyebrow">Console</span><h1>{title}</h1><p className="tv-list-description">{description}</p><p className="tv-list-description-mobile">{mobileDescription ?? description}</p></div>
+    </header>
+    <div className="tv-list-summary-grid">
+      <section className="tv-list-hero" aria-label={`${heroLabel}: ${heroValue}`}>
+        <Image src="/brand/tavvi-brandmark-gold-on-light.png" width={340} height={340} alt="" aria-hidden="true" className="tv-hero-watermark tv-brandmark-light" />
+        <Image src="/brand/tavvi-brandmark-gold-on-dark.png" width={340} height={340} alt="" aria-hidden="true" className="tv-hero-watermark tv-brandmark-dark" />
+        <div className="tv-summary-copy"><span>{heroLabel}</span><strong>{heroValue}</strong><p>{heroDetail}</p></div>
+        {heroActions ? <div className="tv-summary-actions">{heroActions}</div> : null}
+      </section>
+      {stats.length > 0 ? <div className="tv-stat-grid">{stats.map((stat) => {
+        const content = <><span className="tv-stat-label">{stat.icon}{stat.label}</span><strong>{stat.value}</strong></>
+        return stat.onClick ? <button type="button" key={stat.label} className={`tv-stat-card${stat.selected ? ' is-selected' : ''}`} aria-pressed={stat.selected} onClick={stat.onClick}>{content}</button> : <div key={stat.label} className="tv-stat-card">{content}</div>
+      })}</div> : null}
+    </div>
   </div>
 }
 

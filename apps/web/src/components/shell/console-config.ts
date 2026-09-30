@@ -52,15 +52,6 @@ export function getConsoleConfig(user: { email?: string | null } | null): Consol
       sub: 'Contas cadastradas',
       icon: 'store',
     },
-    {
-      kind: 'leaf',
-      key: 'branding',
-      href: '/branding',
-      activeMatch: ['/branding'],
-      label: 'Identidade visual',
-      sub: 'Cores dos painéis',
-      icon: 'palette',
-    },
   ]
 
   return {
@@ -72,7 +63,7 @@ export function getConsoleConfig(user: { email?: string | null } | null): Consol
     userDescription: 'Administrador da plataforma',
     homeHref: '/',
     showNewInvite: true,
-    railWidths: { collapsed: 80, pinned: 272 },
+    railWidths: { collapsed: 60, pinned: 232 },
   }
 }
 
@@ -110,7 +101,7 @@ export function getRestaurantConsoleConfig({
     leaves,
     showNewInvite: false,
     counts: { pendingInvites: 0, restaurants: 0 },
-    railWidths: { collapsed: 88, pinned: 248 },
+    railWidths: { collapsed: 60, pinned: 232 },
   }
 }
 

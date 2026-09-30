@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { RiStore2Line } from 'react-icons/ri'
 import { StatusBadge } from '@/components/shell/restaurant-status-badge'
 import { PanelEmptyState } from '@/features/workspace/components/panel-empty-state'
@@ -29,9 +30,12 @@ export default async function Page() {
   if (restaurants.length === 1) {
     redirect(`/restaurantes/${restaurants[0].id}`)
   }
+  const cookieStore = await cookies()
+  const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
 
   return (
     <TavviShell
+      initialRail={initialRail}
       config={{
         homeHref: '/restaurantes',
         userLabel: user?.email ?? null,

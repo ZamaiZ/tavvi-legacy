@@ -4,9 +4,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Appearance, useColorScheme } from 'react-native'
 import { VariableContextProvider } from 'react-native-css'
 import { secureStoreAdapter } from '@/lib/secure-store-adapter'
-import { API_ROUTES, platformAppearanceSchema, type PlatformAppearance } from '@tavvi/api-contracts'
-import { DEFAULT_APPEARANCE, PALETTE_SCHEMA_VERSION, derivePlatformPalette } from '@tavvi/theme-core'
-import { publicApiRequest } from '@/lib/api-client'
 
 import { palettes, type AppColors } from './tokens'
 
@@ -18,8 +15,6 @@ export type AppThemeValue = {
   resolved: ResolvedTheme
   colors: AppColors
   setPreference(next: ThemePreference): Promise<void>
-  appearance: PlatformAppearance
-  setPlatformAppearance(next: PlatformAppearance): void
   hydrated: boolean
 }
 
@@ -28,37 +23,9 @@ const ThemeContext = createContext<AppThemeValue | null>(null)
 export function AppThemeProvider({ children }: PropsWithChildren) {
   const systemScheme = useColorScheme()
   const [preference, setStoredPreference] = useState<ThemePreference>('system')
-  const [appearance, setPlatformAppearance] = useState<PlatformAppearance>(() => ({ source: DEFAULT_APPEARANCE, schemaVersion: PALETTE_SCHEMA_VERSION, palette: derivePlatformPalette(DEFAULT_APPEARANCE), updatedAt: new Date(0).toISOString() }))
   const [hydrated, setHydrated] = useState(false)
   const resolved: ResolvedTheme = preference === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : preference
-  const accent = appearance.palette[resolved]
-  const colors: AppColors = {
-    ...palettes[resolved],
-    accent: accent.accent,
-    accentPressed: accent['accent-pressed'],
-    accentOn: accent['accent-on'],
-    accentTextLight: accent['accent-text-light'],
-    accentTextDark: accent['accent-text-dark'],
-    accentText: resolved === 'light' ? accent['accent-text-light'] : accent['accent-text-dark'],
-    accentSoft: accent['accent-soft'],
-    accentGlow: accent['accent-glow'],
-    accentCtaGlow: accent['accent-cta-glow'],
-    accentHeroGlow: accent['accent-hero-glow'],
-    accentFocus: accent['accent-focus'],
-    accentRing: accent['accent-ring'],
-    accentPill: accent['accent-pill'],
-    accentPillOn: accent['accent-pill-on'],
-    accentSurface: accent['accent-surface'],
-  }
-
-  useEffect(() => {
-    let active = true
-    void publicApiRequest<unknown>(API_ROUTES.platform.appearance).then((value) => {
-      const parsed = platformAppearanceSchema.safeParse(value)
-      if (active && parsed.success && parsed.data.schemaVersion === PALETTE_SCHEMA_VERSION) setPlatformAppearance(parsed.data)
-    }).catch(() => undefined)
-    return () => { active = false }
-  }, [])
+  const colors: AppColors = palettes[resolved]
 
   useEffect(() => {
     secureStoreAdapter.getItem(STORAGE_KEY).then((value) => {
@@ -77,14 +44,14 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
     await secureStoreAdapter.setItem(STORAGE_KEY, next)
   }, [])
 
-  const value = useMemo<AppThemeValue>(() => ({ preference, resolved, colors, setPreference, appearance, setPlatformAppearance, hydrated }), [appearance, colors, hydrated, preference, resolved, setPreference])
+  const value = useMemo<AppThemeValue>(() => ({ preference, resolved, colors, setPreference, hydrated }), [colors, hydrated, preference, resolved, setPreference])
   const variables = useMemo(() => ({
     '--background': colors.background, '--foreground': colors.foreground, '--surface': colors.surface, '--field': colors.field,
     '--surface-2': colors.surface, '--surface-3': colors.field,
-    '--primary': colors.accent, '--primary-foreground': colors.accentOn, '--secondary': colors.surface,
+    '--primary': colors.button, '--primary-foreground': colors.buttonText, '--secondary': colors.surface,
     '--secondary-foreground': colors.foreground, '--muted': colors.field, '--muted-foreground': colors.muted,
-    '--accent': colors.accentSurface, '--accent-foreground': colors.accentText, '--destructive': colors.dangerText,
-    '--border': colors.line, '--input': colors.line, '--ring': colors.accentFocus,
+    '--accent': colors.goldSoft, '--accent-foreground': colors.goldText, '--destructive': colors.dangerText,
+    '--border': colors.line, '--input': colors.line, '--ring': colors.gold,
     '--subtle': colors.subtle, '--line': colors.line, '--line-2': colors.line2,
   }), [colors])
 

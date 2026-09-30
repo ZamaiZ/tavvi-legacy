@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { LuChevronRight } from 'react-icons/lu'
+import { LuCircleCheck, LuChevronRight, LuPause, LuPencilLine } from 'react-icons/lu'
 import type { RestaurantAdminDTO, RestaurantDetailDTO } from '@/domain/restaurant'
 import { Toolbar } from '../toolbar'
 import { ListHero } from '../list-hero'
@@ -25,6 +25,9 @@ export function RestaurantList({ restaurants, query, selectedId, selectedRestaur
 }) {
   const router = useRouter()
   const search = useSearchParams()
+  const activeCount = restaurants.filter((restaurant) => restaurant.status === 'active' && !restaurant.deletedAt).length
+  const draftCount = restaurants.filter((restaurant) => restaurant.status === 'draft' && !restaurant.deletedAt).length
+  const suspendedCount = restaurants.filter((restaurant) => restaurant.status === 'suspended' && !restaurant.deletedAt).length
   const filtered = useMemo(() => restaurants.filter((restaurant) => `${restaurant.name} ${restaurant.slug} ${restaurant.segment ?? ''}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'))), [query, restaurants])
   useEffect(() => {
     if (!invalidDetail) return
@@ -41,7 +44,18 @@ export function RestaurantList({ restaurants, query, selectedId, selectedRestaur
     router.replace(`/restaurantes${value ? `?${value}` : ''}`, { scroll: false })
   }
   return <div className="tv-console-page">
-    <ListHero title="Restaurantes" description="Acompanhe os estabelecimentos, endereços públicos e situação de publicação." summary={`${restaurants.length} ${restaurants.length === 1 ? 'restaurante' : 'restaurantes'}`} />
+    <ListHero
+      title="Restaurantes"
+      description="Acompanhe os estabelecimentos, endereços públicos e situação de publicação."
+      heroLabel="Restaurantes na plataforma"
+      heroValue={restaurants.length}
+      heroDetail={`${activeCount} com cardápio no ar`}
+      stats={[
+        { label: 'Ativos', value: activeCount, icon: <LuCircleCheck aria-hidden="true" /> },
+        { label: 'Rascunhos', value: draftCount, icon: <LuPencilLine aria-hidden="true" /> },
+        { label: 'Suspensos', value: suspendedCount, icon: <LuPause aria-hidden="true" /> },
+      ]}
+    />
     <Toolbar kind="restaurants" query={query} />
     {!restaurants.length ? <StateCard icon={<span className="tv-state-store">⌂</span>} title="Nenhum restaurante ainda" description="Restaurantes aparecem aqui quando alguém resgata um convite." /> : !filtered.length ? <div className="tv-no-results" aria-live="polite">Nenhum restaurante encontrado para “{query}”.</div> : <>
       <div role="table" aria-label="Restaurantes" className="tv-table-shell">

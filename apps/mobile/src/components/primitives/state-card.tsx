@@ -6,15 +6,18 @@ import { AppText } from './app-text'
 import { TonalButton } from './tonal-button'
 import { radii, useAppTheme } from '@/theme'
 
-const mark = require('../../../assets/images/brand/tavvi-brandmark.png')
+const marks = {
+  light: require('../../../assets/images/brand/tavvi-brandmark-gold-on-light.png'),
+  dark: require('../../../assets/images/brand/tavvi-brandmark-gold-on-dark.png'),
+} as const
 export function StateCard({ title, message, error = false, actionLabel, actionIcon, onAction, retry }: { title: string; message: string; error?: boolean; actionLabel?: string; actionIcon?: LucideIcon; onAction?: () => void; retry?: boolean }) {
-  const { colors } = useAppTheme()
+  const { colors, resolved } = useAppTheme()
   const ActionIcon = actionIcon
   return <View style={[styles.root, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-    {error ? <View style={[styles.errorTile, { backgroundColor: colors.dangerSurface }]}><CircleAlert size={22} color={colors.dangerText} /></View> : <Image source={mark} contentFit="contain" style={styles.mark} />}
+    {error ? <View style={[styles.errorTile, { backgroundColor: colors.dangerSurface }]}><CircleAlert size={22} color={colors.dangerText} /></View> : <Image source={marks[resolved]} contentFit="contain" style={styles.mark} />}
     <AppText variant="empty" numberOfLines={2} maxFontSizeMultiplier={1.5} style={styles.center}>{title}</AppText>
     <AppText variant="meta" tone="muted" maxFontSizeMultiplier={1.5} style={styles.message}>{message}</AppText>
-    {onAction && actionLabel ? retry ? <TonalButton label={actionLabel} icon={actionIcon} onPress={onAction} compact /> : <Pressable accessibilityRole="button" accessibilityLabel={actionLabel} onPress={onAction} style={({ pressed }) => [styles.action, { backgroundColor: pressed ? colors.accentPressed : colors.accent, transform: [{ scale: pressed ? 0.985 : 1 }] }]}>{ActionIcon ? <ActionIcon size={18} color={colors.accentOn} strokeWidth={2.1} /> : null}<AppText variant="rowTitle" numberOfLines={1} style={[styles.actionLabel, { color: colors.accentOn }]}>{actionLabel}</AppText></Pressable> : null}
+    {onAction && actionLabel ? retry ? <TonalButton label={actionLabel} icon={actionIcon} onPress={onAction} compact /> : <Pressable accessibilityRole="button" accessibilityLabel={actionLabel} onPress={onAction} style={({ pressed }) => [styles.action, { backgroundColor: colors.button, opacity: pressed ? 0.82 : 1 }]}>{ActionIcon ? <ActionIcon size={18} color={colors.buttonText} strokeWidth={2.1} /> : null}<AppText variant="rowTitle" numberOfLines={1} style={[styles.actionLabel, { color: colors.buttonText }]}>{actionLabel}</AppText></Pressable> : null}
   </View>
 }
 

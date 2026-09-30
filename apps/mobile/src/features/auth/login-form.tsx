@@ -66,11 +66,6 @@ export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiomet
         </View>
       ) : null}
 
-      <View style={styles.formHeading}>
-        <AppText family="login" variant="title" style={{ color: palette.text }}>Entrar</AppText>
-        <AppText family="login" variant="caption" style={{ color: palette.subtle }}>Credenciais de administrador</AppText>
-      </View>
-
       <LoginField
         label="E-mail"
         icon={Mail}
@@ -111,21 +106,17 @@ export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiomet
           style={({ pressed }) => [
             styles.submit,
             {
-              backgroundColor: palette.accent,
+              backgroundColor: palette.button,
               opacity: blocked ? 0.5 : pressed ? 0.88 : 1,
-              boxShadow: blocked ? undefined : `0 10px 28px -10px ${palette.accentGlow}`,
               transform: [{ scale: pressed && !blocked && !reducedMotion ? 0.985 : 1 }],
             },
           ]}
         >
-          <AppText family="login" variant="label" style={{ color: palette.accentOn }}>
+          <AppText family="login" variant="label" style={{ color: palette.buttonText }}>
             {submitting ? 'Entrando…' : 'Entrar no console'}
           </AppText>
-          <View style={styles.submitIcon}>
-            {submitting
-              ? <ActivityIndicator color={palette.accent} />
-              : <ArrowRight accessible={false} size={18} color={palette.accent} strokeWidth={2.2} />}
-          </View>
+          {!submitting ? <ArrowRight size={17} color={palette.buttonText} strokeWidth={2} /> : null}
+          {submitting ? <ActivityIndicator color={palette.buttonText} /> : null}
         </Pressable>
         <BiometricButton colors={palette} hasDeviceContract={hasDeviceContract} onBiometricSignIn={signInWithBiometrics} disabled={submitting || biometricBusy} />
       </View>
@@ -154,12 +145,10 @@ export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiomet
 }
 
 const styles = StyleSheet.create({
-  surface: { borderWidth: 1, borderRadius: 28, borderCurve: 'continuous', paddingHorizontal: 18, paddingTop: 22, paddingBottom: 18, gap: 16 },
-  formHeading: { minHeight: 28, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: 12, rowGap: 4, paddingHorizontal: 4 },
+  surface: { borderWidth: 1, borderRadius: 22, borderCurve: 'continuous', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, gap: 12 },
   alert: { gap: 8, padding: 12, borderRadius: 14, borderCurve: 'continuous' },
   returnAction: { minHeight: 48, alignSelf: 'flex-start', justifyContent: 'center' },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  actions: { flexDirection: 'column', alignItems: 'stretch', gap: 6, marginTop: 2 },
   unlink: { minHeight: 40, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 12 },
-  submit: { minHeight: 58, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 22, paddingRight: 7, borderRadius: 20, borderCurve: 'continuous' },
-  submitIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 15, borderCurve: 'continuous', backgroundColor: '#0A0C09' },
+  submit: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16, borderRadius: 999, borderCurve: 'continuous' },
 })

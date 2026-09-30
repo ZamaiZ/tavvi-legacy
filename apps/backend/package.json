@@ -19,7 +19,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
     "@tavvi/api-contracts": "workspace:*",
-    "@tavvi/theme-core": "workspace:*",
     "express": "^5.2.1",
     "ngrok": "5.0.0-beta.2",
     "zod": "^4.6.5"

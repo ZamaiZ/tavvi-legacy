@@ -12,4 +12,4 @@ export function SearchField({ value, onChangeText, placeholder }: { value: strin
   </View>
 }
 
-const styles = StyleSheet.create({ root: { height: 50, borderRadius: radii.search, borderCurve: 'continuous', borderWidth: 1, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }, input: { flex: 1, minWidth: 0, fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14.5, lineHeight: 20, paddingVertical: 0 }, clear: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' } })
+const styles = StyleSheet.create({ root: { height: 50, borderRadius: radii.search, borderCurve: 'continuous', borderWidth: 1, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }, input: { flex: 1, minWidth: 0, fontSize: 14.5, lineHeight: 20, paddingVertical: 0 }, clear: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' } })

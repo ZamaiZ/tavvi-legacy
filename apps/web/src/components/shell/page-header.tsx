@@ -14,18 +14,18 @@ export function PageHeader({
   className?: string
 }) {
   return (
-    <header className={`mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end ${className ?? ''}`}>
-      <div className="min-w-0 max-w-2xl">
+    <header className={`mb-[18px] flex flex-col justify-between gap-4 sm:flex-row sm:items-end ${className ?? ''}`}>
+      <div className="min-w-0 max-w-[560px]">
         {eyebrow ? (
-          <p className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-primary">
+          <p className="mb-1 text-[11.5px] font-medium text-[var(--tv-gold-text)]">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-[clamp(1.625rem,2.5vw,2.125rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+        <h1 className="text-[22px] font-semibold leading-[1.2] tracking-[-0.022em]">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-1.5 max-w-[560px] text-[13px] leading-[1.45] text-[var(--tv-text-2)]">
             {description}
           </p>
         ) : null}

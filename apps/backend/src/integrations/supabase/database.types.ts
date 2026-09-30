@@ -4,7 +4,6 @@ export type Database = {
     Tables: {
       profiles: { Row: { id: string; display_name: string | null; avatar_path: string | null; created_at: string; updated_at: string }; Insert: { id: string; display_name?: string | null; avatar_path?: string | null }; Update: { display_name?: string | null; avatar_path?: string | null }; Relationships: [] }
       platform_admins: { Row: { user_id: string; granted_at: string; granted_by: string | null }; Insert: { user_id: string; granted_at?: string; granted_by?: string | null }; Update: { user_id?: string; granted_at?: string; granted_by?: string | null }; Relationships: [] }
-      platform_appearance: { Row: { singleton: boolean; brand_accent: string; on_accent_override: string | null; schema_version: number; updated_at: string; updated_by: string | null }; Insert: { singleton?: boolean; brand_accent?: string; on_accent_override?: string | null; schema_version?: number; updated_at?: string; updated_by?: string | null }; Update: { brand_accent?: string; on_accent_override?: string | null }; Relationships: [] }
       invites: {
         Row: { id: string; created_at: string; created_by: string; email: string | null; expires_at: string; redeemed_at: string | null; redeemed_by: string | null; restaurant_id: string | null; revoked_at: string | null; role: Database['public']['Enums']['member_role']; token_hash: string }
         Insert: { id?: string; created_at?: string; created_by: string; email?: string | null; expires_at: string; redeemed_at?: string | null; redeemed_by?: string | null; restaurant_id: string | null; revoked_at?: string | null; role: Database['public']['Enums']['member_role']; token_hash: string }
@@ -21,7 +20,6 @@ export type Database = {
     Views: { [_ in never]: never }
     Functions: {
       is_platform_admin: { Args: never; Returns: boolean }
-      update_platform_appearance: { Args: { p_brand_accent: string; p_on_accent_override: string | null; p_trusted_ip?: unknown }; Returns: Database['public']['Tables']['platform_appearance']['Row'][] }
       check_rate_limit: { Args: { p_bucket: string; p_identifier: string; p_max: number; p_window_seconds: number }; Returns: boolean }
       record_audit: { Args: { p_action: string; p_ip?: unknown; p_metadata?: Json; p_restaurant_id?: string; p_subject_id?: string; p_subject_type: string }; Returns: undefined }
       list_platform_admin_invites: { Args: never; Returns: { id: string; email: string | null; expires_at: string; redeemed_at: string | null; revoked_at: string | null; created_at: string; created_by_email: string; redeemed_by_email: string | null }[] }

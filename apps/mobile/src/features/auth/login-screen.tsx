@@ -1,5 +1,5 @@
 import { AppText } from '@/components/primitives/app-text'
-import { brand, spacing, useAppTheme } from '@/theme'
+import { spacing } from '@/theme'
 import { Image } from 'expo-image'
 import { KeyboardAvoidingView, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -9,14 +9,17 @@ import { LoginForm } from './login-form'
 import { LoginHero } from './login-hero'
 import { getLoginPalette } from './login-theme'
 
-const wordmark = require('../../../assets/images/brand/tavvi-wordmark.png')
+const wordmarks = {
+  light: require('../../../assets/images/brand/tavvi-wordmark-gold-on-light.png'),
+  dark: require('../../../assets/images/brand/tavvi-wordmark-gold-on-dark.png'),
+} as const
 
 export function LoginScreen() {
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
-  const { resolved, preference, setPreference, colors } = useAppTheme()
   const { signIn, signInWithBiometrics, disableBiometrics, hasDeviceContract, message, status, returnToForm } = useAuth()
-  const palette = getLoginPalette(resolved, colors)
+  const palette = getLoginPalette('dark')
+  const wordmark = wordmarks.dark
   const contentWidth = Math.min(Math.max(width - spacing.x6 * 2, 0), 440)
   const year = new Date().getFullYear()
 
@@ -30,7 +33,7 @@ export function LoginScreen() {
         contentContainerStyle={[
           styles.scroll,
           {
-            paddingTop: Math.max(insets.top + 12, spacing.x6),
+            paddingTop: Math.max(insets.top + 4, spacing.x6),
             paddingBottom: Math.max(insets.bottom + spacing.x5, spacing.x8),
           },
         ]}
@@ -42,9 +45,8 @@ export function LoginScreen() {
           <LoginHero
             width={contentWidth}
             palette={palette}
-            preference={preference}
-            onThemeChange={setPreference}
           />
+          <View style={styles.spacer} />
           <LoginForm
             palette={palette}
             signIn={signIn}
@@ -55,13 +57,11 @@ export function LoginScreen() {
             forbidden={status === 'forbidden'}
             onReturnToForm={returnToForm}
           />
-          <View style={styles.spacer} />
           <View style={styles.footer}>
             <Image
               source={wordmark}
               contentFit="contain"
               accessible={false}
-              tintColor={resolved === 'light' ? brand.ink : undefined}
               style={styles.wordmark}
             />
             <View style={[styles.dot, { backgroundColor: palette.border }]} />

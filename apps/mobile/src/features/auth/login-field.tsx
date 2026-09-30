@@ -20,7 +20,6 @@ export function LoginField({ label, icon: Icon, palette, error, secureTextEntry,
 
   return (
     <View style={styles.wrapper}>
-      <AppText family="login" variant="caption" style={[styles.label, { color: palette.text }]}>{label}</AppText>
       <View
         style={[
           styles.field,
@@ -28,7 +27,6 @@ export function LoginField({ label, icon: Icon, palette, error, secureTextEntry,
             paddingRight: isPassword ? 8 : 16,
             backgroundColor: palette.field,
             borderColor,
-            boxShadow: focused ? `0 0 0 4px ${palette.focusRing}` : undefined,
           },
         ]}
       >
@@ -63,9 +61,8 @@ export function LoginField({ label, icon: Icon, palette, error, secureTextEntry,
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: 8 },
-  label: { paddingLeft: 4, fontWeight: '600' },
-  field: { minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 16, borderWidth: 1, borderRadius: 18, borderCurve: 'continuous' },
-  input: { flex: 1, minWidth: 0, paddingVertical: 12 },
+  wrapper: { gap: 0 },
+  field: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 14, borderWidth: 1, borderRadius: 13, borderCurve: 'continuous' },
+  input: { flex: 1, minWidth: 0, paddingVertical: 10, fontSize: 16 },
   reveal: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderCurve: 'continuous' },
 })

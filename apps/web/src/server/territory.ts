@@ -21,6 +21,15 @@ export function territoryFromHost(host: string | null): Territory {
   if (current === `${ADMIN_PREFIX}${root}`) return 'admin'
   if (current === `${WORKSPACE_PREFIX}${root}`) return 'painel'
 
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    env.DEV_TUNNEL_HOST &&
+    env.DEV_TUNNEL_TERRITORY &&
+    current === stripPort(env.DEV_TUNNEL_HOST)
+  ) {
+    return env.DEV_TUNNEL_TERRITORY
+  }
+
   // Host desconhecido cai deliberadamente no território de MENOR
   // privilégio. Um header Host forjado nunca deve promover ninguém.
   return 'site'

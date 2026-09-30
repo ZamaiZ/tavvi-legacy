@@ -32,5 +32,5 @@ export function ThemeSelector({ value, onChange }: { value: ThemePreference; onC
 
 const styles = StyleSheet.create({
   root: { width: '100%', flexDirection: 'row', borderRadius: radii.control, borderCurve: 'continuous', padding: 4, gap: 4 },
-  option: { flex: 1, minWidth: 0, height: 38, borderRadius: radii.chip, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
+  option: { flex: 1, minWidth: 0, height: 38, borderRadius: radii.tileSm, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
 })

@@ -7,9 +7,11 @@ export type AuthContextValue = {
   status: AuthStatus
   user: UserSummary | null
   message: string | null
+  dismissMessage(): void
   hasDeviceContract: boolean
   signIn(input: { email: string; password: string }): Promise<void>
   signInWithBiometrics(): Promise<void>
+  enableBiometrics(): Promise<void>
   disableBiometrics(): Promise<void>
   signOut(): Promise<void>
   returnToForm(): void

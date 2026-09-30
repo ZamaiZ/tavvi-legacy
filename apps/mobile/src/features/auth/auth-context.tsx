@@ -17,6 +17,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<UserSummary | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [hasDeviceContract, setHasDeviceContract] = useState(false)
+  const dismissMessage = useCallback(() => setMessage(null), [])
 
   const refreshDeviceContractStatus = useCallback(async () => {
     const metadata = await deviceContractStore.getMetadata()
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useSessionBootstrap({ status, setStatus, setUser, setMessage, clearSession, refreshDeviceContractStatus })
   const signIn = usePasswordSignIn({ setStatus, setUser, setMessage, setHasDeviceContract })
-  const { signInWithBiometrics, disableBiometrics } = useDeviceContractAuth({
+  const { signInWithBiometrics, enableBiometrics, disableBiometrics } = useDeviceContractAuth({
     setStatus,
     setUser,
     setMessage,
@@ -48,7 +49,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [clearSession, refreshDeviceContractStatus])
 
   const returnToForm = useCallback(() => setStatus('signed-out'), [])
-  const value = useMemo(() => ({ status, user, message, hasDeviceContract, signIn, signInWithBiometrics, disableBiometrics, signOut, returnToForm }), [disableBiometrics, hasDeviceContract, message, returnToForm, signIn, signInWithBiometrics, signOut, status, user])
+  const value = useMemo(() => ({ status, user, message, dismissMessage, hasDeviceContract, signIn, signInWithBiometrics, enableBiometrics, disableBiometrics, signOut, returnToForm }), [disableBiometrics, dismissMessage, enableBiometrics, hasDeviceContract, message, returnToForm, signIn, signInWithBiometrics, signOut, status, user])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

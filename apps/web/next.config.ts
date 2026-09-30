@@ -41,7 +41,8 @@ const nextConfig: NextConfig = {
   },
   // O servidor de desenvolvimento tambem precisa aceitar os subdominios,
   // senao os assets de /_next nao chegam em admin.localhost:3000.
-  allowedDevOrigins: [`admin.${ROOT}`, `painel.${ROOT}`],
+  // O tunel do ngrok entra aqui pelo mesmo motivo.
+  allowedDevOrigins: [`admin.${ROOT}`, `painel.${ROOT}`, '*.ngrok-free.dev'],
 
   // O feed desenha foto em tela cheia. Servir o arquivo original, no tamanho
   // em que o dono enviou, e o maior desperdicio de banda do app -- e a rede

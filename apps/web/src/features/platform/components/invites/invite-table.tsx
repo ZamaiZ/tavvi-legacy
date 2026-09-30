@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { LuBan, LuChevronRight, LuMail, LuRotateCcw } from 'react-icons/lu'
+import { LuBan, LuCircleCheck, LuClock3, LuChevronRight, LuMail, LuRotateCcw } from 'react-icons/lu'
 import { inviteState, type InviteState, type PlatformInviteDTO } from '@/domain/invite'
 import { formatLong, formatShort } from '@/lib/format-date'
 import { revokeInviteAction } from '@/server/actions/invites'
@@ -27,6 +27,14 @@ function updateDetail(router: ReturnType<typeof useRouter>, search: ReturnType<t
   const params = new URLSearchParams(search.toString())
   if (id) params.set('convite', id)
   else params.delete('convite')
+  const value = params.toString()
+  router.replace(`/${value ? `?${value}` : ''}`, { scroll: false })
+}
+
+function updateFilter(router: ReturnType<typeof useRouter>, search: ReturnType<typeof useSearchParams>, filter: InviteFilter) {
+  const params = new URLSearchParams(search.toString())
+  if (filter === 'all') params.delete('situacao')
+  else params.set('situacao', filter)
   const value = params.toString()
   router.replace(`/${value ? `?${value}` : ''}`, { scroll: false })
 }
@@ -61,7 +69,20 @@ export function InviteList({ invites, query, filter, selectedId, selectedInvite,
   }
 
   return <div className="tv-console-page">
-    <ListHero title="Convites" description="Crie acessos seguros para que novos clientes cadastrem e administrem seus restaurantes." mobileDescription="Acessos de administrador à plataforma." summary={`${invites.length} ${invites.length === 1 ? 'convite' : 'convites'} · ${pendingCount} pendentes`} action={<NewInviteButton onClick={() => openInvite()} />} />
+    <ListHero
+      title="Convites"
+      description="Crie acessos seguros para que novos clientes cadastrem e administrem seus restaurantes."
+      mobileDescription="Acessos de administrador à plataforma."
+      heroLabel="Aguardando resgate"
+      heroValue={pendingCount}
+      heroDetail={`${pendingCount} ${pendingCount === 1 ? 'pendente' : 'pendentes'} de ${invites.length} convites emitidos`}
+      heroActions={<><NewInviteButton onClick={() => openInvite()} /><button type="button" className="tv-hero-secondary" onClick={() => updateFilter(router, search, 'pending')}>Ver pendentes</button></>}
+      stats={[
+        { label: 'Resgatados', value: counts.redeemed ?? 0, icon: <LuCircleCheck aria-hidden="true" />, selected: filter === 'redeemed', onClick: () => updateFilter(router, search, 'redeemed') },
+        { label: 'Vencidos', value: counts.expired ?? 0, icon: <LuClock3 aria-hidden="true" />, selected: filter === 'expired', onClick: () => updateFilter(router, search, 'expired') },
+        { label: 'Revogados', value: counts.revoked ?? 0, icon: <LuBan aria-hidden="true" />, selected: filter === 'revoked', onClick: () => updateFilter(router, search, 'revoked') },
+      ]}
+    />
     <Toolbar kind="invites" query={query} filter={filter} counts={counts} />
     {invites.length === 0 ? <StateCard icon={<LuMail />} title="Nenhum convite ainda" description="Emita o primeiro. Quem receber cria a conta, cria o restaurante e já entra como administrador dele." action={<NewInviteButton onClick={() => openInvite()} />} /> : filtered.length === 0 ? <div className="tv-no-results" aria-live="polite">{query ? `Nenhum convite encontrado para “${query}”.` : 'Nenhum convite nesta situação.'}</div> : <>
       <div role="table" aria-label="Convites" className="tv-table-shell">

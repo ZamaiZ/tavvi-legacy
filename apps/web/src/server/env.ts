@@ -14,13 +14,23 @@ const schema = z.object({
     error: 'NEXT_PUBLIC_ROOT_DOMAIN ausente',
   }),
   API_BASE_URL: z.url({ error: 'API_BASE_URL precisa ser a origem da API Express' }),
-})
+  DEV_TUNNEL_HOST: z.string().min(1).optional(),
+  DEV_TUNNEL_TERRITORY: z.enum(['admin', 'painel']).optional(),
+}).refine(
+  (values) => !values.DEV_TUNNEL_HOST === !values.DEV_TUNNEL_TERRITORY,
+  {
+    error: 'DEV_TUNNEL_HOST e DEV_TUNNEL_TERRITORY precisam vir juntas',
+    path: ['DEV_TUNNEL_HOST'],
+  },
+)
 
 const parsed = schema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_ROOT_DOMAIN: process.env.NEXT_PUBLIC_ROOT_DOMAIN,
   API_BASE_URL: process.env.API_BASE_URL,
+  DEV_TUNNEL_HOST: process.env.DEV_TUNNEL_HOST || undefined,
+  DEV_TUNNEL_TERRITORY: process.env.DEV_TUNNEL_TERRITORY || undefined,
 })
 
 if (!parsed.success) {

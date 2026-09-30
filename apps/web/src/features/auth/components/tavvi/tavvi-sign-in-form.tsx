@@ -74,7 +74,7 @@ export function TavviSignInForm({
       action={formAction}
       noValidate
       onSubmit={handleSubmit}
-      className="tv-auth-form-float flex w-full flex-col gap-4 rounded-tv-card border border-tv-border bg-tv-surface p-[22px_18px_18px] text-tv-text transition-colors duration-150 lg:gap-4 lg:rounded-tv-card-lg lg:p-[26px_24px_24px] lg:shadow-[var(--tv-card-shadow)]"
+      className="flex w-full flex-col gap-4 rounded-tv-card border border-tv-border bg-tv-surface p-5 text-tv-text lg:gap-4 lg:p-6 lg:shadow-[var(--tv-card-shadow)]"
     >
       <input type="hidden" name="next" value={next} />
 
@@ -137,12 +137,12 @@ export function TavviSignInForm({
       <button
         type="submit"
         disabled={!email || !password || pending}
-        className="group mt-1 flex min-h-[58px] w-full items-center justify-between rounded-tv-cta bg-[var(--tv-accent-color)] py-[7px] pl-[22px] pr-[7px] text-[var(--tv-accent-on)] outline-none transition-[background-color,box-shadow,transform,opacity] duration-200 hover:bg-[var(--tv-accent-pressed)] hover:shadow-[0_14px_34px_-10px_var(--tv-accent-cta-glow)] motion-safe:active:scale-[0.985] motion-reduce:transition-none focus-visible:ring-4 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+        className="group mt-1 flex h-9 w-full items-center justify-between rounded-tv-cta bg-[var(--tv-btn)] px-3 text-[var(--tv-btn-text)] outline-none transition-opacity duration-150 hover:opacity-80 motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-tv-ring disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className="text-sm leading-5 font-bold">{pending ? 'Entrando…' : ctaLabel}</span>
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-tv-button bg-tv-ink text-[var(--tv-accent-text-dark)] transition-transform duration-200 group-hover:translate-x-0.5 group-disabled:translate-x-0 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+        <span className="text-[13px] leading-5 font-medium">{pending ? 'Entrando…' : ctaLabel}</span>
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-tv-ink text-[var(--tv-gold-text)]">
           {pending ? (
-            <span aria-label="Carregando" className="size-[18px] animate-spin rounded-full border-2 border-[var(--tv-accent-soft)] border-t-[var(--tv-accent-text-dark)] motion-reduce:animate-none" />
+            <span aria-label="Carregando" className="size-[18px] animate-spin rounded-full border-2 border-[var(--tv-gold-soft)] border-t-[var(--tv-gold-text)] motion-reduce:animate-none" />
           ) : (
             <LuArrowRight aria-hidden="true" className="size-[18px]" strokeWidth={2.2} />
           )}

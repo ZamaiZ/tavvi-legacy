@@ -12,7 +12,6 @@ export const API_ROUTES = {
     deviceContract: `${apiRoot}/auth/device-contract`,
   },
   platform: {
-    appearance: `${apiRoot}/platform/appearance`,
     invitations: `${apiRoot}/platform/invitations`,
     invitation: (id: string) => withId(`${apiRoot}/platform/invitations`, id),
     revokeInvitation: (id: string) => `${withId(`${apiRoot}/platform/invitations`, id)}/revoke`,

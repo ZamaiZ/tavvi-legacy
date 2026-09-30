@@ -2,7 +2,7 @@ import * as Crypto from 'expo-crypto'
 import * as LocalAuthentication from 'expo-local-authentication'
 import * as SecureStore from 'expo-secure-store'
 import { useCallback } from 'react'
-import { Alert, Platform } from 'react-native'
+import { Platform } from 'react-native'
 import { ApiError, publicApiRequest } from '@/lib/api-client'
 import { deviceContractStore } from './device-contract-store'
 import type { AuthStateSetters } from './auth-types'
@@ -108,6 +108,5 @@ export function usePasswordSignIn({ setStatus, setUser, setMessage, setHasDevice
     queryClient.clear()
     setUser(session.user)
     setStatus('authenticated')
-    if (enrollmentNotice && Platform.OS !== 'web') Alert.alert('Biometria não ativada', enrollmentNotice)
   }, [setHasDeviceContract, setMessage, setStatus, setUser])
 }

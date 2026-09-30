@@ -1,70 +1,222 @@
-@custom-variant dark (&:is(.dark *));
+/* Tokens fixos da interface privada. As variáveis públicas do cardápio e os
+   tokens editáveis de identidade continuam isolados em .site-public. */
+
+.admin-territory,
+.tv-auth-scope,
+.workspace-territory {
+  --tv-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --tv-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --tv-bg: #F5F3EE;
+  --tv-side: #FAF9F6;
+  --tv-bar: rgba(250,249,246,.86);
+  --tv-surface: #FFFFFF;
+  --tv-surface-2: #F8F6F2;
+  --tv-hover: rgba(22,20,15,.04);
+  --tv-active: rgba(22,20,15,.065);
+  --tv-line: rgba(22,20,15,.08);
+  --tv-line-2: rgba(22,20,15,.14);
+  --tv-text: #17150F;
+  --tv-text-2: #6A655B;
+  --tv-text-3: #8F8A80;
+
+  --tv-gold: #B38B4D;
+  --tv-gold-text: #86622C;
+  --tv-gold-soft: #F3EBDD;
+  --tv-btn: #17150F;
+  --tv-btn-text: #FFFFFF;
+  --tv-hero: #DDBF8A;
+  --tv-hero-mid: #C9A266;
+  --tv-hero-end: #B48A4E;
+  --tv-hero-gradient: linear-gradient(135deg,#DDBF8A 0%,#C9A266 48%,#B48A4E 100%);
+  --tv-hero-ink: #1D170E;
+  --tv-hero-ink-2: rgba(29,23,14,.68);
+  --tv-hero-chip: rgba(255,255,255,.28);
+
+  --tv-ok: #3C7A4E;       --tv-ok-soft: #E4EFE5;
+  --tv-warn: #94660F;     --tv-warn-soft: #F5EAD2;
+  --tv-danger: #B2372C;   --tv-danger-soft: #F7E3DF;
+  --tv-neutral-soft: rgba(22,20,15,.055);
+
+  --tv-scrim: rgba(22,20,15,.26);
+  --tv-shadow: 0 1px 2px rgba(22,20,15,.04);
+  --tv-pop: 0 18px 44px -12px rgba(22,20,15,.22), 0 2px 6px rgba(22,20,15,.06);
+  --tv-ease: cubic-bezier(.2,.8,.2,1);
+
+  --surface-1: var(--tv-bg);
+  --surface-2: var(--tv-surface);
+  --surface-3: var(--tv-surface-2);
+  --shadow-1: var(--tv-shadow);
+  --shadow-2: var(--tv-pop);
+
+  /* shadcn */
+  --background: var(--tv-bg);
+  --foreground: var(--tv-text);
+  --card: var(--tv-surface);
+  --card-foreground: var(--tv-text);
+  --popover: var(--tv-surface);
+  --popover-foreground: var(--tv-text);
+  --primary: var(--tv-btn);
+  --primary-foreground: var(--tv-btn-text);
+  --secondary: var(--tv-surface-2);
+  --secondary-foreground: var(--tv-text);
+  --muted: var(--tv-surface-2);
+  --muted-foreground: var(--tv-text-2);
+  --accent: var(--tv-active);
+  --accent-foreground: var(--tv-text);
+  --destructive: var(--tv-danger);
+  --border: var(--tv-line);
+  --input: var(--tv-line-2);
+  --ring: var(--tv-gold);
+  --sidebar: var(--tv-side);
+  --sidebar-foreground: var(--tv-text-2);
+  --sidebar-accent: var(--tv-active);
+  --sidebar-accent-foreground: var(--tv-text);
+  --sidebar-border: var(--tv-line);
+  --sidebar-primary: var(--tv-gold-text);
+  --radius: 0.5rem;
+
+  font-family: var(--tv-font);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+
+  /* Nomes semânticos consumidos pelas folhas atuais. */
+  --tv-screen: var(--tv-bg);
+  --tv-panel: var(--tv-surface);
+  --tv-field: var(--tv-surface-2);
+  --tv-muted: var(--tv-text-2);
+  --tv-subtle: var(--tv-text-3);
+  --tv-border: var(--tv-line-2);
+  --tv-error: var(--tv-danger);
+  --tv-error-surface: var(--tv-danger-soft);
+  --tv-warn-surface: var(--tv-warn-soft);
+  --tv-ok-surface: var(--tv-ok-soft);
+  --tv-neutral-surface: var(--tv-neutral-soft);
+  --tv-row-hover: var(--tv-hover);
+  --tv-row-selected: var(--tv-active);
+  --tv-focus: var(--tv-gold);
+  --tv-ring: rgba(179,139,77,.22);
+  --tv-overlay-shadow: var(--tv-pop);
+}
+
+.dark .admin-territory, .admin-territory.dark,
+.dark .tv-auth-scope, .tv-auth-scope.dark,
+.dark .workspace-territory, .workspace-territory.dark {
+  --tv-bg: #0D0C0A;
+  --tv-side: #11100E;
+  --tv-bar: rgba(20,19,17,.86);
+  --tv-surface: #171613;
+  --tv-surface-2: #1D1B18;
+  --tv-hover: rgba(255,248,235,.045);
+  --tv-active: rgba(255,248,235,.08);
+  --tv-line: rgba(255,248,235,.075);
+  --tv-line-2: rgba(255,248,235,.14);
+  --tv-text: #F2EEE6;
+  --tv-text-2: #A6A094;
+  --tv-text-3: #7C766B;
+
+  --tv-gold: #D0AC6E;
+  --tv-gold-text: #D6B67C;
+  --tv-gold-soft: rgba(208,172,110,.12);
+  --tv-btn: #D0AC6E;
+  --tv-btn-text: #15120C;
+  --tv-hero: #CFAE72;
+  --tv-hero-mid: #B28A4C;
+  --tv-hero-end: #8F6B35;
+  --tv-hero-gradient: linear-gradient(135deg,#CFAE72 0%,#B28A4C 55%,#8F6B35 100%);
+  --tv-hero-ink: #17120A;
+  --tv-hero-ink-2: rgba(23,18,10,.7);
+  --tv-hero-chip: rgba(255,255,255,.22);
+
+  --tv-ok: #86C595;     --tv-ok-soft: rgba(134,197,149,.12);
+  --tv-warn: #E0B465;   --tv-warn-soft: rgba(224,180,101,.12);
+  --tv-danger: #EE8C80; --tv-danger-soft: rgba(238,140,128,.12);
+  --tv-neutral-soft: rgba(255,248,235,.07);
+
+  --tv-scrim: rgba(0,0,0,.55);
+  --tv-shadow: none;
+  --tv-pop: 0 24px 56px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,248,235,.06);
+}
+
+
+
+.admin-territory,.tv-auth-scope,.workspace-territory {
+  --font-sans: var(--tv-font);
+  --tv-screen: var(--tv-bg); --tv-panel: var(--tv-surface); --tv-field: var(--tv-surface-2);
+  --tv-muted: var(--tv-text-2); --tv-subtle: var(--tv-text-3); --tv-border: var(--tv-line-2);
+  --tv-ink: var(--tv-hero-ink);
+  --tv-on-dark: #F2EEE6; --tv-muted-on-dark: #A6A094; --tv-subtle-on-dark: #7C766B;
+  --tv-error: var(--tv-danger); --tv-error-surface: var(--tv-danger-soft); --tv-warn: var(--tv-warn); --tv-warn-surface: var(--tv-warn-soft);
+  --tv-ok-surface: var(--tv-ok-soft); --tv-neutral: var(--tv-text-2); --tv-neutral-surface: var(--tv-neutral-soft);
+  --tv-row-hover: var(--tv-hover); --tv-row-selected: var(--tv-active);
+  --tv-focus: var(--tv-gold); --tv-ring: rgba(179,139,77,.22); --tv-line-strong: var(--tv-line-2);
+  --tv-rail: var(--tv-side); --tv-dock: var(--tv-side); --tv-dock-line: var(--tv-line-2); --tv-glass: var(--tv-side);
+  --tv-hero-tile: var(--tv-surface-2); --tv-on-dark-chip: var(--tv-hero-chip);
+  --tv-card-shadow: var(--tv-shadow); --tv-overlay-shadow: var(--tv-pop);
+  --tv-hero-ok: var(--tv-ok); --tv-hero-warn: var(--tv-warn); --tv-hero-danger: var(--tv-danger);
+}
+
+.site-public {
+  --heading-face: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --display-face: var(--font-display), ui-serif, Georgia, serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
 
 @theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-heading: var(--tv-font);
+  --font-display: var(--display-face);
+  --text-display: 1.375rem;
+  --text-display--line-height: 1.2;
+  --text-title: 1.0625rem;
+  --text-title--line-height: 1.3;
+  --text-section: 0.9375rem;
+  --text-section--line-height: 1.35;
+  --text-card: 0.875rem;
+  --text-card--line-height: 1.4;
+  --text-body: 0.8125rem;
+  --text-body--line-height: 1.45;
+  --text-small: 0.75rem;
+  --text-small--line-height: 1.45;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.4;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  /* Títulos de componentes usam a face do território. O admin usa Jakarta;
-     o painel mantém Inter e o pequeno território público mantém sua dupla. */
-  --font-heading: var(--heading-face);
-  --font-display: var(--display-face);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --radius-tv-chip: 12px;
-  --radius-tv-button: 15px;
-  --radius-tv-field: 18px;
-  --radius-tv-cta: 20px;
-  --radius-tv-card: 28px;
-  --radius-tv-card-lg: 30px;
-  --radius-tv-hero: 32px;
-  --radius-tv-alert: 14px;
-  --radius-tv-toggle: 19px;
-  --radius-tv-badge: 15px;
-  --radius-tv-badge-mobile: 13px;
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-status-draft: var(--status-draft);
   --color-status-draft-bg: var(--status-draft-bg);
   --color-status-active: var(--status-active);
   --color-status-active-bg: var(--status-active-bg);
   --color-status-suspended: var(--status-suspended);
   --color-status-suspended-bg: var(--status-suspended-bg);
-  --color-tv-accent: var(--tv-accent-color);
-  --color-tv-accent-pressed: var(--tv-accent-pressed);
-  --color-tv-accent-soft: var(--tv-accent-soft);
   --color-tv-ink: var(--tv-ink);
   --color-tv-hero: var(--tv-hero);
   --color-tv-hero-end: var(--tv-hero-end);
@@ -83,202 +235,8 @@
   --color-tv-error-surface: var(--tv-error-surface);
   --color-tv-warn: var(--tv-warn);
   --color-tv-warn-surface: var(--tv-warn-surface);
-
-  /* Escala com degraus reais. A direção da Fase 1 punha tudo em peso 600 e
-     separava só por tamanho, o que achata a hierarquia: o olho não tem onde
-     descansar. Aqui cada degrau tem tamanho E entrelinha próprios. */
-  --text-display: 2.125rem;
-  --text-display--line-height: 1.08;
-  --text-title: 1.625rem;
-  --text-title--line-height: 1.2;
-  --text-section: 1.1875rem;
-  --text-section--line-height: 1.3;
-  --text-card: 0.9375rem;
-  --text-card--line-height: 1.4;
-  --text-body: 1rem;
-  --text-body--line-height: 1.55;
-  --text-small: 0.8125rem;
-  --text-small--line-height: 1.5;
-  --text-micro: 0.6875rem;
-  --text-micro--line-height: 1.4;
-
-  --color-surface-1: var(--surface-1);
-  --color-surface-2: var(--surface-2);
-  --color-surface-3: var(--surface-3);
-
-  /* Uma curva só no produto. É a expo-out que `Reveal` usa desde a Fase 3A:
-     arranca rápido e freia longo, o que faz o movimento parecer resposta do
-     sistema e não enfeite. */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-tv-ring: var(--tv-ring);
 }
-
-.admin-territory,
-.tv-auth-scope,
-.workspace-territory {
-  --tv-accent-color: #2563EB;
-  --tv-accent-pressed: #1D4ED8;
-  --tv-accent-on: #FFFFFF;
-  --tv-accent-text-light: #1D4ED8;
-  --tv-accent-text-dark: #8FB1FF;
-  --tv-accent-soft: rgba(37,99,235,0.12);
-  --tv-accent-glow: rgba(37,99,235,0.26);
-  --tv-accent-cta-glow: rgba(37,99,235,0.38);
-  --tv-ink: #0A0C09;
-  --tv-hero: #121510;
-  --tv-hero-end: #0E120C;
-  --tv-on-dark: #F4F6F0;
-  --tv-muted-on-dark: #A9AEA3;
-  --tv-subtle-on-dark: #7D8278;
-  --tv-accent-hero-glow: rgba(37,99,235,0.18);
-  --tv-accent-focus-light: #1D4ED8;
-  --tv-accent-focus-dark: #8FB1FF;
-  --tv-accent-pill-light: #E8EEFC;
-  --tv-accent-pill-on-light: #173C8C;
-  --tv-accent-pill-dark: #1F428A;
-  --tv-accent-pill-on-dark: #FFFFFF;
-  --tv-accent-pill: var(--tv-accent-pill-light);
-  --tv-accent-pill-on: var(--tv-accent-pill-on-light);
-  --tv-accent-surface: rgba(37,99,235,0.12);
-
-  --tv-screen: #EEF0E8;
-  --tv-surface: #FFFFFF;
-  --tv-field: #F5F7F1;
-  --tv-text: #11150F;
-  --tv-muted: #62675E;
-  --tv-subtle: #6B7167;
-  --tv-border: rgba(10,12,9,0.12);
-  --tv-toggle-line: rgba(10,12,9,0.16);
-  --tv-focus: var(--tv-accent-focus-light);
-  --tv-accent-ring: rgba(37,99,235,0.30);
-  --tv-error: #B42318;
-  --tv-error-surface: #FEE4E2;
-  --tv-warn: #A06700;
-  --tv-warn-surface: #FFF0CC;
-  --tv-hover: rgba(10,12,9,0.06);
-  --tv-accent-glow: rgba(37,99,235,0.26);
-  --tv-card-shadow: 0 30px 60px -22px rgba(10,12,9,0.45);
-
-  --tv-rail: #DEE2D5;
-  --tv-panel: var(--tv-screen);
-  --tv-line: rgba(10,12,9,0.09);
-  --tv-line-strong: var(--tv-toggle-line);
-  --tv-accent: var(--tv-accent-text-light);
-  --tv-ok: #267D30;
-  --tv-ok-surface: #DFF6DE;
-  --tv-neutral: #62675E;
-  --tv-neutral-surface: rgba(10,12,9,0.06);
-  --tv-row-hover: rgba(10,12,9,0.025);
-  --tv-row-selected: rgba(10,12,9,0.05);
-  --tv-glass: rgba(255,255,255,0.90);
-  --tv-scrim: rgba(10,12,9,0.32);
-  --tv-overlay-shadow: 0 24px 48px -18px rgba(30,40,20,0.30);
-
-  --tv-dock: #121510;
-  --tv-dock-line: rgba(244,246,240,0.10);
-  --tv-hero-tile: #181B15;
-  --tv-on-dark-chip: rgba(244,246,240,0.08);
-  --tv-hero-ok: #79C77C;
-  --tv-hero-warn: #E7AF5C;
-  --tv-hero-danger: #FF8A84;
-
-  --background: var(--tv-panel);
-  --foreground: var(--tv-text);
-  --card: var(--tv-surface);
-  --card-foreground: var(--tv-text);
-  --popover: var(--tv-surface);
-  --popover-foreground: var(--tv-text);
-  --primary: var(--tv-accent-color);
-  --primary-foreground: var(--tv-accent-on);
-  --secondary: var(--tv-field);
-  --secondary-foreground: var(--tv-text);
-  --muted: var(--tv-field);
-  --muted-foreground: var(--tv-muted);
-  --accent: var(--tv-row-selected);
-  --accent-foreground: var(--tv-text);
-  --destructive: var(--tv-error);
-  --border: var(--tv-line);
-  --input: var(--tv-border);
-  --ring: var(--tv-focus);
-  --radius: 1rem;
-  --status-draft: var(--tv-neutral);
-  --status-draft-bg: var(--tv-neutral-surface);
-  --status-active: var(--tv-ok);
-  --status-active-bg: var(--tv-ok-surface);
-  --status-suspended: var(--tv-warn);
-  --status-suspended-bg: var(--tv-warn-surface);
-
-  --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-  --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-  --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-  font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-}
-
-.dark .admin-territory,
-.dark .tv-auth-scope,
-.dark .workspace-territory {
-  --tv-screen: #0A0C09;
-  --tv-surface: #11130F;
-  --tv-field: #181B15;
-  --tv-text: #F4F6F0;
-  --tv-muted: #A9AEA3;
-  --tv-subtle: #7D8278;
-  --tv-border: rgba(244,246,240,0.10);
-  --tv-toggle-line: rgba(244,246,240,0.14);
-  --tv-focus: var(--tv-accent-focus-dark);
-  --tv-accent-pill: var(--tv-accent-pill-dark);
-  --tv-accent-pill-on: var(--tv-accent-pill-on-dark);
-  --tv-accent-ring: rgba(37,99,235,0.30);
-  --tv-error: #FF8A84;
-  --tv-error-surface: #3A1715;
-  --tv-warn: #E7AF5C;
-  --tv-warn-surface: #382810;
-  --tv-hover: rgba(244,246,240,0.07);
-  --tv-accent-glow: rgba(37,99,235,0.26);
-  --tv-card-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
-
-  --tv-rail: #151812;
-  --tv-panel: var(--tv-screen);
-  --tv-line: rgba(244,246,240,0.08);
-  --tv-line-strong: var(--tv-toggle-line);
-  --tv-accent: var(--tv-accent-text-dark);
-  --tv-accent-surface: rgba(37,99,235,0.12);
-  --tv-ok: #79C77C;
-  --tv-ok-surface: #1A2F1B;
-  --tv-neutral: #A9AEA3;
-  --tv-neutral-surface: rgba(244,246,240,0.07);
-  --tv-row-hover: rgba(244,246,240,0.035);
-  --tv-row-selected: rgba(244,246,240,0.06);
-  --tv-glass: rgba(20,23,18,0.86);
-  --tv-scrim: rgba(0,0,0,0.55);
-  --tv-overlay-shadow: 0 24px 48px -18px rgba(0,0,0,0.75);
-
-  --background: var(--tv-panel);
-  --foreground: var(--tv-text);
-  --card: var(--tv-surface);
-  --card-foreground: var(--tv-text);
-  --popover: var(--tv-surface);
-  --popover-foreground: var(--tv-text);
-  --primary: var(--tv-accent-color);
-  --primary-foreground: var(--tv-accent-on);
-  --secondary: var(--tv-field);
-  --secondary-foreground: var(--tv-text);
-  --muted: var(--tv-field);
-  --muted-foreground: var(--tv-muted);
-  --accent: var(--tv-row-selected);
-  --accent-foreground: var(--tv-text);
-  --destructive: var(--tv-error);
-  --border: var(--tv-line);
-  --input: var(--tv-border);
-  --ring: var(--tv-focus);
-  --radius: 1rem;
-  --status-draft: var(--tv-neutral);
-  --status-draft-bg: var(--tv-neutral-surface);
-  --status-active: var(--tv-ok);
-  --status-active-bg: var(--tv-ok-surface);
-  --status-suspended: var(--tv-warn);
-  --status-suspended-bg: var(--tv-warn-surface);
-}
-
 :root {
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -430,26 +388,26 @@
   /* O marcador de território concentra a tipografia privada. A hierarquia
      vem de peso e escala, não da mistura de famílias. */
   .admin-territory {
-    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--tv-font);
+    --heading-face: var(--tv-font);
+    --display-face: var(--tv-font);
+    font-family: var(--tv-font);
     background: var(--surface-1);
   }
 
   .tv-auth-scope {
-    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--tv-font);
+    --heading-face: var(--tv-font);
+    --display-face: var(--tv-font);
+    font-family: var(--tv-font);
   }
 
   .workspace-territory {
-    --font-sans: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --font-mono: var(--font-tavvi-mono), ui-monospace, monospace;
-    --heading-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    --display-face: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
-    font-family: var(--font-tavvi), ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--tv-font);
+    --font-mono: var(--tv-mono);
+    --heading-face: var(--tv-font);
+    --display-face: var(--tv-font);
+    font-family: var(--tv-font);
     background: var(--surface-1);
   }
 
@@ -459,5 +417,16 @@
   width: min(100%, 1180px);
   margin-inline: auto;
   padding: 1.5rem 1.5rem 3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-territory *,
+  .tv-auth-scope *,
+  .workspace-territory * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 

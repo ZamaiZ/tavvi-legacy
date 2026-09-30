@@ -38,8 +38,8 @@ export function useBiometricAvailability(): BiometricAvailability {
         }
         const hasFace = types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)
         const hasFingerprint = types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)
-        if (hasFace) setAvailability({ state: 'available', kind: 'face', label: process.env.EXPO_OS === 'ios' ? 'Face ID' : 'reconhecimento facial' })
-        else if (hasFingerprint) setAvailability({ state: 'available', kind: 'fingerprint', label: process.env.EXPO_OS === 'ios' ? 'Touch ID' : 'impressão digital' })
+        if (hasFace) setAvailability({ state: 'available', kind: 'face', label: process.env.EXPO_OS === 'ios' ? 'Face ID' : 'Reconhecimento facial' })
+        else if (hasFingerprint) setAvailability({ state: 'available', kind: 'fingerprint', label: process.env.EXPO_OS === 'ios' ? 'Touch ID' : 'Impressão digital' })
         else setAvailability({ state: 'available', kind: 'biometric', label: 'biometria' })
       } catch {
         if (active) setAvailability({ state: 'unavailable', reason: 'Não foi possível verificar a biometria neste aparelho.' })

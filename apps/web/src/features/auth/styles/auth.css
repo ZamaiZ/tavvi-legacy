@@ -1,21 +1,31 @@
-@keyframes tv-auth-form-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+.tv-auth-mobile-hero {
+  overflow: hidden;
+  border: 1px solid rgba(255, 248, 235, .08);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #0D0C0A, #11100E);
 }
 
-@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
-  .tv-auth-form-float {
-    animation: tv-auth-form-float 7s ease-in-out infinite;
-  }
+.tv-auth-mobile-hero::after,
+.tv-auth-desktop-hero::after {
+  position: absolute;
+  inset: 0;
+  background: url('/brand/tavvi-brandmark-gold-on-dark.png') no-repeat right -48px bottom -88px / 260px auto;
+  opacity: .06;
+  content: '';
+  pointer-events: none;
+}
 
-  .tv-auth-form-float:focus-within {
-    animation-play-state: paused;
-  }
+.tv-auth-desktop-hero {
+  z-index: 0;
+  right: calc(440px + 3rem);
+  border: 1px solid rgba(255, 248, 235, .08);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #0D0C0A, #11100E);
+}
+
+.tv-auth-desktop-hero::after {
+  background-size: min(44vw, 460px) auto;
+  opacity: .055;
 }
 
 .admin-territory .tv-login-input:-webkit-autofill,

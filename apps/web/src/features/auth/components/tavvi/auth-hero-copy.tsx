@@ -21,7 +21,7 @@ export function AuthHeroCopy({
     >
       <Reveal delay={0} className="flex flex-col items-start gap-4">
         <Image
-          src="/brand/tavvi-lockup-horizontal.png"
+          src="/brand/tavvi-lockup-horizontal-gold-on-dark.png"
           alt="Tavvi"
           width={102}
           height={40}
@@ -30,10 +30,10 @@ export function AuthHeroCopy({
           className={desktop ? 'h-10 w-[102px] object-contain' : 'h-[31px] w-[78px] object-contain'}
         />
         <div className={desktop
-          ? 'inline-flex min-h-[30px] max-w-full items-center gap-2 rounded-tv-badge bg-[var(--tv-accent-soft)] px-3 py-1 text-[var(--tv-accent-text-dark)]'
-          : 'inline-flex min-h-[26px] max-w-full items-center gap-2 rounded-tv-badge-mobile bg-[var(--tv-accent-soft)] px-[10px] py-1 text-[var(--tv-accent-text-dark)]'}
+          ? 'inline-flex min-h-[30px] max-w-full items-center gap-2 rounded-tv-badge bg-[var(--tv-gold-soft)] px-3 py-1 text-[var(--tv-gold-text)]'
+          : 'inline-flex min-h-[26px] max-w-full items-center gap-2 rounded-tv-badge-mobile bg-[var(--tv-gold-soft)] px-[10px] py-1 text-[var(--tv-gold-text)]'}
         >
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--tv-accent-text-dark)] shadow-[0_0_0_3px_var(--tv-accent-soft)]" />
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--tv-gold-text)] shadow-[0_0_0_3px_var(--tv-gold-soft)]" />
           <span className={desktop ? 'text-xs leading-4 font-semibold' : 'text-[11px] leading-4 font-semibold'}>{badge}</span>
         </div>
       </Reveal>
@@ -44,7 +44,7 @@ export function AuthHeroCopy({
             ? 'tv-hero-title text-tv-on-dark'
             : 'text-[31px] leading-8 font-extrabold tracking-[-1.1px] text-tv-on-dark'}
           >
-            {title}<span className="text-[var(--tv-accent-text-dark)]">.</span>
+            {title}<span className="text-[var(--tv-gold-text)]">.</span>
           </h1>
         </Reveal>
         <Reveal delay={0.12}>
@@ -55,7 +55,7 @@ export function AuthHeroCopy({
             {subtitle}
           </p>
         </Reveal>
-        {desktop && variant === 'admin' ? <BrandFooter /> : null}
+        {desktop && variant === 'admin' ? <BrandFooter onDark /> : null}
         {desktop && variant === 'painel' ? (
           <ul className="mt-3 flex flex-wrap gap-2" aria-label="Áreas do painel">
             {['Cardápio', 'Identidade', 'Equipe', 'Contato'].map((area) => (
@@ -70,17 +70,17 @@ export function AuthHeroCopy({
   )
 }
 
-export function BrandFooter() {
+export function BrandFooter({ onDark = false }: { onDark?: boolean }) {
   return (
     <div className="mt-3 flex items-center gap-2">
-      <Image
-        src="/brand/tavvi-wordmark.png"
-        alt=""
-        aria-hidden="true"
-        width={44}
-        height={16}
-        className="h-4 w-11 object-contain opacity-50 brightness-0 dark:brightness-100"
-      />
+      {onDark ? (
+        <Image src="/brand/tavvi-wordmark-gold-on-dark.png" alt="" aria-hidden="true" width={44} height={16} className="h-4 w-11 object-contain opacity-70" />
+      ) : (
+        <>
+          <Image src="/brand/tavvi-wordmark-gold-on-light.png" alt="" aria-hidden="true" width={44} height={16} className="h-4 w-11 object-contain opacity-60 dark:hidden" />
+          <Image src="/brand/tavvi-wordmark-gold-on-dark.png" alt="" aria-hidden="true" width={44} height={16} className="hidden h-4 w-11 object-contain opacity-60 dark:block" />
+        </>
+      )}
       <span aria-hidden="true" className="size-[3px] rounded-full bg-tv-border" />
       <span className="text-xs leading-4 font-medium text-tv-subtle-on-dark">{new Date().getFullYear()}</span>
     </div>
