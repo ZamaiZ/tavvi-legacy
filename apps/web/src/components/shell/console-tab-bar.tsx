@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LuCircleUserRound, LuMail, LuStore } from 'react-icons/lu'
@@ -8,7 +9,6 @@ import { toExternalPath } from '@/lib/route-paths'
 const tabs = [
   { href: '/', match: ['/convites'], label: 'Convites', Icon: LuMail, badge: true },
   { href: '/restaurantes', match: [], label: 'Restaurantes', Icon: LuStore, badge: false },
-  { href: '/conta', match: [], label: 'Conta', Icon: LuCircleUserRound, badge: false },
 ] as const
 
 function isActive(pathname: string, href: string, match: readonly string[]) {
@@ -16,9 +16,14 @@ function isActive(pathname: string, href: string, match: readonly string[]) {
   return [href, ...match].some((prefix) => prefix !== '/' && (pathname === prefix || pathname.startsWith(`${prefix}/`)))
 }
 
-// Tab bar do console no celular, no padrão do iOS: três destinos fixos,
-// rótulo sempre visível e o dourado só na aba ativa. O desktop usa a sidebar.
-export function ConsoleTabBar({ pendingCount }: { pendingCount: number }) {
+// Tab bar do console no celular, no padrão do iOS. Convites e Restaurantes
+// navegam; Conta abre o sheet de conta sem trocar de tela.
+export function ConsoleTabBar({ pendingCount, accountOpen, accountButtonRef, onAccount }: {
+  pendingCount: number
+  accountOpen: boolean
+  accountButtonRef: Ref<HTMLButtonElement>
+  onAccount: () => void
+}) {
   const pathname = toExternalPath(usePathname())
   return (
     <nav className="tv-tabbar" aria-label="Navegação principal">
@@ -35,6 +40,10 @@ export function ConsoleTabBar({ pendingCount }: { pendingCount: number }) {
           </Link>
         )
       })}
+      <button ref={accountButtonRef} type="button" className="tv-tabbar-item" aria-haspopup="dialog" aria-expanded={accountOpen} onClick={onAccount}>
+        <span className="tv-tabbar-icon"><LuCircleUserRound aria-hidden="true" /></span>
+        <span>Conta</span>
+      </button>
     </nav>
   )
 }

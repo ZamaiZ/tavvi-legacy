@@ -1,4 +1,4 @@
-import { Plus, RotateCcw } from 'lucide-react-native'
+import { RotateCcw } from 'lucide-react-native'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useState } from 'react'
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native'
@@ -58,7 +58,7 @@ export function InvitationsScreen() {
   </View>
   const body = query.isLoading && !query.data ? <View style={styles.stateRows}>{[0, 1, 2].map((key) => <SkeletonRow key={key} />)}</View>
     : query.isError && !query.data ? <StateCard error title="Não foi possível carregar" message="Verifique sua conexão e tente novamente." retry actionLabel="Tentar novamente" onAction={() => void query.refetch()} actionIcon={RotateCcw} />
-      : invites.length === 0 ? <StateCard title="Nenhum convite ainda" message="Crie um link para dar acesso a um novo administrador." actionLabel="Criar convite" actionIcon={Plus} onAction={() => setSheet(true)} />
+      : invites.length === 0 ? <StateCard title="Nenhum convite ainda" message="Toque em Novo para dar acesso a um novo administrador." />
         : visible.length === 0 ? <StateCard title="Nada encontrado" message="Ajuste a busca ou o filtro para ver outros resultados." />
           : null
 

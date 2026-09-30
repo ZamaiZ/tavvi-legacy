@@ -27,7 +27,10 @@ export function SignOutButton({
         compact ? 'w-full' : 'w-full justify-start gap-3 px-3',
         className,
       )}
-      onClick={() => startTransition(() => void signOutAction())}
+      onClick={() => startTransition(async () => {
+        await signOutAction()
+        window.location.replace('/entrar')
+      })}
     >
       {pending ? <Spinner className="size-4" /> : <RiLogoutBoxLine className="size-[18px]" />}
       {!compact ? <span>{pending ? 'Saindo…' : 'Sair'}</span> : null}

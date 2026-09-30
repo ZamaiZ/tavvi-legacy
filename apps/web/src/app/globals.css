@@ -4,7 +4,11 @@
 @import "./base.css";
 @import "../features/workspace/styles/workspace.css";
 @import "../features/auth/styles/auth.css";
+@import "../features/auth/styles/console-login.css";
 @import "../features/public-menu/styles/public-menu.css";
 @import "../features/platform/styles/platform.css";
+@import "../features/platform/styles/console-shell.css";
+@import "../features/platform/styles/console-page.css";
+@import "../features/platform/styles/console-detail.css";
 @import "../features/platform/styles/console-mobile.css";
 

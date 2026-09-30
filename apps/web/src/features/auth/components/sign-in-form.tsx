@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { RiErrorWarningLine } from 'react-icons/ri'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,12 @@ import { signInAction } from '@/server/actions/auth'
 
 export function SignInForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(signInAction, undefined)
+
+  // Navegação de documento inteiro depois do sucesso (ver signInAction).
+  useEffect(() => {
+    if (state?.ok) window.location.replace(state.data.next)
+  }, [state])
+  const busy = pending || state?.ok === true
 
   return (
     <form action={formAction} className="space-y-6">
@@ -55,9 +61,9 @@ export function SignInForm({ next }: { next: string }) {
         </Alert>
       ) : null}
 
-      <Button type="submit" className="h-11 w-full" disabled={pending}>
-        {pending ? <Spinner className="size-4" /> : null}
-        {pending ? 'Entrando…' : 'Entrar'}
+      <Button type="submit" className="h-11 w-full" disabled={busy}>
+        {busy ? <Spinner className="size-4" /> : null}
+        {busy ? 'Entrando…' : 'Entrar'}
       </Button>
     </form>
   )

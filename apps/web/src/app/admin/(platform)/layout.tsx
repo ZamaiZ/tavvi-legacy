@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { ConsoleShell } from '@/components/shell/console-shell'
 import { getConsoleConfig } from '@/components/shell/console-config'
 import { PlatformInviteOverlay } from '@/features/platform/components/invites/platform-invite-overlay'
+import { ConsoleAccountSheet } from '@/features/platform/components/account/account-sheet'
 import { getCurrentUser, getPlatformAdminStatus } from '@/server/dal/auth'
 import { getCachedAdminRestaurants, getCachedPlatformInvites } from '@/server/dal/admin-console'
 import { inviteState } from '@/domain/invite'
@@ -35,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
   return (
     <div className="admin-territory min-h-dvh">
-      <ConsoleShell surface="console" config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />}>
+      <ConsoleShell surface="console" config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />} accountSheet={<ConsoleAccountSheet />}>
         {children}
       </ConsoleShell>
     </div>

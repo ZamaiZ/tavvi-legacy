@@ -22,6 +22,7 @@ export function badgeLabel(state: BadgeState) {
   return labels[state]
 }
 
-export function TvBadge({ state, hero = false }: { state: BadgeState; hero?: boolean }) {
-  return <span className={`tv-badge tv-tone-${tones[state]}${hero ? ' is-hero' : ''}`}>{labels[state]}</span>
+// Badge de situação: pílula de 20 px com ponto de 5 px na cor do texto.
+export function TvBadge({ state }: { state: BadgeState }) {
+  return <span className={`tv-badge tv-tone-${tones[state]}`}>{labels[state]}</span>
 }

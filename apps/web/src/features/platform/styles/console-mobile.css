@@ -88,6 +88,7 @@
   }
   [data-surface="console"] .tv-tabbar-item.is-active { color: var(--tv-gold-text); }
   [data-surface="console"] .tv-tabbar-item:active { opacity: .6; }
+  [data-surface="console"] button.tv-tabbar-item { padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; }
   [data-surface="console"] .tv-tabbar-icon { position: relative; width: 24px; height: 24px; }
   [data-surface="console"] .tv-tabbar-icon > svg { width: 24px; height: 24px; stroke-width: 1.7; }
   [data-surface="console"] .tv-tabbar-badge {
@@ -250,30 +251,43 @@
   [data-surface="console"] .tv-confirm-dialog .tv-spinner { margin: auto; }
 }
 
-/* Conta no celular: título grande e recuo da tela. */
+/* Conta no celular: sheet aberto pela aba Conta (Tema e Sair). */
 @media (max-width: 767px) {
-  [data-surface="console"] .tv-account-page { width: 100%; padding: 40px var(--tv-gutter) 0; }
-  [data-surface="console"] .tv-account-page > h1 { margin: 0 4px 14px; font-size: 32px; line-height: 1.15; font-weight: 700; letter-spacing: -.025em; }
+  [data-surface="console"] .tv-account-sheet {
+    position: fixed;
+    z-index: 71;
+    inset: auto 0 0;
+    max-height: calc(100dvh - max(62px, calc(env(safe-area-inset-top) + 12px)));
+    padding: 8px var(--tv-gutter) calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 14px 14px 0 0;
+    background: var(--tv-bg);
+    box-shadow: 0 -10px 40px rgba(0,0,0,.2);
+    animation: tv-sheet-m-rise 300ms cubic-bezier(.2,.8,.2,1) both;
+  }
+  [data-surface="console"] .tv-account-sheet .tv-sheet-m-handle { flex: 0 0 auto; margin-bottom: 14px; }
+  [data-surface="console"] .tv-account-sheet-profile { padding: 14px; display: flex; align-items: center; gap: 12px; border-radius: 14px; background: var(--tv-surface); }
+  [data-surface="console"] .tv-account-sheet-avatar { width: 52px; height: 52px; flex: 0 0 52px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 18px; font-weight: 650; }
+  [data-surface="console"] .tv-account-sheet-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  [data-surface="console"] .tv-account-sheet-copy strong { overflow: hidden; color: var(--tv-text); font-size: 17px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  [data-surface="console"] .tv-account-sheet-copy small { color: var(--tv-text-3); font-size: 13px; }
+  [data-surface="console"] .tv-account-segment { margin: 10px; padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 10px; background: var(--tv-neutral-soft); }
+  [data-surface="console"] .tv-account-segment button { height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); font-family: inherit; font-size: 14px; font-weight: 500; }
+  [data-surface="console"] .tv-account-segment button[aria-pressed="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 3px rgba(22,20,15,.12), 0 0 0 .5px var(--tv-line-2); }
+  [data-surface="console"] .tv-group-danger:disabled { opacity: .6; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  [data-surface="console"] .tv-account-sheet { animation: none; }
 }
 
 /* Listas (Convites e Restaurantes): topo, busca, chips e estados. */
 @media (max-width: 767px) {
   [data-surface="console"] .tv-list-overview { display: none; }
-  [data-surface="console"] .tv-invites-m-head { display: block; }
-  [data-surface="console"] .tv-m-toolbar { height: 40px; display: flex; align-items: center; justify-content: flex-end; }
-  [data-surface="console"] .tv-m-circle { width: 44px; height: 44px; margin-right: -5px; display: grid; place-items: center; border: 0; background: transparent; }
-  [data-surface="console"] .tv-m-circle svg {
-    box-sizing: content-box;
-    width: 19px;
-    height: 19px;
-    padding: 7.5px;
-    border-radius: 50%;
-    background: var(--tv-surface);
-    color: var(--tv-gold-text);
-    box-shadow: 0 1px 2px rgba(22,20,15,.08);
-    stroke-width: 2.2;
-  }
-  [data-surface="console"] .tv-m-circle:active svg { opacity: .7; }
+  [data-surface="console"] .tv-invites-m-head { display: block; padding-top: 40px; }
 
   [data-surface="console"] .tv-m-hero {
     position: relative;
@@ -327,7 +341,8 @@
   [data-surface="console"] .tv-search-field svg { width: 16px; height: 16px; }
   [data-surface="console"] .tv-search-field input { font-size: 16px; font-weight: 400; }
   [data-surface="console"] .tv-search-field input::placeholder { color: var(--tv-text-3); }
-  [data-surface="console"] .tv-filter-strip { margin-inline: calc(var(--tv-gutter) * -1); padding: 0 var(--tv-gutter) 2px; gap: 6px; }
+  [data-surface="console"] .tv-filter-strip { margin-inline: calc(var(--tv-gutter) * -1); padding: 0 var(--tv-gutter) 2px; gap: 6px; overflow-x: auto; scrollbar-width: none; border-radius: 0; background: transparent; }
+  [data-surface="console"] .tv-filter-strip::-webkit-scrollbar { display: none; }
   [data-surface="console"] .tv-filter-strip button {
     height: 32px;
     padding: 0 12px;
@@ -338,6 +353,8 @@
     color: var(--tv-text-2);
     font-size: 14px;
     font-weight: 500;
+    border-radius: 999px;
+    box-shadow: none;
   }
   [data-surface="console"] .tv-filter-strip button small { color: inherit; font-size: 12px; opacity: .55; }
   [data-surface="console"] .tv-filter-strip button.is-active { background: var(--tv-btn); color: var(--tv-btn-text); }
@@ -359,7 +376,7 @@
   [data-surface="console"] .tv-m-empty span { color: var(--tv-text-2); font-size: 13px; }
 
   /* Detalhes abrem como tela empilhada; a gaveta não aparece no celular. */
-  [data-surface="console"] .tv-drawer-scrim,
+  [data-surface="console"] .tv-drawer-catcher,
   [data-surface="console"] .tv-detail-drawer { display: none; }
 }
 
@@ -391,7 +408,7 @@
   [data-surface="console"] .tv-invite-info { display: none; }
 
   [data-surface="console"] .tv-timeline-card { padding: 0; border: 0; border-radius: 0; background: transparent; }
-  [data-surface="console"] .tv-timeline-card h3 { margin: 22px 16px 6px; color: var(--tv-text-3); font-size: 13px; font-weight: 400; letter-spacing: .02em; }
+  [data-surface="console"] .tv-timeline-card h3 { margin: 22px 16px 6px; color: var(--tv-text-3); font-size: 13px; font-weight: 400; letter-spacing: .02em; text-transform: uppercase; }
   [data-surface="console"] .tv-timeline-events { padding: 14px 16px 2px; border-radius: 14px; background: var(--tv-surface); }
   [data-surface="console"] .tv-timeline-event { min-height: 0; align-items: stretch; gap: 12px; }
   [data-surface="console"] .tv-timeline-dot { width: 10px; height: auto; margin: 0; display: flex; flex-direction: column; align-items: center; border-radius: 0; background: none; }
@@ -420,12 +437,11 @@
     font-weight: 600;
   }
   [data-surface="console"] .tv-detail-primary,
-  [data-surface="console"] .tv-detail-secondary { margin-top: 22px; flex-direction: row-reverse; }
+  [data-surface="console"] .tv-detail-secondary { margin-top: 22px; }
+  [data-surface="console"] .tv-detail-actions { gap: 0; }
   [data-surface="console"] .tv-detail-primary { background: var(--tv-btn); color: var(--tv-btn-text); }
   [data-surface="console"] .tv-detail-secondary { background: var(--tv-surface); color: var(--tv-text); }
   [data-surface="console"] .tv-detail-revoke { margin-top: 10px; background: var(--tv-danger-soft); color: var(--tv-danger); }
-  [data-surface="console"] .tv-detail-primary > span,
-  [data-surface="console"] .tv-detail-secondary i { width: auto; height: auto; background: none; color: inherit; }
   [data-surface="console"] .tv-detail-primary svg,
   [data-surface="console"] .tv-detail-revoke svg,
   [data-surface="console"] .tv-detail-secondary svg { width: 17px; height: 17px; }
@@ -563,4 +579,8 @@
   [data-surface="console"] .tv-detail-page .tv-skeleton-detail-hero { height: 150px; border-radius: 20px; }
   [data-surface="console"] .tv-detail-page .tv-skeleton-detail-block,
   [data-surface="console"] .tv-detail-page .tv-skeleton-detail-info { margin-top: 22px; border: 0; border-radius: 14px; background: var(--tv-surface); }
+  [data-surface="console"] .tv-loading-page .tv-skeleton-stats { display: block; }
+  [data-surface="console"] .tv-loading-page .tv-skeleton-stat,
+  [data-surface="console"] .tv-loading-page .tv-skeleton-list-head,
+  [data-surface="console"] .tv-loading-page .tv-skeleton-row > * { display: none; }
 }

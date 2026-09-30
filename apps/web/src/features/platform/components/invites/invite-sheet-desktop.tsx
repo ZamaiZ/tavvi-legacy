@@ -17,7 +17,7 @@ export function InviteSheetDesktop({ sheet }: { sheet: InviteSheetState }) {
       <PrimaryCTA disabled={!sheet.copied} onClick={sheet.done}>Já copiei o link<LuArrowRight /></PrimaryCTA>
     </div> : <div className="tv-invite-sheet-body">
       <h2>{sheet.rotating ? 'Novo link' : 'Novo convite'}<i>.</i></h2>
-      <p className="tv-form-description">{sheet.rotating ? 'O link atual deixa de funcionar e um novo é gerado para o mesmo destinatário e prazo.' : 'Crie um acesso de administrador da plataforma.'}</p>
+      <p className="tv-form-description">{sheet.rotating ? 'O link atual deixa de funcionar e um novo é gerado para o mesmo destinatário e prazo.' : 'Crie um acesso de restaurante.'}</p>
       {sheet.error && <p role="alert" className="tv-field-error">{sheet.error}</p>}
       <label className="tv-field-label" htmlFor="tv-invite-email">E-mail (opcional)</label>
       <div className="tv-input-wrap"><LuMail /><input id="tv-invite-email" type="email" value={sheet.email} readOnly={sheet.rotating} placeholder="Qualquer e-mail" onChange={(event) => sheet.setEmail(event.target.value)} /></div>
@@ -29,7 +29,7 @@ export function InviteSheetDesktop({ sheet }: { sheet: InviteSheetState }) {
         <button type="button" aria-label="Mais dias" disabled={sheet.rotating || sheet.days >= 30} onPointerDown={() => sheet.startHold(1)} onPointerUp={sheet.stopHold} onPointerLeave={sheet.stopHold} onClick={() => sheet.stepDays(1)}><LuPlus /></button>
       </div>
       <p className="tv-field-help">Escolha entre 1 e 30 dias. Depois desse prazo o link para de funcionar e você emite outro. Quem aceitar dentro do prazo não perde o acesso depois.</p>
-      <PrimaryCTA disabled={sheet.pending} onClick={sheet.submit}>{sheet.pending ? <><span className="tv-spinner" />Gerando…</> : <>{sheet.rotating ? 'Gerar novo link' : 'Gerar link'}<LuArrowRight /></>}</PrimaryCTA>
+      <PrimaryCTA disabled={sheet.pending} data-busy={sheet.pending} onClick={sheet.submit}>{sheet.pending ? <><span className="tv-spinner" />Gerando…</> : <>{sheet.rotating ? 'Gerar novo link' : 'Gerar link'}<LuArrowRight /></>}</PrimaryCTA>
     </div>}
   </>
 }

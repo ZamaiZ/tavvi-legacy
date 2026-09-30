@@ -34,7 +34,7 @@ export function Toolbar({ kind, query, filter, counts }: {
     router.replace(`${pathname}${encoded ? `?${encoded}` : ''}`, { scroll: false })
   }
   return <div className="tv-toolbar">
-    <label className="tv-search-field"><LuSearch aria-hidden="true" /><input aria-label={kind === 'invites' ? 'Buscar por e-mail' : 'Buscar restaurante ou /slug'} placeholder={kind === 'invites' ? 'Buscar por e-mail' : 'Buscar restaurante ou /slug'} value={value} onChange={(event) => { const next = event.target.value; setValue(next); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => update(next), 200) }} /></label>
+    <label className={`tv-search-field${kind === 'restaurants' ? ' is-wide' : ''}`}><LuSearch aria-hidden="true" /><input aria-label={kind === 'invites' ? 'Buscar por e-mail' : 'Buscar restaurante ou /slug'} placeholder={kind === 'invites' ? 'Buscar por e-mail' : 'Buscar restaurante ou /slug'} value={value} onChange={(event) => { const next = event.target.value; setValue(next); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => update(next), 200) }} /></label>
     {kind === 'invites' && <div className="tv-filter-strip" role="radiogroup" aria-label="Filtrar convites">{filters.map((item) => <button key={item.value} type="button" role="radio" aria-checked={(filter ?? 'all') === item.value} className={(filter ?? 'all') === item.value ? 'is-active' : ''} onClick={() => update(value, item.value)}>{item.label}<small>{counts?.[item.value] ?? 0}</small></button>)}</div>}
   </div>
 }

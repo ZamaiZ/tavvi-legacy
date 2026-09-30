@@ -28,7 +28,7 @@ export function InviteSheetMobile({ sheet }: { sheet: InviteSheetState }) {
       </div>
     ) : (
       <div className="tv-sheet-m-body">
-        <p className="tv-sheet-m-lead">{sheet.rotating ? 'O link atual deixa de funcionar e um novo é gerado para o mesmo destinatário e prazo.' : 'Crie um acesso de administrador da plataforma.'}</p>
+        <p className="tv-sheet-m-lead">{sheet.rotating ? 'O link atual deixa de funcionar e um novo é gerado para o mesmo destinatário e prazo.' : 'Crie um acesso de restaurante.'}</p>
         {sheet.error ? <p role="alert" className="tv-sheet-m-error">{sheet.error}</p> : null}
         <label className="tv-sheet-m-field">
           <LuMail aria-hidden="true" />

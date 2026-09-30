@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from 'cn'
 import { AccountPopover } from './account-popover'
 import { CommandPalette } from './command-palette'
@@ -22,6 +22,11 @@ export function TavviShell({
 }) {
   const mode = useRailMode(initialRail)
   const [accountOpen, setAccountOpen] = useState(false)
+  const accountButtonRef = useRef<HTMLButtonElement>(null)
+  const closeAccount = useCallback(() => {
+    setAccountOpen(false)
+    accountButtonRef.current?.focus()
+  }, [])
   const expanded = mode === 'pinned'
   const sidebarWidth = expanded ? 232 : 60
   const entries = flattenNavItems(config.items).map((item) => ({
@@ -53,12 +58,14 @@ export function TavviShell({
         contextLabel={config.contextLabel ?? 'Tavvi'}
         contextDescription={config.contextDescription ?? 'Painel'}
         email={config.userLabel}
+        accountOpen={accountOpen}
+        accountButtonRef={accountButtonRef}
         onAccount={() => setAccountOpen((open) => !open)}
         onToggle={toggleRailMode}
       />
       <main className={cn('tv-console-main', className)}>{children}</main>
       <CommandPalette config={config} />
-      {accountOpen ? <><button className="tv-overlay-scrim" aria-label="Fechar conta" onClick={() => setAccountOpen(false)} /><AccountPopover email={config.userLabel} description={null} onClose={() => setAccountOpen(false)} /></> : null}
+      {accountOpen ? <AccountPopover email={config.userLabel} description={null} onClose={closeAccount} /> : null}
     </div>
   )
 }

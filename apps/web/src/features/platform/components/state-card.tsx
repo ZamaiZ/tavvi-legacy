@@ -7,7 +7,7 @@ export function StateCard({ title, description, action, icon }: {
   action?: ReactNode
   icon: ReactNode
 }) {
-  return <section className="tv-state-card"><span className="tv-state-icon">{icon}</span><h2>{title}<i>.</i></h2><p>{description}</p>{action}</section>
+  return <section className="tv-state-card"><span className="tv-state-icon">{icon}</span><h2>{title}</h2><p>{description}</p>{action}</section>
 }
 
 export function RetryButton({ onClick }: { onClick: () => void }) {

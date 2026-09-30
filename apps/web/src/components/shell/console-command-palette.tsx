@@ -1,14 +1,28 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { LuArrowRight, LuPlus, LuSearch, LuSunMoon, LuX } from 'react-icons/lu'
-import { useTheme } from '@/components/theme/theme-provider'
-import type { ConsoleLeaf } from './console-config'
-import { getActiveConsoleLeaf } from './console-config'
 import { usePathname, useRouter } from 'next/navigation'
+import type { IconType } from 'react-icons'
+import { LuBookOpen, LuContact, LuMail, LuPalette, LuPlus, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
+import { getActiveConsoleLeaf, type ConsoleIcon, type ConsoleLeaf } from './console-config'
 
+const icons: Record<ConsoleIcon, IconType> = {
+  mail: LuMail,
+  store: LuStore,
+  menu: LuBookOpen,
+  palette: LuPalette,
+  contact: LuContact,
+  team: LuUsers,
+}
+
+type PaletteRow =
+  | { key: string; label: string; sub: string; kind: 'Página'; icon: IconType; href: string }
+  | { key: string; label: string; sub: string; kind: 'Ação'; icon: IconType; action: () => void }
+
+// Paleta ⌘K do console (Tavvi Web.dc.html): páginas e a ação de novo convite.
+// O primeiro resultado vem marcado; setas movem e Enter executa.
 export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
   leaves: ConsoleLeaf[]
   open: boolean
@@ -18,33 +32,52 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listId = useId()
   const router = useRouter()
   const pathname = usePathname()
   const activeLeaf = getActiveConsoleLeaf(toExternalPath(pathname), leaves)
-  const { theme, setTheme } = useTheme()
-  const rows = useMemo(() => {
-    const pages = leaves.map((leaf) => ({ key: leaf.key, label: leaf.label, type: 'Página', href: leaf.href, leaf }))
-    const actions = [
-      ...(onNewInvite ? [{ key: 'new-invite', label: 'Novo convite', type: 'Ação', action: onNewInvite }] : []),
-      { key: 'theme', label: 'Alternar tema', type: 'Ação', action: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
-    ]
-    return [...pages, ...actions].filter((item) => item.label.toLowerCase().includes(query.trim().toLowerCase()))
-  }, [leaves, onNewInvite, query, setTheme, theme])
+  const rows = useMemo<PaletteRow[]>(() => {
+    const pages: PaletteRow[] = leaves.map((leaf) => ({ key: leaf.key, label: leaf.label, sub: leaf.sub, kind: 'Página', icon: icons[leaf.icon], href: leaf.href }))
+    const actions: PaletteRow[] = onNewInvite
+      ? [{ key: 'new-invite', label: 'Novo convite', sub: 'Criar um acesso de administrador', kind: 'Ação', icon: LuPlus, action: onNewInvite }]
+      : []
+    const term = query.trim().toLocaleLowerCase('pt-BR')
+    return [...pages, ...actions].filter((row) => !term || `${row.label} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(term))
+  }, [leaves, onNewInvite, query])
+
+  function run(row: PaletteRow) {
+    onClose()
+    if ('href' in row) router.push(row.href)
+    else row.action()
+  }
 
   useEffect(() => {
     if (!open) return
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
     setQuery('')
     setActive(0)
     requestAnimationFrame(() => inputRef.current?.focus())
+    return () => previous?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
-      if (event.key === 'ArrowDown') { event.preventDefault(); setActive((index) => Math.min(rows.length - 1, index + 1)) }
-      if (event.key === 'ArrowUp') { event.preventDefault(); setActive((index) => Math.max(0, index - 1)) }
-      if (event.key === 'Enter' && rows[active]) {
-        const item = rows[active]
-        if ('href' in item) router.push(item.href)
-        else item.action()
+      if (event.key === 'Escape') {
+        event.preventDefault()
         onClose()
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        setActive((index) => Math.min(rows.length - 1, index + 1))
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        setActive((index) => Math.max(0, index - 1))
+      } else if (event.key === 'Enter' && rows[active]) {
+        event.preventDefault()
+        const row = rows[active]
+        onClose()
+        if ('href' in row) router.push(row.href)
+        else row.action()
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -52,15 +85,44 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
   }, [active, onClose, open, router, rows])
 
   if (!open) return null
+  const activeId = rows[active] ? `${listId}-${rows[active].key}` : undefined
   return <div className="tv-command-scrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
     <section role="dialog" aria-modal="true" aria-label="Buscar página ou ação" className="tv-command-box">
-      <div className="tv-command-input"><LuSearch aria-hidden="true" /><input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setActive(0) }} placeholder="Buscar página ou ação" /><kbd>Esc</kbd><button type="button" aria-label="Fechar busca" onClick={onClose}><LuX /></button></div>
-      <div role="listbox" aria-label="Resultados" className="tv-command-results">
+      <div className="tv-command-input">
+        <LuSearch aria-hidden="true" />
+        <input
+          ref={inputRef}
+          value={query}
+          onChange={(event) => { setQuery(event.target.value); setActive(0) }}
+          placeholder="Buscar página ou ação"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-activedescendant={activeId}
+          aria-autocomplete="list"
+        />
+        <kbd>esc</kbd>
+      </div>
+      <div id={listId} role="listbox" aria-label="Resultados" className="tv-command-results">
         {rows.length ? rows.map((row, index) => {
+          const Icon = row.icon
           const selected = index === active
-          if ('href' in row) return <Link key={row.key} href={row.href} role="option" aria-selected={selected} aria-current={activeLeaf?.key === row.leaf.key ? 'page' : undefined} className={`tv-command-row${selected ? ' is-selected' : ''}`} onClick={onClose}><span>{row.label}</span><small>{row.type}</small></Link>
-          const Icon = row.key === 'theme' ? LuSunMoon : LuPlus
-          return <button key={row.key} type="button" role="option" aria-selected={selected} className={`tv-command-row${selected ? ' is-selected' : ''}`} onClick={() => { row.action(); onClose() }}><span><Icon aria-hidden="true" />{row.label}</span><small>{row.type}<LuArrowRight /></small></button>
+          const content = <>
+            <span className="tv-command-tile"><Icon aria-hidden="true" /></span>
+            <span className="tv-command-copy"><strong>{row.label}</strong><small>{row.sub}</small></span>
+            <span className="tv-command-kind">{row.kind}</span>
+          </>
+          const shared = {
+            id: `${listId}-${row.key}`,
+            role: 'option' as const,
+            'aria-selected': selected,
+            tabIndex: -1,
+            className: `tv-command-row${selected ? ' is-selected' : ''}`,
+            onMouseMove: () => setActive(index),
+          }
+          return 'href' in row
+            ? <Link key={row.key} {...shared} href={row.href} aria-current={activeLeaf?.key === row.key ? 'page' : undefined} onClick={onClose}>{content}</Link>
+            : <button key={row.key} {...shared} type="button" onClick={() => run(row)}>{content}</button>
         }) : <p className="tv-command-empty">Nada encontrado.</p>}
       </div>
     </section>

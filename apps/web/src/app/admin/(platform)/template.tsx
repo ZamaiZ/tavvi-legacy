@@ -3,16 +3,12 @@
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
+// Cada tela dá o próprio recuo e largura (console-page.css, console-login.css),
+// então o template não envolve o conteúdo em nada.
 export default function AdminTemplate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   useEffect(() => {
-    document.querySelector<HTMLElement>('.tv-console-main')?.scrollTo({ top: 0 })
+    window.scrollTo({ top: 0 })
   }, [pathname])
-  // No celular quem dá o recuo é cada tela (console-mobile.css) e o login
-  // ocupa a tela inteira; do md para cima o recuo continua o mesmo.
-  return (
-    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-[14px] md:px-6 md:pt-6 md:pb-8 lg:gap-0 lg:px-8 lg:pt-7 lg:pb-10">
-      {children}
-    </div>
-  )
+  return <>{children}</>
 }
