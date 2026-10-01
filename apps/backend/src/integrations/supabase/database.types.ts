@@ -2,7 +2,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
-      profiles: { Row: { id: string; display_name: string | null; avatar_path: string | null; created_at: string; updated_at: string }; Insert: { id: string; display_name?: string | null; avatar_path?: string | null }; Update: { display_name?: string | null; avatar_path?: string | null }; Relationships: [] }
+      profiles: { Row: { id: string; display_name: string; avatar_path: string | null; created_at: string; updated_at: string }; Insert: { id: string; display_name: string; avatar_path?: string | null }; Update: { display_name?: string; avatar_path?: string | null }; Relationships: [] }
       platform_admins: { Row: { user_id: string; granted_at: string; granted_by: string | null }; Insert: { user_id: string; granted_at?: string; granted_by?: string | null }; Update: { user_id?: string; granted_at?: string; granted_by?: string | null }; Relationships: [] }
       invites: {
         Row: { id: string; created_at: string; created_by: string; email: string | null; expires_at: string; redeemed_at: string | null; redeemed_by: string | null; restaurant_id: string | null; revoked_at: string | null; role: Database['public']['Enums']['member_role']; token_hash: string }

@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { RiErrorWarningLine } from 'react-icons/ri'
+import { RiErrorWarningLine, RiMailCheckLine } from 'react-icons/ri'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,13 +22,26 @@ export function SignUpForm() {
   useEffect(() => {
     // O cadastro não redireciona: a pessoa precisa continuar NESTA página,
     // agora autenticada, para clicar em aceitar. O refresh faz o servidor
-    // renderizar de novo e enxergar a sessão recém-criada.
-    if (state?.ok) router.refresh()
+    // renderizar de novo e enxergar a sessão recém-criada. Sem sessão (a
+    // confirmação de e-mail ligada no Supabase), não há o que recarregar.
+    if (state?.ok && !state.data.confirmEmail) router.refresh()
   }, [state, router])
 
   return (
     <form action={formAction} className="space-y-6">
       <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="signup-name">Nome</FieldLabel>
+          <Input
+            id="signup-name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            maxLength={80}
+            required
+          />
+          <FieldDescription>É como a equipe vai ver você.</FieldDescription>
+        </Field>
         <Field>
           <FieldLabel htmlFor="signup-email">E-mail</FieldLabel>
           <Input
@@ -60,6 +73,16 @@ export function SignUpForm() {
           <RiErrorWarningLine aria-hidden="true" />
           <AlertTitle>Não foi possível criar a conta</AlertTitle>
           <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      ) : null}
+      {state?.ok && state.data.confirmEmail ? (
+        <Alert role="status">
+          <RiMailCheckLine aria-hidden="true" />
+          <AlertTitle>Confirme seu e-mail</AlertTitle>
+          <AlertDescription>
+            Conta criada. Abra o link que enviamos para o seu e-mail e volte a
+            este convite para continuar.
+          </AlertDescription>
         </Alert>
       ) : null}
 

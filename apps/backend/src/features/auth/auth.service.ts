@@ -1,4 +1,4 @@
-import type { Session } from '@supabase/supabase-js'
+import type { AuthError, Session } from '@supabase/supabase-js'
 import type { AuthSession, UserSummary, SessionSnapshot } from '@tavvi/api-contracts'
 import type { ServerEnv } from '../../config/env.js'
 import { getServerEnv } from '../../config/env.js'
@@ -36,12 +36,32 @@ async function requireAdminIdentity(accessToken: string) {
   return admin.data === true
 }
 
+// Uma mensagem por código do Supabase Auth. "E-mail ou senha inválidos"
+// continua uma só: o Supabase responde `invalid_credentials` tanto para
+// e-mail inexistente quanto para senha errada. O resto vai para o log com
+// código e status, nunca com e-mail ou senha.
+function signInFailure(error: AuthError): HttpError {
+  switch (error.code) {
+    case 'invalid_credentials':
+      return new HttpError(401, 'INVALID_CREDENTIALS', 'E-mail ou senha inválidos.')
+    case 'email_not_confirmed':
+      return new HttpError(403, 'EMAIL_NOT_CONFIRMED', 'Confirme seu e-mail antes de entrar.')
+    case 'user_banned':
+      return new HttpError(403, 'USER_BANNED', 'Esta conta está bloqueada.')
+    case 'over_request_rate_limit':
+      return new HttpError(429, 'RATE_LIMITED', 'Muitas tentativas. Aguarde um minuto e tente novamente.')
+  }
+  console.error('[auth] signIn failed', { code: error.code, status: error.status })
+  return new HttpError(503, 'AUTH_UNAVAILABLE', 'Não foi possível entrar agora. Tente novamente em instantes.')
+}
+
 export async function signIn(input: SignInInput, ip: string | null): Promise<AuthSession> {
   const anonymous = createAnonymousSupabaseClient()
   await enforceRateLimit(anonymous, 'auth:login', ip ?? 'local-shared')
 
   const result = await anonymous.auth.signInWithPassword(input)
-  if (result.error || !result.data.session || !result.data.user.email) {
+  if (result.error) throw signInFailure(result.error)
+  if (!result.data.session || !result.data.user.email) {
     throw new HttpError(401, 'INVALID_CREDENTIALS', 'E-mail ou senha inválidos.')
   }
 

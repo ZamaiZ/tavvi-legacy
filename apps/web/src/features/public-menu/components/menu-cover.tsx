@@ -131,6 +131,10 @@ export function MenuCover({
                     alt=""
                     fill
                     sizes="80px"
+                    // Está na primeira tela. Sem isto o `next/image` usa
+                    // `lazy`, e o navegador só busca o logo depois do layout,
+                    // com prioridade baixa.
+                    loading="eager"
                     className="p-1"
                     // No `style`, e não como classe: `menu.css` entra sem
                     // `@layer`, e no Tailwind v4 regra sem camada vence

@@ -162,6 +162,16 @@
   :is(.admin-territory, .workspace-territory) .tv-mlink-copy small { color: var(--tv-text-3); font-size: 12px; }
   :is(.admin-territory, .workspace-territory) .tv-mlink-value { flex: 0 0 auto; color: var(--tv-text-3); }
   :is(.admin-territory, .workspace-territory) .tv-mlink > svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--tv-text-3); }
+  /* "Nome" nas telas de conta: a linha é o próprio campo, e "Salvar" em
+     dourado só aparece com mudança. */
+  :is(.admin-territory, .workspace-territory) .tv-mname { min-height: 56px; padding: 0 14px; display: flex; align-items: center; gap: 12px; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-copy small { color: var(--tv-text-3); font-size: 12px; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-copy input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-copy input::placeholder { color: var(--tv-text-3); }
+  :is(.admin-territory, .workspace-territory) .tv-mname-save { min-height: 44px; padding: 0 2px; flex: 0 0 auto; display: inline-flex; align-items: center; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 16px; font-weight: 600; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-save:disabled { opacity: .45; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-save .tv-spinner { width: 17px; height: 17px; }
   :is(.admin-territory, .workspace-territory) .tv-m-pill {
     width: 100%;
     min-height: 50px;

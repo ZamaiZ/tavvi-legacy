@@ -4,12 +4,14 @@ import { useRef } from 'react'
 import { LuLogOut } from 'react-icons/lu'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
 import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
+import { AccountNameAction } from './account-name-action'
 import { accountInitial, ThemeSegment, useAccountDialogKeys, useSignOut } from './account-panel'
 
 // Popover de conta da sidebar (Tavvi Web.dc.html): fixo acima do botão de
 // conta, sem escurecer a tela. Clicar fora ou Esc fecha.
-export function AccountPopover({ email, description, onClose }: {
+export function AccountPopover({ email, name, description, onClose }: {
   email: string | null
+  name: string | null
   description: string | null
   onClose: () => void
 }) {
@@ -28,6 +30,7 @@ export function AccountPopover({ email, description, onClose }: {
             <small>{description ?? 'Administrador da plataforma'}</small>
           </span>
         </div>
+        <AccountNameAction variant="popover" name={name} />
         <div className="tv-account-section">
           <span className="tv-account-label">Tema</span>
           <ThemeSegment className="tv-theme-segment" />

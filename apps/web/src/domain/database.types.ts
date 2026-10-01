@@ -467,21 +467,21 @@ export type Database = {
         Row: {
           avatar_path: string | null
           created_at: string
-          display_name: string | null
+          display_name: string
           id: string
           updated_at: string
         }
         Insert: {
           avatar_path?: string | null
           created_at?: string
-          display_name?: string | null
+          display_name: string
           id: string
           updated_at?: string
         }
         Update: {
           avatar_path?: string | null
           created_at?: string
-          display_name?: string | null
+          display_name?: string
           id?: string
           updated_at?: string
         }

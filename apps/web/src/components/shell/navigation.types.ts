@@ -46,6 +46,8 @@ export type MobileTab = {
 export type TavviShellConfig = {
   homeHref: string
   userLabel: string | null
+  /** Nome da conta (profiles.display_name), editável no popover de conta. */
+  userName?: string | null
   contextLabel?: string
   contextDescription?: string
   items: NavItem[]

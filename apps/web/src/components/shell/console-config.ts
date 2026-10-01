@@ -42,6 +42,8 @@ export type RestaurantShellInfo = {
 
 export type ConsoleConfig = {
   userLabel: string | null
+  /** Nome da conta (profiles.display_name), editável nas telas de conta. */
+  userName?: string | null
   items: ConsoleNode[]
   leaves: ConsoleLeaf[]
   contextLabel?: string | null
@@ -56,7 +58,7 @@ export type ConsoleConfig = {
   sidebar: SidebarIdentity
 }
 
-export function getConsoleConfig(user: { email?: string | null } | null): ConsoleConfig {
+export function getConsoleConfig(user: { email?: string | null } | null, displayName: string | null): ConsoleConfig {
   const leaves: ConsoleLeaf[] = [
     {
       kind: 'leaf',
@@ -80,6 +82,7 @@ export function getConsoleConfig(user: { email?: string | null } | null): Consol
 
   return {
     userLabel: user?.email ?? null,
+    userName: displayName,
     items: [{ kind: 'group', id: 'platform', label: 'Plataforma', children: leaves }],
     leaves,
     contextLabel: 'TAVVI',
@@ -104,6 +107,7 @@ export function getConsoleConfig(user: { email?: string | null } | null): Consol
 
 export function getRestaurantConsoleConfig({
   email,
+  displayName,
   roleLabel,
   restaurantName,
   homeHref,
@@ -114,6 +118,7 @@ export function getRestaurantConsoleConfig({
   restaurants,
 }: {
   email: string | null
+  displayName: string | null
   roleLabel: string
   restaurantName: string
   homeHref: string
@@ -136,6 +141,7 @@ export function getRestaurantConsoleConfig({
 
   return {
     userLabel: email,
+    userName: displayName,
     userDescription: `${roleLabel} · ${restaurantName}`,
     contextLabel: 'Painel',
     contextDescription: restaurantName,

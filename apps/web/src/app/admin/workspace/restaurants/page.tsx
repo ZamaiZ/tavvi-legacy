@@ -8,6 +8,7 @@ import { TavviShell } from '@/components/shell/tavvi-shell'
 import { getPanelNavigation } from '@/components/shell/navigation'
 import { PageHeader } from '@/components/shell/page-header'
 import { getCurrentUser, requireUser } from '@/server/dal/auth'
+import { getMyDisplayName } from '@/server/dal/profile'
 import { listMyRestaurants } from '@/server/dal/restaurant-read'
 import { env } from '@/server/env'
 
@@ -28,9 +29,10 @@ export const viewport: Viewport = {
 // a second sidebar provider.
 export default async function Page() {
   await requireUser()
-  const [user, restaurants] = await Promise.all([
+  const [user, restaurants, displayName] = await Promise.all([
     getCurrentUser(),
     listMyRestaurants(),
+    getMyDisplayName(),
   ])
 
   // Uma tela de escolha com um item só é um clique que não escolhe nada.
@@ -56,6 +58,7 @@ export default async function Page() {
       config={{
         homeHref: '/restaurantes',
         userLabel: user?.email ?? null,
+        userName: displayName,
         contextLabel: 'Seus restaurantes',
         contextDescription: 'Painel',
         items: getPanelNavigation(),

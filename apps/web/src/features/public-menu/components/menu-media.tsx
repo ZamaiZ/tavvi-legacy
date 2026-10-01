@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { MenuMediaDTO } from '@/domain/menu'
 import { publicMediaUrl } from '@/lib/media-url'
 
@@ -29,6 +29,8 @@ function cabeNoFormato(
     Math.max(daImagem, daCaixa) / Math.min(daImagem, daCaixa)
   return divergencia <= TOLERANCIA_DE_ENCAIXE
 }
+
+const subscribeNoop = () => () => {}
 
 // Uma tela do feed. Sempre 100dvh — o que muda é COMO a mídia ocupa ela.
 //
@@ -60,18 +62,24 @@ export function MenuMedia({
   // Linhas antigas continuam nulas e caem no `onLoad`, que por isso não sai
   // daqui: ele é a reserva, não o caminho principal.
   //
-  // Inicializador preguiçoso porque toca `window`: num componente de cliente
-  // ele só roda no navegador, mas a forma deixa isso explícito.
-  const [isFramed, setIsFramed] = useState<boolean | null>(() =>
-    media.width && media.height
-      ? cabeNoFormato(
-          media.width,
-          media.height,
-          window.innerWidth,
-          window.innerHeight,
-        )
-      : null,
+  // A conta usa o tamanho da janela, que o servidor não sabe: ele renderiza
+  // a moldura e o cliente corrige ao hidratar, antes de a pessoa deslizar
+  // até o prato. Ler `window` direto no render derrubava o SSR do cardápio
+  // inteiro — componente de cliente também renderiza no servidor.
+  const cabePeloBanco = useSyncExternalStore(
+    subscribeNoop,
+    () =>
+      media.width && media.height
+        ? cabeNoFormato(
+            media.width,
+            media.height,
+            window.innerWidth,
+            window.innerHeight,
+          )
+        : null,
+    () => null,
   )
+  const [isFramed, setIsFramed] = useState<boolean | null>(null)
   const position = `${media.focalX * 100}% ${media.focalY * 100}%`
 
   // Rede apertada e menos movimento desligam o autoplay. O navegador nem
@@ -157,7 +165,8 @@ export function MenuMedia({
   }
 
   const src = publicMediaUrl('image', media.storagePath)
-  const sangria = isFramed === true
+  // A medição do `onLoad` vence a do banco, como antes: ela vê a imagem real.
+  const sangria = (isFramed ?? cabePeloBanco) === true
 
   return (
     <div className="menu-screen overflow-hidden">

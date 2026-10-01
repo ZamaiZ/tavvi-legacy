@@ -10,6 +10,7 @@ import { restaurantInitials } from '@/lib/initials'
 import { publicMediaUrl } from '@/lib/media-url'
 import { uuidSchema } from '@/domain/common'
 import { getCurrentUser } from '@/server/dal/auth'
+import { getMyDisplayName } from '@/server/dal/profile'
 import { listMyRestaurants } from '@/server/dal/restaurant-read'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 
@@ -39,10 +40,11 @@ export default async function RestaurantLayout({
   // Só o papel, o nome e os restaurantes da pessoa, e só para montar a
   // casca. A autorização de verdade é de cada página, e depois da DAL, e
   // depois da RLS.
-  const [workspace, user, restaurants] = await Promise.all([
+  const [workspace, user, restaurants, displayName] = await Promise.all([
     getRestaurantWorkspace(parsed.data),
     getCurrentUser(),
     listMyRestaurants(),
+    getMyDisplayName(),
   ])
   if (!workspace) notFound()
   const cookieStore = await cookies()
@@ -50,6 +52,7 @@ export default async function RestaurantLayout({
   const navigation = getRestaurantNavigation(parsed.data, workspace.canEdit)
   const config = getRestaurantConsoleConfig({
     email: user?.email ?? null,
+    displayName,
     roleLabel: workspace.role ? MEMBER_ROLE_LABELS[workspace.role] : 'Membro',
     restaurantName: workspace.restaurant.name,
     homeHref: `/restaurantes/${parsed.data}`,

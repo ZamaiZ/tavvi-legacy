@@ -2,21 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { LuLogOut } from 'react-icons/lu'
+import { AccountNameAction } from '@/components/shell/account-name-action'
 import { accountInitial, ThemeSegment, useAccountDialogKeys, useSignOut } from '@/components/shell/account-panel'
 import { useConsoleAccount } from '@/components/shell/console-shell'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
 import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
 import { ConfirmDialog } from '../confirm-dialog'
 
-// Aba Conta do celular: sheet com Tema, Instalar app e Notificações (quando
-// der) e Sair, sem trocar de tela. O desktop usa o popover da sidebar.
+// Aba Conta do celular: sheet com Nome, Tema, Instalar app e Notificações
+// (quando der) e Sair, sem trocar de tela. O desktop usa o popover da sidebar.
 export function ConsoleAccountSheet() {
-  const { open, email, description, onClose } = useConsoleAccount()
+  const { open, email, name, description, onClose } = useConsoleAccount()
   if (!open) return null
-  return <AccountSheet email={email} description={description ?? 'Administrador da plataforma'} onClose={onClose} />
+  return <AccountSheet email={email} name={name} description={description ?? 'Administrador da plataforma'} onClose={onClose} />
 }
 
-function AccountSheet({ email, description, onClose }: { email: string | null; description: string; onClose: () => void }) {
+function AccountSheet({ email, name, description, onClose }: { email: string | null; name: string | null; description: string; onClose: () => void }) {
   const ref = useRef<HTMLElement>(null)
   const [confirm, setConfirm] = useState(false)
   const { pending, signOut } = useSignOut()
@@ -39,6 +40,7 @@ function AccountSheet({ email, description, onClose }: { email: string | null; d
           <span className="tv-account-sheet-avatar" aria-hidden="true">{accountInitial(email)}</span>
           <span className="tv-account-sheet-copy"><strong>{email ?? 'Conta'}</strong><small>{description}</small></span>
         </div>
+        <AccountNameAction variant="row" name={name} className="is-spaced" />
         <h2 className="tv-group-label">Aparência</h2>
         <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
         <PwaInstallAction variant="row" className="is-spaced" />

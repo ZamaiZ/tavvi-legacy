@@ -205,7 +205,7 @@ export async function getPlatformInvite(
   const { data, error } = await supabase.rpc('get_platform_admin_invite', {
     p_invite_id: id,
   })
-  if (error) throw new Error('NÃ£o foi possÃ­vel carregar o convite.', { cause: error })
+  if (error) throw new Error('Não foi possível carregar o convite.', { cause: error })
   const row = (data?.[0] ?? null) as PlatformInviteRow | null
   return row ? toPlatformInviteDTO(row) : null
 }
@@ -224,14 +224,14 @@ export async function rotatePlatformInvite(
     p_token_hash: hashInviteTokenForDb(token),
   })
   if (error?.code === 'P0002') {
-    throw new UserFacingError('Convite nÃ£o encontrado.')
+    throw new UserFacingError('Convite não encontrado.')
   }
   if (error?.code === 'P0001') {
     throw new ConflictError('Somente convites pendentes podem gerar um novo link.')
   }
-  if (error) throw new Error(`NÃ£o foi possÃ­vel gerar novo link: ${error.message}`)
+  if (error) throw new Error(`Não foi possível gerar novo link: ${error.message}`)
   const row = data?.[0]
-  if (!row?.id) throw new UserFacingError('Convite nÃ£o encontrado.')
+  if (!row?.id) throw new UserFacingError('Convite não encontrado.')
 
   // The RPC records rotation atomically with revocation/insertion. A second
   // recordAudit call here would duplicate the audit event.

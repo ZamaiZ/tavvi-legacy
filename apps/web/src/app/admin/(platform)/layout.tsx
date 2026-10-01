@@ -6,6 +6,7 @@ import { PlatformInviteOverlay } from '@/features/platform/components/invites/pl
 import { ConsoleAccountSheet } from '@/features/platform/components/account/account-sheet'
 import { getCurrentUser, getPlatformAdminStatus } from '@/server/dal/auth'
 import { getCachedAdminRestaurants, getCachedPlatformInvites } from '@/server/dal/admin-console'
+import { getMyDisplayName } from '@/server/dal/profile'
 import { inviteState } from '@/domain/invite'
 import { PwaProvider } from '@/components/pwa/pwa-provider'
 import { pwaMetadata } from '@/lib/pwa'
@@ -41,8 +42,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const cookieStore = await cookies()
   const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
-  const config = getConsoleConfig(user)
-  const [invites, restaurants] = await Promise.all([getCachedPlatformInvites(), getCachedAdminRestaurants()])
+  const [invites, restaurants, displayName] = await Promise.all([getCachedPlatformInvites(), getCachedAdminRestaurants(), getMyDisplayName()])
+  const config = getConsoleConfig(user, displayName)
   const pendingCount = invites.filter((invite) => inviteState(invite) === 'pending').length
   const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
   return (

@@ -59,18 +59,21 @@ export async function signInAction(
   return { ok: true, data: { next } }
 }
 
+export type SignUpResult = ActionResult<{ confirmEmail: boolean }>
+
 export async function signUpAction(
-  _prev: ActionResult | undefined,
+  _prev: SignUpResult | undefined,
   formData: FormData,
-): Promise<ActionResult> {
+): Promise<SignUpResult> {
   // Não redireciona: quem se cadastra está no meio do resgate de convite e
   // precisa continuar na mesma página, agora autenticado, para aceitar.
-  return runAction(async () => {
-    await dal.signUp({
+  return runAction(() =>
+    dal.signUp({
+      displayName: formData.get('name'),
       email: formData.get('email'),
       password: formData.get('password'),
-    })
-  })
+    }),
+  )
 }
 
 export async function signOutAction(): Promise<void> {

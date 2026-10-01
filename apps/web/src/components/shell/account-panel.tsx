@@ -44,7 +44,8 @@ export function useSignOut() {
 }
 
 // Teclado dos diálogos de conta: foco no tema atual ao abrir, Esc fecha
-// (exceto com uma confirmação aberta por cima) e Tab fica dentro do diálogo.
+// (exceto com uma confirmação aberta por cima) e Tab fica dentro do diálogo,
+// passando também pelo campo "Nome".
 export function useAccountDialogKeys(ref: RefObject<HTMLElement | null>, onClose: () => void) {
   const onCloseRef = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose })
@@ -56,7 +57,7 @@ export function useAccountDialogKeys(ref: RefObject<HTMLElement | null>, onClose
         return
       }
       if (event.key !== 'Tab' || !ref.current) return
-      const items = ref.current.querySelectorAll<HTMLElement>('button:not(:disabled)')
+      const items = ref.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')
       if (!items.length) return
       const first = items[0]
       const last = items[items.length - 1]

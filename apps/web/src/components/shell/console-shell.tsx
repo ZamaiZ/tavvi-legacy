@@ -15,7 +15,7 @@ type ConsoleActionValue = { openInvite: (email?: string, inviteId?: string) => v
 const ConsoleActionsContext = createContext<ConsoleActionValue>({ openInvite: () => undefined })
 type ConsoleInviteValue = { request: InviteRequest | null; onClose: () => void }
 const ConsoleInviteContext = createContext<ConsoleInviteValue | null>(null)
-type ConsoleAccountValue = { open: boolean; email: string | null; description: string | null; onClose: () => void }
+type ConsoleAccountValue = { open: boolean; email: string | null; name: string | null; description: string | null; onClose: () => void }
 const ConsoleAccountContext = createContext<ConsoleAccountValue | null>(null)
 
 export function useConsoleActions() {
@@ -36,7 +36,7 @@ export function useConsoleAccount() {
   return context
 }
 
-type RestaurantShellValue = RestaurantShellInfo & { email: string | null }
+type RestaurantShellValue = RestaurantShellInfo & { email: string | null; name: string | null }
 const RestaurantShellContext = createContext<RestaurantShellValue | null>(null)
 
 // Restaurante atual, os restaurantes da pessoa e se ela edita. Lido por
@@ -64,6 +64,7 @@ export function ConsoleShell({
 }) {
   const leaves = config.leaves
   const email = config.userLabel
+  const name = config.userName ?? null
   const description = config.userDescription ?? null
   const counts = config.counts ?? { pendingInvites: 0, restaurants: 0 }
   const widths = config.railWidths ?? { collapsed: 60, pinned: 232 }
@@ -86,8 +87,8 @@ export function ConsoleShell({
     setAccountSheetOpen(false)
     accountTabRef.current?.focus()
   }, [])
-  const accountContext = useMemo(() => ({ open: accountSheetOpen, email, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email])
-  const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email } : null), [config.restaurant, email])
+  const accountContext = useMemo(() => ({ open: accountSheetOpen, email, name, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email, name])
+  const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email, name } : null), [config.restaurant, email, name])
   const mobileTabs = (config.mobileTabs ?? []).map((tab) => (tab.key === 'invites' ? { ...tab, badge: counts.pendingInvites } : tab))
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -142,7 +143,7 @@ export function ConsoleShell({
             />
           ) : null}
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
-          {accountOpen ? <AccountPopover email={email} description={description} onClose={closeAccount} /> : null}
+          {accountOpen ? <AccountPopover email={email} name={name} description={description} onClose={closeAccount} /> : null}
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>

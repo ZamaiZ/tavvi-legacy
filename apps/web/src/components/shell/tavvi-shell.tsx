@@ -76,7 +76,7 @@ export function TavviShell({
       />
       <main className={cn('tv-console-main', className)}>{children}</main>
       <CommandPalette config={config} />
-      {accountOpen ? <AccountPopover email={config.userLabel} description={null} onClose={closeAccount} /> : null}
+      {accountOpen ? <AccountPopover email={config.userLabel} name={config.userName ?? null} description={null} onClose={closeAccount} /> : null}
     </div>
   )
 }
