@@ -8,7 +8,8 @@ import type { PrivateTerritory } from '@/lib/route-paths'
 
 // Caminho com ponto: o matcher do proxy não o alcança, então a rota chega
 // sem reescrita de território e sem redirecionar para /entrar. Isso importa
-// porque o navegador busca o manifesto sem cookies.
+// porque o manifesto precisa chegar também a quem ainda não entrou.
+// O <link> sai do PwaProvider, e não do pwaMetadata (ver lá).
 export const PWA_MANIFEST_PATH = '/pwa/manifest.webmanifest'
 
 // Fundo do login e do ícone: é a cor da tela de abertura e da barra até a
@@ -97,9 +98,11 @@ export function pwaManifest(territory: PrivateTerritory): MetadataRoute.Manifest
 //
 // O Next só escreve mobile-web-app-capable; o iOS lê as telas de abertura
 // de quem declara também apple-mobile-web-app-capable.
+//
+// Sem `manifest` aqui: o PwaProvider escreve o <link> com
+// crossOrigin="use-credentials", que o metadata não oferece.
 export function pwaMetadata(territory: PrivateTerritory): Metadata {
   return {
-    manifest: PWA_MANIFEST_PATH,
     appleWebApp: {
       capable: true,
       title: PWA_APPS[territory].name,

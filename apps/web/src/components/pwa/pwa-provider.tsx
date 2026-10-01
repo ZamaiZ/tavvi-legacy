@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { PWA_MANIFEST_PATH } from '@/lib/pwa'
 import { detectPlatform, isStandalone, type Platform } from './platform'
 import { PushProvider } from './push-provider'
 import { INSTALL_PROMPT_EVENT, type BeforeInstallPromptEvent } from './types'
@@ -96,8 +97,15 @@ export function PwaProvider({ vapidPublicKey, children }: { vapidPublicKey: stri
     }
   }, [isInstalled, platform, prompt])
 
+  // O manifesto leva os cookies da página (use-credentials), como o Next já
+  // faz sozinho nos previews da Vercel. Sem eles, um host que libera o acesso
+  // por cookie, como o túnel gratuito do ngrok, devolve a página de aviso no
+  // lugar do manifesto, e o Chrome recusa instalar. O React leva o <link>
+  // para o <head>. Só painel e admin montam este provedor: a raiz segue sem
+  // manifesto.
   return (
     <PwaContext.Provider value={value}>
+      <link rel="manifest" href={PWA_MANIFEST_PATH} crossOrigin="use-credentials" />
       <PushProvider vapidPublicKey={vapidPublicKey} isInstalled={isInstalled}>
         {children}
       </PushProvider>

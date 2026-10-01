@@ -23,8 +23,8 @@ export const viewport: Viewport = {
   ],
 }
 
-// Instalável como "Tavvi Console" (manifesto e meta tags do iOS). Vale
-// também no login, que este layout envolve.
+// Instalável como "Tavvi Console": meta tags do iOS aqui, manifesto pelo
+// PwaProvider. Vale também no login, que este layout envolve.
 export const metadata: Metadata = pwaMetadata('admin')
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

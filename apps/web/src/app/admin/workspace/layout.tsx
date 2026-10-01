@@ -3,8 +3,8 @@ import { PwaProvider } from '@/components/pwa/pwa-provider'
 import { pwaMetadata } from '@/lib/pwa'
 import { env } from '@/server/env'
 
-// Instalável como "Tavvi Painel" (manifesto e meta tags do iOS). Vale em
-// todas as telas do painel, login e convite incluídos.
+// Instalável como "Tavvi Painel": meta tags do iOS aqui, manifesto pelo
+// PwaProvider. Vale em todas as telas do painel, login e convite incluídos.
 export const metadata: Metadata = pwaMetadata('painel')
 
 export default async function WorkspaceLayout({
