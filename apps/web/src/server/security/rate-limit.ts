@@ -8,6 +8,8 @@ export const RATE_LIMITS = {
   'auth:login': { max: 10, windowSeconds: 60 },
   'tag:resolve': { max: 60, windowSeconds: 60 },
   mutation: { max: 60, windowSeconds: 60 },
+  'push:subscribe': { max: 20, windowSeconds: 60 },
+  'push:test': { max: 5, windowSeconds: 60 },
 } as const
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS

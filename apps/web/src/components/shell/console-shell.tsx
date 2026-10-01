@@ -7,6 +7,7 @@ import { MobileTabBar } from './mobile-tab-bar'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
+import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -107,17 +108,7 @@ export function ConsoleShell({
 
   // No celular a barra do navegador acompanha o fundo agrupado (console e
   // painel), inclusive quando o tema escolhido difere do tema do sistema.
-  useEffect(() => {
-    const root = document.documentElement
-    const sync = () => {
-      const color = root.classList.contains('dark') ? '#0D0C0A' : '#F2F0EB'
-      document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => { meta.content = color })
-    }
-    sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
+  useThemeColorSync('#F2F0EB', '#0D0C0A')
 
   return <ConsoleActionsContext.Provider value={context}>
     <ConsoleInviteContext.Provider value={inviteContext}>

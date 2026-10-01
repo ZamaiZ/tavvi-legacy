@@ -95,17 +95,11 @@
   .workspace-territory .tv-msettings { gap: 6px; }
   .workspace-territory .tv-msettings > .tv-mp-title { margin-bottom: 8px; }
   .workspace-territory .tv-msettings > .tv-group + .tv-group { margin-top: 16px; }
-  .workspace-territory .tv-mlink { position: relative; width: 100%; min-height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; font-size: 15px; text-align: left; text-decoration: none; }
-  .workspace-territory .tv-mlink:last-child { border-bottom: 0; }
-  .workspace-territory .tv-mlink:active { background: var(--tv-active); }
-  .workspace-territory .tv-mlink:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
-  .workspace-territory .tv-mlink-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-neutral-soft); color: var(--tv-text); }
-  .workspace-territory .tv-mlink-icon.is-gold { background: var(--tv-gold-soft); color: var(--tv-gold-text); }
-  .workspace-territory .tv-mlink-icon svg { width: 16px; height: 16px; }
-  .workspace-territory .tv-mlink-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-  .workspace-territory .tv-mlink-copy small { color: var(--tv-text-3); font-size: 12px; }
-  .workspace-territory .tv-mlink-value { flex: 0 0 auto; color: var(--tv-text-3); }
-  .workspace-territory .tv-mlink > svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--tv-text-3); }
+  /* Instrução de instalação (iOS, Safari do Mac) entre dois grupos: 6 px
+     do gap até ela, e os 16 px de sempre antes do grupo seguinte, esteja
+     ela aberta ou fechada. */
+  .workspace-territory .tv-msettings > .tv-group-note { margin-top: 0; }
+  .workspace-territory .tv-msettings > .tv-group-note + .tv-group { margin-top: 16px; }
   .workspace-territory .tv-group-danger:disabled { opacity: .6; }
   .workspace-territory .tv-msettings-email { margin: 10px 0 0; color: var(--tv-text-3); font-size: 12.5px; text-align: center; }
 

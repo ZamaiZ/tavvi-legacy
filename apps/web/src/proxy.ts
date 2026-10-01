@@ -71,6 +71,9 @@ export async function proxy(request: NextRequest) {
   return response
 }
 
+// /pwa/ (manifesto, ícones, telas de abertura e a rota do
+// pushsubscriptionchange) chega igual nos três hosts: sem reescrita de
+// território e sem desvio para /entrar.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|pwa/|.*\\..*).*)'],
 }

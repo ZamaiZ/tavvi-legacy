@@ -2,6 +2,8 @@
 
 import { useRef } from 'react'
 import { LuLogOut } from 'react-icons/lu'
+import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
+import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
 import { accountInitial, ThemeSegment, useAccountDialogKeys, useSignOut } from './account-panel'
 
 // Popover de conta da sidebar (Tavvi Web.dc.html): fixo acima do botão de
@@ -30,6 +32,8 @@ export function AccountPopover({ email, description, onClose }: {
           <span className="tv-account-label">Tema</span>
           <ThemeSegment className="tv-theme-segment" />
         </div>
+        <PwaInstallAction variant="popover" />
+        <PwaNotificationsAction variant="popover" />
         <hr className="tv-account-divider" />
         <button type="button" disabled={pending} className="tv-signout-button" onClick={signOut}>
           {pending ? <span className="tv-spinner" aria-hidden="true" /> : <LuLogOut aria-hidden="true" />}

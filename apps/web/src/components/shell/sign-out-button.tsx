@@ -4,6 +4,7 @@ import { useTransition } from 'react'
 import { RiLogoutBoxLine } from 'react-icons/ri'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { forgetPushOnThisDevice } from '@/components/pwa/push-client'
 import { signOutAction } from '@/server/actions/auth'
 import { cn } from 'cn'
 
@@ -28,6 +29,8 @@ export function SignOutButton({
         className,
       )}
       onClick={() => startTransition(async () => {
+        // Antes da sessão acabar: apagar a inscrição no servidor precisa dela.
+        await forgetPushOnThisDevice()
         await signOutAction()
         window.location.replace('/entrar')
       })}

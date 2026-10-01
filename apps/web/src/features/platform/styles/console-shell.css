@@ -87,11 +87,17 @@
 .tv-theme-segment { padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 9px; background: var(--tv-neutral-soft); }
 .tv-theme-segment button { height: 26px; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
 .tv-theme-segment button[aria-pressed="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 2px rgba(22,20,15,.08), 0 0 0 .5px var(--tv-line-2); }
-.tv-theme-segment button:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+.tv-theme-segment button:focus-visible, .tv-account-action:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
 .tv-account-divider { height: 1px; margin: 0; border: 0; background: var(--tv-line); }
-.tv-signout-button { height: 30px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 7px; background: transparent; color: var(--tv-danger); font: inherit; font-size: 12.5px; font-weight: 500; text-align: left; cursor: pointer; }
+/* "Instalar app" e "Sair" dividem a caixa; muda só a cor. */
+.tv-account-action, .tv-signout-button { height: 30px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 500; text-align: left; cursor: pointer; }
+.tv-account-action { color: var(--tv-text); }
+.tv-account-action:hover { background: var(--tv-hover); }
+.tv-account-action svg { width: 14px; height: 14px; }
+.tv-account-note { margin: 0; padding: 0 8px; color: var(--tv-text-3); font-size: 11.5px; line-height: 1.45; }
+.tv-signout-button { color: var(--tv-danger); }
 .tv-signout-button:hover { background: var(--tv-danger-soft); }
-.tv-signout-button:disabled { cursor: progress; opacity: .6; }
+.tv-account-action:disabled, .tv-signout-button:disabled { cursor: progress; opacity: .6; }
 .tv-signout-button svg, .tv-signout-button .tv-spinner { width: 14px; height: 14px; }
 
 /* Popover "Seus restaurantes". */

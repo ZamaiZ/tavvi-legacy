@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { LuLogOut } from 'react-icons/lu'
 import { accountInitial, ThemeSegment, useAccountDialogKeys, useSignOut } from '@/components/shell/account-panel'
 import { useConsoleAccount } from '@/components/shell/console-shell'
+import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
+import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
 import { ConfirmDialog } from '../confirm-dialog'
 
-// Aba Conta do celular: sheet com Tema e Sair, sem trocar de tela. O desktop
-// usa o popover da sidebar.
+// Aba Conta do celular: sheet com Tema, Instalar app e Notificações (quando
+// der) e Sair, sem trocar de tela. O desktop usa o popover da sidebar.
 export function ConsoleAccountSheet() {
   const { open, email, description, onClose } = useConsoleAccount()
   if (!open) return null
@@ -39,6 +41,8 @@ function AccountSheet({ email, description, onClose }: { email: string | null; d
         </div>
         <h2 className="tv-group-label">Aparência</h2>
         <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
+        <PwaInstallAction variant="row" className="is-spaced" />
+        <PwaNotificationsAction variant="row" className="is-spaced" />
         <div className="tv-group is-spaced">
           <button type="button" className="tv-group-danger" disabled={pending} onClick={() => setConfirm(true)}>
             <LuLogOut aria-hidden="true" />{pending ? 'Saindo…' : 'Sair'}

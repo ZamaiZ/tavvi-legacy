@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useTransition, type RefObject } from 'react'
 import { useTheme, type Theme } from '@/components/theme/theme-provider'
+import { forgetPushOnThisDevice } from '@/components/pwa/push-client'
 import { signOutAction } from '@/server/actions/auth'
 
 const themeOptions: { value: Theme; label: string }[] = [
@@ -27,11 +28,14 @@ export function ThemeSegment({ className }: { className: string }) {
   )
 }
 
-// Sai e navega com location.replace (ver signOutAction).
+// Sai e navega com location.replace (ver signOutAction). Antes, o aparelho
+// deixa de receber os avisos da conta: apagar a inscrição no servidor ainda
+// precisa da sessão.
 export function useSignOut() {
   const [pending, startTransition] = useTransition()
   function signOut() {
     startTransition(async () => {
+      await forgetPushOnThisDevice()
       await signOutAction()
       window.location.replace('/entrar')
     })

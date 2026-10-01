@@ -23,6 +23,8 @@ Use independent deployment settings for each app. For a given environment, set t
 
 Web's current Supabase SSR environment also requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_ROOT_DOMAIN`. Backend values are documented in `apps/backend/.env.example`; Mobile values are documented in `apps/mobile/.env.example`. Local values belong in ignored `.env` files and must not be committed.
 
+Web push also requires `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` (`mailto:` or an `https://` URL that is not localhost). Generate one key pair per environment with `pnpm --filter @tavvi/web push:keys` and keep it stable: rotating it invalidates every subscription until each device reopens the app. The private key is server-only. Apply `supabase/migrations/0024_push_notifications.sql` before enabling push.
+
 The canonical API target is `/api/v1`. During the incremental migration, Mobile still uses its existing route and Web still has unmigrated server-side Supabase data access. Do not remove either path until the corresponding migration phase and the Mobile minimum-version gate are complete.
 
 The root `supabase/migrations/` directory is the single numbered migration history. Keep applied migration numbers and contents unchanged. Update generated `supabase/schema.sql` from that history instead of hand-editing it.

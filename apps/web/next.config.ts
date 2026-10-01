@@ -81,6 +81,17 @@ const nextConfig: NextConfig = {
           { key: 'Content-Security-Policy', value: contentSecurityPolicy },
         ],
       },
+      {
+        // O navegador precisa ver cada versão nova do service worker. Sem
+        // isto, um cache intermediário seguraria a versão velha. A CSP de
+        // cima continua valendo: manifesto, ícones e service worker são da
+        // mesma origem e caem em default-src e script-src 'self'.
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+        ],
+      },
     ]
   },
 }

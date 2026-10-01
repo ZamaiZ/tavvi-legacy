@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LuArrowLeftRight, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette } from 'react-icons/lu'
 import { useSignOut } from '@/components/shell/account-panel'
+import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
+import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
 import { useRestaurantShell } from '@/components/shell/console-shell'
 import { useTheme } from '@/components/theme/theme-provider'
 import { markStackedFromList } from '@/lib/viewport'
@@ -72,6 +74,9 @@ export function SettingsMobile() {
           <LuChevronRight aria-hidden="true" />
         </button>
       </div>
+
+      <PwaInstallAction variant="row" />
+      <PwaNotificationsAction variant="row" />
 
       <div className="tv-group">
         <button type="button" className="tv-group-danger" disabled={pending} onClick={() => setSignOutOpen(true)}>

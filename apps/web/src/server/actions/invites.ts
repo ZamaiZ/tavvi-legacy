@@ -1,6 +1,8 @@
 'use server'
 
+import { after } from 'next/server'
 import * as dal from '@/server/dal/invites'
+import * as push from '@/server/dal/push'
 import { revalidateLists, revalidateRestaurant } from '@/server/revalidate'
 import { runAction, type ActionResult } from './result'
 
@@ -60,6 +62,7 @@ export async function redeemInviteAction(
     // Quem resgatou passou a enxergar um restaurante que antes não aparecia
     // na lista dele.
     revalidateLists()
+    notifyAfterRedeem()
     return { restaurantId: revalidationTarget.id }
   })
 }
@@ -72,6 +75,20 @@ export async function redeemPlatformInviteAction(
     revalidateRestaurant(revalidationTarget)
     // Este resgate CRIA um restaurante. As duas listas mudam.
     revalidateLists()
+    notifyAfterRedeem()
     return { restaurantId: revalidationTarget.id }
+  })
+}
+
+// O banco gravou o aviso na transação do resgate. Reivindicar usa a sessão
+// de quem resgatou; o envio fica para depois da resposta, e falhar nele
+// nunca desfaz o resgate.
+function notifyAfterRedeem() {
+  after(async () => {
+    try {
+      await push.deliverPush(await push.claimPushDeliveries())
+    } catch (error) {
+      console.error('[push] aviso de convite não enviado', error instanceof Error ? error.message : error)
+    }
   })
 }

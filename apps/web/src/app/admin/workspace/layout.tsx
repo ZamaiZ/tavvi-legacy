@@ -1,3 +1,11 @@
+import type { Metadata } from 'next'
+import { PwaProvider } from '@/components/pwa/pwa-provider'
+import { pwaMetadata } from '@/lib/pwa'
+import { env } from '@/server/env'
+
+// Instalável como "Tavvi Painel" (manifesto e meta tags do iOS). Vale em
+// todas as telas do painel, login e convite incluídos.
+export const metadata: Metadata = pwaMetadata('painel')
 
 export default async function WorkspaceLayout({
   children,
@@ -17,5 +25,9 @@ export default async function WorkspaceLayout({
   //
   // `workspace-territory` marca as superfícies privadas e aplica os tokens
   // Tavvi, sem interferir no cardápio público.
-  return <div className="workspace-territory flex min-h-dvh flex-col">{children}</div>
+  return (
+    <div className="workspace-territory flex min-h-dvh flex-col">
+      <PwaProvider vapidPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}>{children}</PwaProvider>
+    </div>
+  )
 }

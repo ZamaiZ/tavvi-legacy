@@ -1,3 +1,4 @@
+import type { Viewport } from 'next'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { LuStore } from 'react-icons/lu'
@@ -11,6 +12,17 @@ import { listMyRestaurants } from '@/server/dal/restaurant-read'
 import { env } from '@/server/env'
 
 export const metadata = { title: 'Seus restaurantes' }
+
+// Cor da barra igual ao fundo da tela (--tv-bg). O TavviShell corrige quando
+// o tema escolhido difere do sistema; sem estas metas, o navegador usaria o
+// preto do manifesto (é a primeira tela do app instalado com 0 ou 2+
+// restaurantes).
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F5F3EE' },
+    { media: '(prefers-color-scheme: dark)', color: '#0D0C0A' },
+  ],
+}
 
 // Keep the restaurant picker outside the workspace layout so it does not nest
 // a second sidebar provider.

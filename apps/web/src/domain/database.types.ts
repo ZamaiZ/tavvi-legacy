@@ -487,6 +487,92 @@ export type Database = {
         }
         Relationships: []
       }
+      push_events: {
+        Row: {
+          actor_id: string
+          claimed_at: string | null
+          created_at: string
+          id: string
+          kind: string
+          member_role: Database["public"]["Enums"]["member_role"] | null
+          restaurant_id: string
+        }
+        Insert: {
+          actor_id: string
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          member_role?: Database["public"]["Enums"]["member_role"] | null
+          restaurant_id: string
+        }
+        Update: {
+          actor_id?: string
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          member_role?: Database["public"]["Enums"]["member_role"] | null
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          expiration_time: string | null
+          p256dh: string
+          territory: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          expiration_time?: string | null
+          p256dh: string
+          territory: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          expiration_time?: string | null
+          p256dh?: string
+          territory?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_counters: {
         Row: {
           bucket: string
@@ -590,6 +676,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_push_deliveries: {
+        Args: never
+        Returns: {
+          actor_email: string
+          auth: string
+          endpoint: string
+          event_id: string
+          kind: string
+          member_role: Database["public"]["Enums"]["member_role"]
+          p256dh: string
+          restaurant_id: string
+          restaurant_name: string
+        }[]
+      }
+      delete_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: undefined
+      }
       is_category_visible: { Args: { cid: string }; Returns: boolean }
       is_member: { Args: { rid: string }; Returns: boolean }
       is_menu_item_public: { Args: { iid: string }; Returns: boolean }
@@ -600,6 +704,14 @@ export type Database = {
       my_role: {
         Args: { rid: string }
         Returns: Database["public"]["Enums"]["member_role"] | null
+      }
+      my_push_subscriptions: {
+        Args: { p_territory: string }
+        Returns: {
+          auth: string
+          endpoint: string
+          p256dh: string
+        }[]
       }
       list_restaurant_members: {
         Args: { p_restaurant_id: string }
@@ -619,6 +731,10 @@ export type Database = {
           invite_role: Database["public"]["Enums"]["member_role"]
           restaurant_name: string | null
         }[]
+      }
+      prune_push_subscriptions: {
+        Args: { p_endpoints: string[] }
+        Returns: undefined
       }
       record_audit: {
         Args: {
@@ -646,6 +762,16 @@ export type Database = {
       restaurant_id_from_storage_path: {
         Args: { p_name: string }
         Returns: string
+      }
+      save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_expiration_time?: string
+          p_p256dh: string
+          p_territory: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

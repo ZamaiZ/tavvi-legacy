@@ -8,6 +8,7 @@ import { flattenNavItems } from './navigation'
 import { Sidebar, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { TavviShellConfig } from './navigation.types'
+import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 
 export function TavviShell({
   config,
@@ -41,6 +42,11 @@ export function TavviShell({
     icon: item.icon,
     count: itemCounts?.[item.href],
   }))
+
+  // A barra acompanha o fundo desta tela (--tv-bg), que não é o fundo
+  // agrupado do ConsoleShell. Sem isto, o app instalado abriria a lista de
+  // restaurantes com a barra preta do manifesto no tema claro.
+  useThemeColorSync('#F5F3EE', '#0D0C0A')
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

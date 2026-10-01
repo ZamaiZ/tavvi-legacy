@@ -12,8 +12,9 @@ import Script from 'next/script'
 const script = `(function(){var t="system";try{var s=localStorage.getItem("tema");if(s==="light"||s==="dark"||s==="system")t=s;}catch(e){}var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";})()`
 
 export function ThemeScript() {
-  // Unico dangerouslySetInnerHTML do projeto, e seguro porque o conteudo e
-  // uma constante escrita por nos, sem nenhuma entrada de usuario.
+  // Um dos dois dangerouslySetInnerHTML do projeto (o outro e o
+  // PwaInstallCapture). Os dois sao seguros porque o conteudo e uma
+  // constante escrita por nos, sem nenhuma entrada de usuario.
   return (
     <Script
       id="theme-prepaint"
