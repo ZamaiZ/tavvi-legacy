@@ -42,10 +42,12 @@ const schema = z.object({
       error: 'VAPID_SUBJECT precisa ser mailto:email ou uma URL https://',
     }),
 }).refine(
-  (values) => !values.DEV_TUNNEL_HOST === !values.DEV_TUNNEL_TERRITORY,
+  // Túnel sem território serve o cardápio público: host desconhecido já cai
+  // em 'site'. Só o território sem host é que não aponta para lugar nenhum.
+  (values) => !values.DEV_TUNNEL_TERRITORY || !!values.DEV_TUNNEL_HOST,
   {
-    error: 'DEV_TUNNEL_HOST e DEV_TUNNEL_TERRITORY precisam vir juntas',
-    path: ['DEV_TUNNEL_HOST'],
+    error: 'DEV_TUNNEL_TERRITORY precisa de DEV_TUNNEL_HOST',
+    path: ['DEV_TUNNEL_TERRITORY'],
   },
 )
 
