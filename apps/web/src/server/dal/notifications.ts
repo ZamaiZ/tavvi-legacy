@@ -113,7 +113,7 @@ export async function sendTestNotification(input: unknown): Promise<void> {
   const { error } = await supabase.rpc('send_test_notification', { p_territory: territory, p_url: url })
   if (error) {
     if (error.code === 'PGRST202') {
-      throw new UserFacingError('O teste ainda não está configurado no banco: falta aplicar a migração 0032_test_notification.sql no Supabase.')
+      throw new UserFacingError('O teste ainda nao esta configurado no banco. Recrie o schema Web com a migration baseline do Supabase.')
     }
     throw new Error(`Não foi possível enviar o teste: ${error.message}`)
   }

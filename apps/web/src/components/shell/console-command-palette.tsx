@@ -46,7 +46,7 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
     const pages: PaletteRow[] = leaves.map((leaf) => ({ key: leaf.key, label: leaf.label, sub: leaf.sub, kind: 'Página', icon: icons[leaf.icon], href: leaf.href }))
     const territoryRoot = pathname.startsWith('/admin/workspace') ? '/admin/workspace' : '/admin'
     pages.push(
-      { key: 'account-profile', label: 'Perfil', sub: 'conta, senha, digital', kind: 'Página', icon: LuCircleUserRound, href: toExternalPath(`${territoryRoot}/profile`) },
+      { key: 'account-profile', label: 'Perfil', sub: 'conta e senha', kind: 'Página', icon: LuCircleUserRound, href: toExternalPath(`${territoryRoot}/profile`) },
       { key: 'account-settings', label: 'Configurações', sub: 'tema, aparência, notificações', kind: 'Página', icon: LuSettings, href: toExternalPath(`${territoryRoot}/settings`) },
     )
     const actions: PaletteRow[] = onNewInvite

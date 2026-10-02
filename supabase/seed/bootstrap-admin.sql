@@ -8,8 +8,8 @@
 -- codigo seria exatamente o que um atacante procuraria primeiro.
 --
 -- COMO USAR:
---   1. Crie sua conta normalmente (pelo app, ou em Authentication > Users
---      no painel do Supabase).
+--   1. Crie sua conta pelo fluxo de cadastro Web ou em Authentication > Users
+--      no painel do Supabase.
 --   2. Troque o e-mail na linha marcada abaixo pelo seu.
 --   3. Cole este arquivo inteiro no SQL Editor e execute.
 --   4. Confira na listagem do final que voce aparece.

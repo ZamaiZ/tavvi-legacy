@@ -2,28 +2,11 @@
   "name": "tavvi-workspace",
   "private": true,
   "packageManager": "pnpm@10.34.5",
-  "pnpm": {
-    "packageExtensions": {
-      "@gluestack-ui/utils@5.0.1-alpha.0": {
-        "dependencies": {
-          "@react-aria/utils": "^3.34.1"
-        }
-      }
-    }
-  },
   "scripts": {
     "approve-build": "pnpm approve-builds",
-    "back": "pnpm --filter @tavvi/api-contracts build && pnpm --filter ./apps/backend dev",
-    "expo": "pnpm --filter @tavvi/api-contracts build && pnpm --filter ./apps/mobile start",
-    "web": "pnpm --filter @tavvi/api-contracts build && pnpm --filter ./apps/web dev",
-    "dev": "pnpm --filter @tavvi/api-contracts build && pnpm --recursive --parallel --stream --filter ./apps/backend --filter ./apps/mobile --filter ./apps/web run dev",
-    "dev:back-web": "pnpm --filter @tavvi/api-contracts build && pnpm --recursive --parallel --stream --filter ./apps/backend --filter ./apps/web run dev",
-    "dev:back-expo": "pnpm --filter @tavvi/api-contracts build && pnpm --recursive --parallel --stream --filter ./apps/backend --filter ./apps/mobile run dev",
-    "dev:web": "pnpm dev:back-web",
-    "dev:mobile": "pnpm dev:back-expo",
+    "back": "pnpm --filter ./apps/backend dev",
+    "web": "pnpm --filter ./apps/web dev",
+    "dev": "pnpm --recursive --parallel --stream --filter ./apps/backend --filter ./apps/web run dev",
     "ngrok": "pnpm --filter ./apps/backend exec ngrok http 3002"
-  },
-  "devDependencies": {
-    "concurrently": "^10.0.5"
   }
 }

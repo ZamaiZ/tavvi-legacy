@@ -41,7 +41,7 @@ const SIGN_IN_MESSAGES: Record<string, string> = {
 }
 
 // "E-mail já cadastrado" é dito com todas as letras: a API pública do
-// Supabase já responde `user_already_exists` para quem chamar o cadastro com
+// The public Supabase API already returns user_already_exists for anonymous sign-up calls.
 // a chave anônima, então esconder aqui não protegeria nada.
 const SIGN_UP_MESSAGES: Record<string, string> = {
   user_already_exists: 'Este e-mail já tem conta. Use a aba "Já tenho conta" para entrar.',
@@ -90,7 +90,7 @@ export async function signIn(input: unknown): Promise<void> {
 }
 
 // `confirmEmail` só é verdadeiro se a confirmação de e-mail for ligada no
-// Supabase: aí o cadastro dá certo, mas sem sessão, e a tela precisa dizer
+// Return the confirmation state so the form does not reload as authenticated.
 // isso em vez de recarregar como se a pessoa já tivesse entrado.
 export async function signUp(input: unknown): Promise<{ confirmEmail: boolean }> {
   const data = signUpSchema.parse(input)
@@ -113,33 +113,28 @@ export async function signUp(input: unknown): Promise<{ confirmEmail: boolean }>
   return { confirmEmail: !result.session }
 }
 
-// Só este navegador. O padrão do supabase-js é 'global' e derrubava o app do
-// celular e a digital junto (spec 2026-10-01-biometria-persistente).
+// Local logout only closes this browser session; other web sessions stay active.
 export async function signOut(): Promise<void> {
   const supabase = await createUserClient(await currentTerritory())
   await supabase.auth.signOut({ scope: 'local' })
 }
 
-// "Sair de todos os aparelhos": desliga as digitais e as inscrições de push
-// (precisa da sessão), depois encerra todas as sessões da conta. O logout
-// global vai por auth.admin.signOut com o token do próprio usuário porque
-// auth.signOut apaga os cookies mesmo quando o Supabase falha; assim, numa
-// falha, este navegador continua logado e "tente novamente" funciona.
+// Global logout removes the account Web Push subscriptions, then revokes all Auth sessions.
 export async function signOutEverywhere(): Promise<void> {
   const supabase = await createUserClient(await currentTerritory())
   const { data } = await supabase.auth.getSession()
   const accessToken = data.session?.access_token
   if (!accessToken) throw new UserFacingError('Sua sessão expirou. Entre novamente.')
 
-  const revoked = await supabase.rpc('revoke_all_my_devices')
+  const revoked = await supabase.rpc('revoke_my_web_push_subscriptions')
   if (revoked.error) {
-    console.error('[auth] revoke_all_my_devices failed', { code: revoked.error.code })
-    throw new UserFacingError('Não foi possível desligar a digital dos aparelhos. Nada foi encerrado; tente novamente.')
+    console.error('[auth] revoke_my_web_push_subscriptions failed', { code: revoked.error.code })
+    throw new UserFacingError('Não foi possível remover inscrições Web Push. Nenhuma sessão foi encerrada; tente novamente.')
   }
   const { error } = await supabase.auth.admin.signOut(accessToken, 'global')
   if (error) {
     console.error('[auth] global signOut failed', { code: error.code, status: error.status })
-    throw new UserFacingError('A digital foi desligada em todos os aparelhos, mas não foi possível encerrar as sessões abertas. Tente novamente.')
+    throw new UserFacingError('As inscrições Web Push foram removidas, mas não foi possível encerrar as sessões web. Tente novamente.')
   }
   // A sessão já não existe no Supabase; o logout local só limpa os cookies.
   await supabase.auth.signOut({ scope: 'local' })

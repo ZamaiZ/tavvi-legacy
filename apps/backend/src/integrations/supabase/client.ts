@@ -12,11 +12,3 @@ export function createAnonymousSupabaseClient(): SupabaseClient<Database> {
   const env = getServerEnv()
   return createClient<Database>(env.supabaseUrl, env.supabaseAnonKey, { auth: authOptions })
 }
-
-export function createUserSupabaseClient(accessToken: string): SupabaseClient<Database> {
-  const env = getServerEnv()
-  return createClient<Database>(env.supabaseUrl, env.supabaseAnonKey, {
-    auth: authOptions,
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
-  })
-}

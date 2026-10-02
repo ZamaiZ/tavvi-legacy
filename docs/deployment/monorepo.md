@@ -1,55 +1,49 @@
-# Monorepo development and deployment
+# Development and deployment
 
-The workspace contains three independently deployable applications: `apps/backend` (Express), `apps/mobile` (Expo), and `apps/web` (Next.js). Shared runtime-neutral packages live in `packages/`. Supabase configuration and its ordered migration history are owned at the repository root.
+The workspace contains `apps/web` (Next.js), `apps/backend` (Express), and `packages/theme-core`. Supabase configuration and the clean-install migration live at the repository root.
 
-Run `pnpm install` at the root to resolve and install dependencies for every application and package in the workspace. Use these root commands during development:
+Run these commands from the root:
 
 ```text
-pnpm back
-pnpm expo
 pnpm web
+pnpm back
 pnpm dev
-pnpm dev:back-web
-pnpm dev:back-expo
-pnpm dev:web
-pnpm dev:mobile
 pnpm ngrok
 pnpm approve-build
 ```
 
-`pnpm back`, `pnpm expo`, and `pnpm web` run one app. `pnpm dev` runs all three development processes; `pnpm dev:web` and `pnpm dev:back-web` run Express and Next, while `pnpm dev:mobile` and `pnpm dev:back-expo` run Express and Mobile. The short aliases reuse the existing pair commands. The pnpm recursive parallel runner prefixes process output and stops sibling processes when one exits. `pnpm ngrok` targets backend port 3002. `pnpm approve-build` is a workspace alias for pnpm 10.34.5's built-in `pnpm approve-builds` command, which records approved dependency scripts in the root configuration.
+`pnpm dev` runs Next and Express in parallel. Web domain data and Auth flows use the Next server-side DAL with Supabase; the browser does not call the Express API for application data. Express keeps `/healthz` and the internal Web Push delivery route only.
 
-Use independent deployment settings for each app. For a given environment, set the Web server-only `API_BASE_URL` and Mobile `EXPO_PUBLIC_API_URL` to the same Express API origin. Do not put server credentials or access/refresh tokens in public environment variables.
+## Environment
 
-Web's current Supabase SSR environment also requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_ROOT_DOMAIN`. Backend values are documented in `apps/backend/.env.example`; Mobile values are documented in `apps/mobile/.env.example`. Local values belong in ignored `.env` files and must not be committed.
+Web requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_ROOT_DOMAIN`. It also uses server-only `APP_SERVER_KEY`, `API_BASE_URL`, and `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. See `apps/web/.env.example`.
 
-Push delivery for browsers runs on Express. Web only signals it: after any action that creates a notification, Web calls `POST /api/v1/internal/push/deliver` on `API_BASE_URL` with the `x-server-key` header. Express claims pending notifications once and sends them through Web Push. The Expo mobile app no longer registers for push or includes a notification center; it removes a legacy device token the next time that account opens the app.
+Backend requires `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `APP_SERVER_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`. See `apps/backend/.env.example`. The backend does not need a Supabase secret key.
 
-Web Push needs one VAPID key pair per environment. Generate it with `pnpm --filter tavvi-backend push:keys` and keep it stable: rotating it invalidates every subscription until each device reopens the app.
-- Backend: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (server-only), and `VAPID_SUBJECT` (`mailto:` or an `https://` URL that is not localhost).
-- Web: only the public key, as `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
+Keep `APP_SERVER_KEY` identical in the Web and Backend environments and in Supabase's `app_server_keys` table. To configure the database after installing the schema, run this in the Supabase SQL editor with the environment's key:
 
-Notifications and anonymous feedback require `APP_SERVER_KEY`, the same value on Web and on Backend (server-only, at least 32 characters).
-1. Generate one per environment with `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
-2. Set it on Web and on Backend.
-3. Run `select public.set_app_server_key('<the same key>');` in the Supabase SQL editor.
+```sql
+select public.set_app_server_key('<APP_SERVER_KEY>');
+```
 
-The database stores only the key's SHA-256 hash; rotating means repeating all three steps.
+Generate one VAPID pair per environment with `pnpm --filter tavvi-backend push:keys`. Keep it stable; replacing it invalidates existing browser subscriptions until they subscribe again. The private key and subject stay in Backend environment variables; only the public key is exposed to Web.
 
-Apply these migrations in order:
-1. `supabase/migrations/0029_notifications.sql`.
-2. `0030_restaurant_feedback.sql`.
-3. `0031_push_subscriptions.sql`. It recreates the push subscription table and functions from 0024 without the retired `push_events` part, and is safe where 0024 was already applied.
-4. `0032_test_notification.sql`, for the "Enviar notificação de teste" button.
-5. `0033_mobile_push.sql`, for Expo push tokens and the two-channel claim.
-6. `0034_service_calls.sql`, for table mappings, staff calls, notification kind and private call Broadcast.
+Next calls `POST /api/v1/internal/push/deliver` with the `x-server-key` header after a notification-producing operation. Express claims pending notifications atomically from Supabase, sends browser Web Push, and removes expired subscriptions. The HTTP request returns before delivery completes, so the deployment must keep the Express service available for push delivery.
 
-In Supabase, open Realtime → Settings and turn off "Allow public access" so that only private channels exist. Service calls use a database trigger with `realtime.broadcast_changes` and the private topic `service_calls:{restaurant_id}`; the table does not need to be added to the public Postgres Changes publication or have its dashboard Realtime table toggle enabled. The topic policy grants reads only to authenticated members of that restaurant.
+## Fresh Supabase project
 
-Before displaying "Chamar a equipe", assign every active plaque a unique positive table number in the restaurant's Plaquinhas section. Legacy plaques without a number continue to open the menu but cannot create a call. The database allows at most ten new calls per plaque in an hour; repeats return the current pending call without another notification.
+The active migration is a clean baseline for the current Web-only product. It is intended for a new, empty database and replaces the old migration history. Do not apply it to an existing project or use it as a data-preserving upgrade. Rebuild the local/target database from scratch, then:
 
-After applying migrations, regenerate `supabase/schema.sql` from the history.
+1. Apply `supabase/migrations/0001_web_baseline.sql` to the empty project.
+2. Create the first Auth user through the Web sign-up flow.
+3. Replace the example email in `supabase/seed/bootstrap-admin.sql` with the administrator's email and run that file manually in the Supabase SQL editor.
+4. Set the project's `APP_SERVER_KEY` with `public.set_app_server_key` as described above.
+5. In Supabase Realtime settings, disable public access. The app uses private notification and service-call Broadcast topics with user/restaurant membership checks.
 
-The canonical API target is `/api/v1`. During the incremental migration, Mobile still uses its existing route and Web still has unmigrated server-side Supabase data access. Do not remove either path until the corresponding migration phase and the Mobile minimum-version gate are complete.
+The configured seed path points to the existing bootstrap file, but automatic seeding stays disabled because granting the first platform-admin role is a deliberate manual step.
 
-The root `supabase/migrations/` directory is the single numbered migration history. Keep applied migration numbers and contents unchanged. Update generated `supabase/schema.sql` from that history instead of hand-editing it.
+## Supabase Auth behavior
+
+Panel and platform-admin sessions use distinct host-only cookies, so one browser can hold a session for each territory. Local logout revokes only that browser's current session. The explicit global logout first removes that user's browser push subscriptions, then requests global Auth sign-out. If Auth sign-out fails after subscription cleanup, the UI reports the partial result and keeps the local cookie so the user can retry.
+
+Public menu, feedback, and service-call pages use their scoped server/database operations without creating a user session. Actual simultaneous-session and token-expiry policy is controlled by the hosted Supabase Auth settings and must be set there for each project.

@@ -3,23 +3,13 @@
 # dependencies
 node_modules/
 
-# Expo
-.expo/
+# local credentials and runtime configuration; keep sample templates tracked
+.env
+.env.*
+!.env.example
+!.env.*.example
+
 dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
 
 # debug
 npm-debug.*
@@ -39,6 +29,3 @@ superpowers/
 
 example
 
-# generated native folders
-/apps/mobile/ios/
-/apps/mobile/android/

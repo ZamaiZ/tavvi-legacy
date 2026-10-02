@@ -506,33 +506,6 @@ export type Database = {
           },
         ]
       }
-      mobile_push_tokens: {
-        Row: {
-          created_at: string
-          platform: string
-          territory: string
-          token: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          platform: string
-          territory?: string
-          token: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          platform?: string
-          territory?: string
-          token?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           body: string
@@ -887,22 +860,16 @@ export type Database = {
         Returns: {
           auth: string | null
           body: string
-          channel: string
-          data: Json
           endpoint: string | null
-          expo_token: string | null
           kind: string
           notification_id: string
           p256dh: string | null
-          platform: string | null
-          restaurant_id: string | null
           territory: string
           title: string
           url: string
         }[]
       }
       delete_feedback: { Args: { p_feedback_id: string }; Returns: undefined }
-      delete_mobile_push_token: { Args: { p_token: string }; Returns: undefined }
       delete_push_subscription: {
         Args: { p_endpoint: string }
         Returns: undefined
@@ -1015,7 +982,7 @@ export type Database = {
         Args: { p_name: string }
         Returns: string
       }
-      revoke_all_my_devices: { Args: never; Returns: undefined }
+      revoke_my_web_push_subscriptions: { Args: never; Returns: undefined }
       save_menu_item: {
         Args: { p_payload: Json }
         Returns: Json
@@ -1030,16 +997,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      save_mobile_push_token: {
-        Args: { p_platform: string; p_territory?: string; p_token: string }
-        Returns: undefined
-      }
       send_test_notification: {
         Args: { p_territory: string; p_url: string }
-        Returns: undefined
-      }
-      server_prune_mobile_push_tokens: {
-        Args: { p_key: string; p_tokens: string[] }
         Returns: undefined
       }
       server_prune_push_subscriptions: {

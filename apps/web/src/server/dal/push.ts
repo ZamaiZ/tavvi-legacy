@@ -26,7 +26,7 @@ async function session(): Promise<{ territory: PrivateTerritory; userId: string 
 function failure(action: string, error: { code?: string; message: string }): Error {
   if (error.code === 'PGRST202' || error.code === 'PGRST205' || error.code === '42P01') {
     return new UserFacingError(
-      'As notificações ainda não estão configuradas no banco: falta aplicar a migração 0031_push_subscriptions.sql no Supabase.',
+      'As notificacoes ainda nao estao configuradas no banco. Recrie o schema Web com a migration baseline do Supabase.',
     )
   }
   return new Error(`${action}: ${error.message}`)
@@ -73,12 +73,7 @@ export async function deletePushSubscription(input: unknown): Promise<void> {
   await remove(territory, pushEndpointSchema.parse(input))
 }
 
-// A entrega (navegadores e app do console) é da API Express, que reivindica
-// as notificações pendentes uma vez e envia nos dois canais. Aqui só se
-// avisa que há notificação nova. Roda em after(), depois de qualquer ação
-// que dispare notificação, em qualquer território — inclusive o público,
-// sem sessão: quem autoriza é a chave do servidor. Falha vira log, nunca
-// erro da ação que disparou.
+// Express claims pending notifications and sends them through browser Web Push.
 export async function deliverPendingPushes(): Promise<void> {
   try {
     const response = await fetch(`${env.API_BASE_URL.replace(/\/$/, '')}/api/v1/internal/push/deliver`, {

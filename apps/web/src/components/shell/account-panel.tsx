@@ -45,15 +45,13 @@ export function useSignOut() {
 }
 
 export const signOutEverywhereCopy = {
-  title: 'Sair de todos os aparelhos?',
-  description: 'Isso encerra sua sessão em todos os aparelhos e desliga a digital em todos eles, inclusive neste.',
+  title: 'Encerrar todas as sessões?',
+  description: 'Isso encerra as sessões web e remove inscrições de notificação por navegador.',
   confirmLabel: 'Sair de todos',
   pendingLabel: 'Saindo…',
 }
 
-// "Sair de todos os aparelhos" (só no console): o servidor desliga a digital
-// do app em todos os celulares, apaga as inscrições de push da conta e
-// encerra todas as sessões. Se falhar, a pessoa continua logada e vê a causa.
+// Global logout removes Web Push subscriptions and revokes web sessions.
 export function useSignOutEverywhere(onFailure?: () => void) {
   const [pending, startTransition] = useTransition()
   function signOutEverywhere() {
