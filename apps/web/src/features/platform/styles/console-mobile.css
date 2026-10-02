@@ -84,7 +84,7 @@
   }
   [data-surface="console"] .tv-confirm-dialog > div > button + button { border-left: .5px solid var(--tv-line-2); font-weight: 600; }
   [data-surface="console"] .tv-confirm-dialog.is-destructive > div > button + button { color: var(--tv-danger); }
-  [data-surface="console"] .tv-confirm-dialog > div > button:active { background: var(--tv-active); }
+  [data-surface="console"] .tv-confirm-dialog > div > button:active { background: var(--tv-active); transition-duration: 0s; }
   [data-surface="console"] .tv-confirm-dialog .tv-spinner:not(.tv-confirm-spinner) { margin: auto; }
 }
 
@@ -160,7 +160,7 @@
   }
   [data-surface="console"] .tv-m-hero-action::after { position: absolute; inset: -4px 0; content: ''; }
   [data-surface="console"] .tv-m-hero-action svg { width: 15px; height: 15px; }
-  [data-surface="console"] .tv-m-hero-action:active { opacity: .82; }
+  [data-surface="console"] .tv-m-hero-action:active { opacity: .82; transition-duration: 0s; }
 
   [data-surface="console"] .tv-toolbar { margin: 14px 0 0; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px; }
   [data-surface="console"] .tv-search-field {
@@ -196,6 +196,7 @@
   [data-surface="console"] .tv-filter-strip button small { color: inherit; font-size: 12px; opacity: .55; }
   [data-surface="console"] .tv-filter-strip button.is-active { background: var(--tv-btn); color: var(--tv-btn-text); }
   [data-surface="console"] .tv-filter-strip button.is-active small { color: inherit; opacity: .55; }
+  [data-surface="console"] .tv-filter-strip button:active:not(.is-active) { opacity: .75; transition-duration: 0s; }
 
   [data-surface="console"] .tv-mobile-cards { margin-top: 14px; }
   [data-surface="console"] .tv-state-card { margin-top: 14px; }
@@ -284,7 +285,7 @@
   [data-surface="console"] .tv-detail-secondary svg { width: 17px; height: 17px; }
   [data-surface="console"] .tv-detail-primary:active,
   [data-surface="console"] .tv-detail-revoke:active,
-  [data-surface="console"] .tv-detail-secondary:active { opacity: .75; }
+  [data-surface="console"] .tv-detail-secondary:active { opacity: .75; transition-duration: 0s; }
 }
 
 /* Novo convite: sheet do iOS (print novo-convite). */
@@ -342,6 +343,7 @@
   [data-surface="console"] .tv-rd-link > button { position: relative; flex: 0 0 auto; height: 38px; padding: 0 14px; border: 0; border-radius: 11px; background: var(--tv-surface); box-shadow: inset 0 0 0 1px var(--tv-line-2); color: var(--tv-text); font-size: 14px; font-weight: 600; }
   [data-surface="console"] .tv-rd-link > button::after { position: absolute; inset: -3px 0; content: ''; }
   [data-surface="console"] .tv-rd-link > button.is-copied { background: var(--tv-gold); box-shadow: none; color: #17150F; }
+  [data-surface="console"] .tv-rd-link > button:active { opacity: .75; transition-duration: 0s; }
 
   [data-surface="console"] .tv-rd-member { padding-left: 14px; display: flex; align-items: center; gap: 12px; }
   [data-surface="console"] .tv-rd-avatar { width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12.5px; font-weight: 700; }
@@ -350,6 +352,7 @@
   [data-surface="console"] .tv-rd-member-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
   [data-surface="console"] .tv-rd-member-copy strong { overflow: hidden; color: var(--tv-text); font-size: 15px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
   [data-surface="console"] .tv-rd-member-copy a { overflow: hidden; color: var(--tv-text-3); font-size: 13px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+  [data-surface="console"] .tv-rd-member-copy a:active { color: var(--tv-text); transition-duration: 0s; }
   [data-surface="console"] .tv-rd-member-body small { flex: 0 0 auto; color: var(--tv-text-3); font-size: 12px; }
 
   [data-surface="console"] .tv-rd-slug { height: 50px; padding: 0 16px; display: flex; align-items: center; gap: 2px; }
@@ -365,7 +368,7 @@
   [data-surface="console"] .tv-rd-status small { color: var(--tv-text-3); font-size: 13px; }
   [data-surface="console"] .tv-rd-status svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--tv-gold-text); stroke-width: 2.4; }
   [data-surface="console"] .tv-rd-status:disabled { opacity: .6; }
-  [data-surface="console"] .tv-rd-status:active:not(:disabled) { background: var(--tv-active); }
+  [data-surface="console"] .tv-rd-status:active:not(:disabled) { background: var(--tv-active); transition-duration: 0s; }
 }
 
 /* Esqueletos no formato das telas do celular. */

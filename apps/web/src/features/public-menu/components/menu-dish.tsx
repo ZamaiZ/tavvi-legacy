@@ -161,8 +161,7 @@ export function MenuDish({
             <button
               type="button"
               onClick={onViewDetails}
-              className="mt-2 flex min-h-11 items-center text-left text-[0.875rem] leading-snug"
-              style={{ color: 'var(--m-muted)' }}
+              className="menu-dish-more mt-2 flex min-h-11 items-center text-left text-[0.875rem] leading-snug"
             >
               <span className="line-clamp-2">
                 {item.description ?? 'Ver as opções deste prato'}

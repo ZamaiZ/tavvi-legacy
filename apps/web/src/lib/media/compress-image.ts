@@ -6,7 +6,14 @@ const QUALITY = 0.86
 // Canvas, e não uma biblioteca. O navegador já sabe redimensionar e
 // codificar; trazer dependência para isso seria peso no pacote de uma tela
 // que o dono abre do celular.
-export async function compressImage(file: File): Promise<CompressionResult> {
+//
+// `alwaysReencode`: o feedback anônimo SEMPRE recodifica, mesmo quando o
+// resultado fica maior. A recodificação pelo canvas é o que apaga EXIF e GPS
+// do arquivo; devolver o original vazaria onde a foto foi tirada.
+export async function compressImage(
+  file: File,
+  options: { alwaysReencode?: boolean } = {},
+): Promise<CompressionResult> {
   const bitmap = await createImageBitmap(file)
 
   try {
@@ -29,7 +36,10 @@ export async function compressImage(file: File): Promise<CompressionResult> {
     canvas.width = width
     canvas.height = height
     const context = canvas.getContext('2d')
-    if (!context) return original
+    if (!context) {
+      if (options.alwaysReencode) throw new Error('Canvas 2D indisponível neste navegador.')
+      return original
+    }
 
     context.drawImage(bitmap, 0, 0, width, height)
 
@@ -42,7 +52,11 @@ export async function compressImage(file: File): Promise<CompressionResult> {
 
     // Comprimir para PIORAR é o defeito clássico daqui. Acontece com PNG
     // pequeno e com foto que já veio otimizada.
-    if (!blob || blob.size >= file.size) return original
+    if (!blob) {
+      if (options.alwaysReencode) throw new Error('O navegador não conseguiu codificar a imagem.')
+      return original
+    }
+    if (!options.alwaysReencode && blob.size >= file.size) return original
 
     return { blob, width, height }
   } finally {

@@ -1,7 +1,8 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
-import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
+import { FcGoogle } from 'react-icons/fc'
+import { LuBookOpen, LuInstagram, LuMapPin, LuMessageCircle, LuMessageSquareText, LuPhone } from 'react-icons/lu'
 import type { ThemeChoice } from '@/domain/theme'
 import { ALL_THEME_FONT_VARIABLES } from '@/lib/fonts'
 import { publicMediaUrl } from '@/lib/media-url'
@@ -18,8 +19,9 @@ function toCss(vars: Record<string, string>): string {
     .join(';')
 }
 
-// A capa do cardápio como o cliente a vê: mesmos atalhos, mesma ordem e o
-// tema do restaurante — nunca o dourado do painel.
+// A tela inicial do cardápio como o cliente a vê: contatos em ícones,
+// endereço e a lista de ações, no tema do restaurante — nunca o dourado do
+// painel.
 export function ContactPreview({
   theme,
   name,
@@ -30,6 +32,7 @@ export function ContactPreview({
   address,
   mapsUrl,
   coverPath,
+  reviewActive,
   mode,
 }: {
   theme: ThemeChoice
@@ -42,6 +45,8 @@ export function ContactPreview({
   /** Com link do Maps, "Como chegar" aparece mesmo sem endereço. */
   mapsUrl: string
   coverPath: string | null
+  /** Mesmo critério do cardápio: link gerado do Maps salvo. */
+  reviewActive: boolean
   // Sem `mode`, a face acompanha o tema do painel. O popover do celular
   // continua passando a face escolhida no seletor dele.
   mode?: PreviewMode
@@ -82,16 +87,20 @@ export function ContactPreview({
           {description.trim() ? <span>{description}</span> : null}
         </div>
         {actions.length > 0 ? (
-          <div className="tv-contact-phone-actions">
-            {actions.map((action, index) => (
-              <span key={action.key} className={index === 0 ? 'is-primary' : undefined}>
-                {action.icon}
-                <span>{action.label}</span>
-              </span>
+          <div className="tv-contact-phone-icons">
+            {actions.map((action) => (
+              <span key={action.key} title={action.label}>{action.icon}</span>
             ))}
           </div>
         ) : null}
         {address.trim() ? <span className="tv-contact-phone-address">{address}</span> : null}
+        <div className="tv-contact-phone-list">
+          {reviewActive ? (
+            <span><span className="tv-contact-phone-list-icon is-brand"><FcGoogle aria-hidden="true" /></span>Avaliar no Google</span>
+          ) : null}
+          <span><span className="tv-contact-phone-list-icon"><LuBookOpen aria-hidden="true" /></span>Ver cardápio</span>
+          <span><span className="tv-contact-phone-list-icon"><LuMessageSquareText aria-hidden="true" /></span>Deixar feedback anônimo</span>
+        </div>
       </div>
     </div>
   )

@@ -20,27 +20,22 @@ const schema = z.object({
   API_BASE_URL: z.url({ error: 'API_BASE_URL precisa ser a origem da API Express' }),
   DEV_TUNNEL_HOST: z.string().min(1).optional(),
   DEV_TUNNEL_TERRITORY: z.enum(['admin', 'painel']).optional(),
-  // Web Push. A pública vai ao navegador (pushManager.subscribe); a privada
-  // assina cada envio e nunca sai do servidor. Gere o par com
-  // `pnpm --filter @tavvi/web push:keys`. Trocar o par em produção invalida
-  // as inscrições: cada aparelho se reinscreve ao abrir o app.
+  // Web Push. A pública vai ao navegador (pushManager.subscribe). O envio e
+  // a chave privada ficam na API Express (VAPID_PRIVATE_KEY lá), com o
+  // mesmo par: gere com `pnpm --filter tavvi-backend push:keys`. Trocar o
+  // par em produção invalida as inscrições: cada aparelho se reinscreve ao
+  // abrir o app.
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z
     .string({ error: 'NEXT_PUBLIC_VAPID_PUBLIC_KEY ausente' })
     .refine((value) => BASE64URL.test(value) && value.length === 87, {
       error: 'NEXT_PUBLIC_VAPID_PUBLIC_KEY precisa ser a chave pública VAPID (base64url)',
     }),
-  VAPID_PRIVATE_KEY: z
-    .string({ error: 'VAPID_PRIVATE_KEY ausente' })
-    .refine((value) => BASE64URL.test(value) && value.length === 43, {
-      error: 'VAPID_PRIVATE_KEY precisa ser a chave privada VAPID (base64url)',
-    }),
-  // Contato que Google, Apple e Mozilla usam se os envios derem problema.
-  // A Apple recusa https://localhost.
-  VAPID_SUBJECT: z
-    .string({ error: 'VAPID_SUBJECT ausente' })
-    .regex(/^(mailto:[^@\s]+@[^@\s]+|https:\/\/\S+)$/, {
-      error: 'VAPID_SUBJECT precisa ser mailto:email ou uma URL https://',
-    }),
+  // Chave das funções exclusivas do servidor (feedback anônimo e push).
+  // O banco guarda só o hash: rode `select public.set_app_server_key('<a
+  // mesma chave>');` no editor de SQL. Nunca vai ao navegador.
+  APP_SERVER_KEY: z
+    .string({ error: 'APP_SERVER_KEY ausente' })
+    .min(32, { error: 'APP_SERVER_KEY precisa de ao menos 32 caracteres' }),
 }).refine(
   // Túnel sem território serve o cardápio público: host desconhecido já cai
   // em 'site'. Só o território sem host é que não aponta para lugar nenhum.
@@ -59,8 +54,7 @@ const parsed = schema.safeParse({
   DEV_TUNNEL_HOST: process.env.DEV_TUNNEL_HOST || undefined,
   DEV_TUNNEL_TERRITORY: process.env.DEV_TUNNEL_TERRITORY || undefined,
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
-  VAPID_SUBJECT: process.env.VAPID_SUBJECT,
+  APP_SERVER_KEY: process.env.APP_SERVER_KEY,
 })
 
 if (!parsed.success) {

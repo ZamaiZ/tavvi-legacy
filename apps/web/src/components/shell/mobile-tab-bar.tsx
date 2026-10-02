@@ -3,7 +3,7 @@
 import type { CSSProperties, Ref } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LuBookOpen, LuCircleUserRound, LuConciergeBell, LuMail, LuSettings, LuStore, LuUsers } from 'react-icons/lu'
+import { LuBookOpen, LuCircleUserRound, LuConciergeBell, LuMail, LuMessageSquareText, LuSettings, LuStore, LuUsers } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import type { MobileTab } from './navigation.types'
 
@@ -13,6 +13,7 @@ const icons = {
   menu: LuBookOpen,
   service: LuConciergeBell,
   team: LuUsers,
+  feedback: LuMessageSquareText,
   settings: LuSettings,
 } as const
 
@@ -34,7 +35,7 @@ export function isMobileTabActive(pathname: string, tab: MobileTab) {
 // Conta do console abre o sheet de conta sem trocar de tela.
 export function MobileTabBar({ tabs, account }: {
   tabs: MobileTab[]
-  account?: { open: boolean; buttonRef: Ref<HTMLButtonElement>; onOpen: () => void }
+  account?: { open: boolean; buttonRef: Ref<HTMLButtonElement>; onOpen: () => void; badge?: number }
 }) {
   const pathname = toExternalPath(usePathname())
   const count = tabs.length + (account ? 1 : 0)
@@ -56,7 +57,12 @@ export function MobileTabBar({ tabs, account }: {
       })}
       {account ? (
         <button ref={account.buttonRef} type="button" className="tv-tabbar-item" aria-haspopup="dialog" aria-expanded={account.open} onClick={account.onOpen}>
-          <span className="tv-tabbar-icon"><LuCircleUserRound aria-hidden="true" /></span>
+          <span className="tv-tabbar-icon">
+            <LuCircleUserRound aria-hidden="true" />
+            {account.badge && account.badge > 0 ? (
+              <span className="tv-tabbar-badge">{account.badge > 99 ? '99+' : account.badge}<span className="sr-only"> não lidas</span></span>
+            ) : null}
+          </span>
           <span>Conta</span>
         </button>
       ) : null}

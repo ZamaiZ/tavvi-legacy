@@ -72,6 +72,14 @@ export function getRestaurantNavigation(
     children.push(
       {
         kind: 'leaf',
+        href: `${root}/feedbacks`,
+        label: 'Feedbacks',
+        icon: 'feedback',
+        description: 'Comentários e fotos dos clientes',
+        keywords: ['avaliação', 'reclamação', 'opinião', 'cliente'],
+      },
+      {
+        kind: 'leaf',
         href: `${root}/identidade`,
         label: 'Identidade',
         icon: 'palette',
@@ -109,15 +117,22 @@ export function getRestaurantNavigation(
   ]
 }
 
-// Tab bar do painel no celular (Tavvi Mobile.dc.html, tabsB). Equipe só
-// para administrador; Identidade e Contato moram dentro de Ajustes.
+// Tab bar do painel no celular (Tavvi Mobile.dc.html, tabsB). Feedbacks e
+// Equipe só para administrador; Identidade e Contato moram dentro de Ajustes.
 export function getRestaurantMobileTabs(restaurantId: string, canEdit: boolean): MobileTab[] {
   const root = `/restaurantes/${restaurantId}`
   const tabs: MobileTab[] = [
     { key: 'menu', href: root, label: 'Cardápio', icon: 'menu', exact: true },
     { key: 'service', href: `${root}/servico`, label: 'Serviço', icon: 'service' },
   ]
-  if (canEdit) tabs.push({ key: 'team', href: `${root}/equipe`, label: 'Equipe', icon: 'team' })
+  // Cardápio · Serviço · Feedbacks · Equipe · Ajustes: 5 abas, o máximo da
+  // barra do iOS.
+  if (canEdit) {
+    tabs.push(
+      { key: 'feedback', href: `${root}/feedbacks`, label: 'Feedbacks', icon: 'feedback' },
+      { key: 'team', href: `${root}/equipe`, label: 'Equipe', icon: 'team' },
+    )
+  }
   tabs.push({ key: 'settings', href: `${root}/ajustes`, label: 'Ajustes', icon: 'settings', match: [`${root}/identidade`, `${root}/contato`] })
   return tabs
 }

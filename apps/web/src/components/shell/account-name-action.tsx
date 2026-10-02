@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState, useTransition, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, useTransition, type FormEvent } from 'react'
 import { LuUserRound } from 'react-icons/lu'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
@@ -16,20 +16,38 @@ export function AccountNameAction({
   variant,
   className,
   disabled = false,
+  onSaved,
 }: {
   name: string | null
   variant: 'row' | 'popover'
   className?: string
   /** Outra ação da tela está rodando (sair da conta). */
   disabled?: boolean
+  /** O cabeçalho do popover mostra o nome salvo sem esperar o servidor. */
+  onSaved?: (name: string) => void
 }) {
   const inputId = useId()
+  const inputRef = useRef<HTMLInputElement>(null)
   const [saved, setSaved] = useState(name ?? '')
   const [value, setValue] = useState(name ?? '')
   const [pending, startTransition] = useTransition()
   const trimmed = value.trim()
   const dirty = trimmed !== saved
   const valid = trimmed.length >= 2 && trimmed.length <= 80
+
+  // No popover, campo e "Salvar" ficam desabilitados enquanto salva e o foco
+  // cai no <body>; depois, volta ao campo para o Tab seguir preso no
+  // diálogo. Só no desktop: no celular, focar o campo subiria o teclado.
+  const wasPending = useRef(false)
+  useEffect(() => {
+    if (pending) {
+      wasPending.current = true
+      return
+    }
+    if (!wasPending.current) return
+    wasPending.current = false
+    if (variant === 'popover' && document.activeElement === document.body) inputRef.current?.focus()
+  }, [pending, variant])
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -43,12 +61,14 @@ export function AccountNameAction({
       }
       setSaved(result.data.displayName)
       setValue(result.data.displayName)
+      onSaved?.(result.data.displayName)
       toast.add({ title: 'Nome salvo', type: 'success' })
     })
   }
 
   const input = (
     <input
+      ref={inputRef}
       id={inputId}
       name="name"
       type="text"
@@ -72,14 +92,14 @@ export function AccountNameAction({
     </button>
   ) : null
 
+  // No popover, primeira linha do grupo de Nome e Tema: rótulo à esquerda,
+  // campo sem borda alinhado à direita.
   if (variant === 'popover') {
     return (
-      <form className="tv-account-section" onSubmit={onSubmit} noValidate>
+      <form className="tv-account-name" onSubmit={onSubmit} noValidate>
         <label className="tv-account-label" htmlFor={inputId}>Nome</label>
-        <div className="tv-account-name">
-          {input}
-          {save}
-        </div>
+        {input}
+        {save}
       </form>
     )
   }

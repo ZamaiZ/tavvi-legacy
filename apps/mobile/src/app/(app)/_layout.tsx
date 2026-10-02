@@ -8,6 +8,8 @@ import { useAuth } from '@/features/auth/auth-context'
 import { AccountSheet } from '@/features/account/account-sheet'
 import { useInvitations } from '@/features/invitations/queries'
 import { getInviteState } from '@/features/invitations/invitation-state'
+import { NotificationRuntime } from '@/features/notifications/notification-runtime'
+import { useUnreadCount } from '@/features/notifications/queries'
 
 export default function ProtectedLayout() {
   const { status } = useAuth()
@@ -27,6 +29,7 @@ function AuthenticatedTabs() {
     return () => clearInterval(interval)
   }, [])
   const pendingCount = invitations.data?.filter((invite) => getInviteState(invite, now) === 'pending').length ?? 0
+  const unreadNotifications = useUnreadCount().data ?? 0
 
   return (
     <>
@@ -69,6 +72,9 @@ function AuthenticatedTabs() {
           name="account"
           options={{
             title: 'Conta',
+            // Não lidas da central, aberta pela folha Conta.
+            tabBarBadge: unreadNotifications > 0 ? (unreadNotifications > 99 ? '99+' : unreadNotifications) : undefined,
+            tabBarBadgeStyle: { backgroundColor: colors.gold, color: colors.goldInk },
             tabBarIcon: ({ color, size }) => <UserRound color={color} size={size} />,
           }}
           listeners={{
@@ -81,8 +87,10 @@ function AuthenticatedTabs() {
         />
         <Tabs.Screen name="invitations/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
         <Tabs.Screen name="restaurants/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+        <Tabs.Screen name="notifications" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
-      <AccountSheet open={accountOpen} onOpenChange={setAccountOpen} />
+      <AccountSheet open={accountOpen} onOpenChange={setAccountOpen} unreadNotifications={unreadNotifications} />
+      <NotificationRuntime />
     </>
   )
 }

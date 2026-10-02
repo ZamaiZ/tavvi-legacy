@@ -3,6 +3,7 @@ import { API_ROUTES, type SignedOut, type UserSummary } from '@tavvi/api-contrac
 import { ApiError, apiRequest, publicApiRequest } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import { sessionStore } from '@/lib/session-store'
+import { syncThisDevice, unregisterBeforeSignOut } from '@/features/notifications/push'
 import type { AuthContextValue, AuthStatus } from './auth-types'
 import type { AvailableBiometric } from './biometric-support'
 import { deviceContractStore } from './device-contract-store'
@@ -50,8 +51,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [enableBiometrics])
 
   // "Sair": avisa o servidor sem esperar a resposta (offline, sai só
-  // localmente). A digital continua.
+  // localmente). A digital continua. Antes, tira o push deste aparelho da
+  // conta (no máximo 3 s, nunca impede sair).
   const signOut = useCallback(async () => {
+    await unregisterBeforeSignOut()
     const session = await sessionStore.get().catch(() => null)
     if (session) {
       void publicApiRequest<SignedOut>(API_ROUTES.auth.session, {
@@ -66,10 +69,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   // "Sair de todos os aparelhos": este aparelho só é limpo depois que o
   // servidor confirmou. Se as digitais caíram mas as sessões não, a digital
   // local sai e a pessoa continua logada, com a causa na tela.
+  // O push sai antes, enquanto a sessão ainda vale; se a saída falhar, a
+  // pessoa segue logada e o aparelho volta a receber.
   const signOutEverywhere = useCallback(async () => {
+    await unregisterBeforeSignOut()
     try {
       await apiRequest<SignedOut>(API_ROUTES.auth.sessions, { method: 'DELETE' })
     } catch (error) {
+      void syncThisDevice({ force: true }).catch(() => undefined)
       if (error instanceof ApiError && error.code === 'SIGN_OUT_EVERYWHERE_INCOMPLETE') {
         await deviceContractStore.deactivate().catch(() => undefined)
         setHasDeviceContract(false)

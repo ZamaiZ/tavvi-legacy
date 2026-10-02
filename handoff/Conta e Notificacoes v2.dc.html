@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+body{margin:0;background:#E4E1D9;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.003em;font-variant-numeric:tabular-nums}
+a{color:#86622C}a:hover{color:#B38B4D}
+input{font:inherit}
+input::placeholder{color:var(--tv-text-3)}
+@keyframes tvShimmer{0%{background-position:150% 0}100%{background-position:-50% 0}}
+@keyframes tvFadeUp{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tvPopIn{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<section style="padding:56px 56px 72px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:800px">
+    <span style="font-size:12px;font-weight:600;color:#86622C;letter-spacing:.02em">PROPOSTA · V2</span>
+    <h1 style="margin:0;font-size:28px;font-weight:650;letter-spacing:-.02em;color:#17150F">Conta, perfil, configurações e notificações</h1>
+    <p style="margin:0;font-size:14px;line-height:1.5;color:#6A655B;text-wrap:pretty">O popover fica só com identidade, atalhos para Perfil e Configurações, notificações, tema e saída. O nome passa a ser somente leitura. As ações das notificações viram a barra nativa de alerta, presa à borda de baixo do cartão. Push deste aparelho, notificação de teste e “Sair de todos os aparelhos” moram só em Configurações. Tudo é navegável: abra a conta pelo rodapé da barra lateral, vá para Perfil ou Configurações, troque o tema, simule uma chegada, aprove ou recuse.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+    <sc-for list="{{ boards }}" as="b" hint-placeholder-count="2">
+      <div id="{{ b.id }}" style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="padding:3px 8px;border-radius:6px;background:#17150F;color:#fff;font-size:12px;font-weight:600">{{ b.id }}</span>
+          <span style="font-size:13px;color:#6A655B">{{ b.label }}</span>
+          <sc-if value="{{ b.canSimulate }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ b.simulate }}" style="height:24px;margin-left:4px;padding:0 10px;border:1px dashed #B5AE9F;border-radius:999px;background:transparent;color:#6A655B;font:inherit;font-size:12px;cursor:pointer" style-hover="background:rgba(22,20,15,.05)">Simular chegada (só protótipo)</button>
+          </sc-if>
+        </div>
+        <div style="{{ b.vars }}">
+          <div style="position:relative;width:1360px;height:780px;display:flex;border-radius:14px;overflow:hidden;background:var(--tv-bg);color:var(--tv-text);box-shadow:0 30px 80px -30px rgba(22,20,15,.35),0 0 0 .5px rgba(22,20,15,.12);transition:background-color 300ms ease,color 300ms ease">
+
+            <aside style="width:232px;flex:0 0 232px;padding:14px 10px 10px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;background:var(--tv-side);border-right:1px solid var(--tv-line);transition:background-color 300ms ease">
+              <div style="padding:0 2px;display:flex;align-items:center;gap:10px">
+                <span style="width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line-2),0 1px 2px rgba(0,0,0,.06);color:var(--tv-gold-text)"><span style="width:16px;height:16px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chef-hat.svg) center/contain no-repeat"></span></span>
+                <span style="flex:1;display:flex;flex-direction:column"><strong style="font-size:13.5px;font-weight:650">Tavvi</strong><span style="font-size:11px;color:var(--tv-text-3)">Console</span></span>
+                <span style="width:16px;height:16px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/panel-left.svg) center/contain no-repeat"></span>
+              </div>
+              <div style="height:30px;padding:0 6px 0 10px;display:flex;align-items:center;gap:8px;border-radius:9px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line-2);color:var(--tv-text-3);font-size:13px">
+                <span style="width:14px;height:14px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/search.svg) center/contain no-repeat"></span>
+                <span style="flex:1">Buscar</span>
+                <span style="padding:1px 5px;border-radius:5px;box-shadow:0 0 0 .5px var(--tv-line-2);font-size:10.5px">Ctrl K</span>
+              </div>
+              <nav style="display:flex;flex-direction:column;gap:2px">
+                <span style="padding:4px 8px 6px;font-size:11.5px;font-weight:600;color:var(--tv-text-3)">Plataforma</span>
+                <button type="button" onClick="{{ b.goRest }}" style="height:32px;padding:0 10px 0 8px;display:flex;align-items:center;gap:10px;border:0;border-radius:8px;background:transparent;color:var(--tv-text-2);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-hover)">
+                  <span style="width:16px;height:16px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/mail.svg) center/contain no-repeat"></span><span style="flex:1;text-align:left">Convites</span><span style="font-size:12px;color:var(--tv-text-3)">1</span>
+                </button>
+                <button type="button" onClick="{{ b.goRest }}" style="{{ b.navRestStyle }}">
+                  <span style="width:16px;height:16px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/store.svg) center/contain no-repeat"></span><span style="flex:1;text-align:left">Restaurantes</span><span style="font-size:12px;color:var(--tv-text-3)">2</span>
+                </button>
+              </nav>
+              <div style="flex:1"></div>
+              <button type="button" onClick="{{ b.togglePopover }}" style="{{ b.accountRowStyle }}">
+                <span style="position:relative;width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;border-radius:50%;background:var(--tv-gold-soft);color:var(--tv-gold-text);font-size:12px;font-weight:600">E
+                  <sc-if value="{{ b.hasUnread }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--tv-gold);box-shadow:0 0 0 2px var(--tv-side)"></span></sc-if>
+                </span>
+                <span style="min-width:0;flex:1;display:flex;flex-direction:column;text-align:left">
+                  <strong style="font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Eduardo Zamai</strong>
+                  <span style="font-size:11px;color:var(--tv-text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Administrador da plataforma</span>
+                </span>
+                <span style="width:14px;height:14px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevrons-up-down.svg) center/contain no-repeat"></span>
+              </button>
+            </aside>
+
+            <main style="min-width:0;flex:1;padding:30px 36px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain">
+              <sc-if value="{{ b.isRest }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:20px">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em">Restaurantes</h2>
+                    <p style="margin:0;font-size:13.5px;color:var(--tv-text-2)">Acompanhe os estabelecimentos, endereços públicos e situação de publicação.</p>
+                  </div>
+                  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:14px">
+                    <div style="height:122px;padding:18px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;border-radius:14px;background:var(--tv-hero-gradient);color:var(--tv-hero-ink)">
+                      <span style="font-size:12.5px;font-weight:500">Restaurantes na plataforma</span>
+                      <span style="display:flex;align-items:baseline;gap:8px"><strong style="font-size:32px;font-weight:700;letter-spacing:-.02em">2</strong><span style="font-size:13px">cadastrados · 2 com cardápio no ar</span></span>
+                    </div>
+                    <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="3">
+                      <div style="height:122px;padding:16px 18px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line)">
+                        <span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tv-text-2)"><span style="{{ k.icon }}"></span>{{ k.label }}</span>
+                        <strong style="font-size:22px;font-weight:700">{{ k.value }}</strong>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                    <div style="height:40px;padding:0 20px;display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr 24px;align-items:center;font-size:12px;color:var(--tv-text-3);border-bottom:.5px solid var(--tv-line-2)"><span>Restaurante</span><span>Endereço</span><span>Tipo</span><span>Situação</span><span></span></div>
+                    <sc-for list="{{ restaurants }}" as="r" hint-placeholder-count="2">
+                      <div style="height:50px;padding:0 20px;display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr 24px;align-items:center;font-size:13px;border-bottom:.5px solid var(--tv-line)">
+                        <strong style="font-weight:500">{{ r.name }}</strong>
+                        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--tv-text-2)">{{ r.slug }}</span>
+                        <span>{{ r.type }}</span>
+                        <span><span style="padding:2px 8px;border-radius:999px;background:var(--tv-ok-soft);color:var(--tv-ok);font-size:11.5px;font-weight:500">● Ativo</span></span>
+                        <span style="width:14px;height:14px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center/contain no-repeat"></span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ b.isProfile }}" hint-placeholder-val="{{ false }}">
+                <div style="max-width:680px;display:flex;flex-direction:column;gap:28px;animation:tvFadeUp 360ms cubic-bezier(.2,.8,.2,1) both">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em">Perfil</h2>
+                    <p style="margin:0;font-size:13.5px;color:var(--tv-text-2)">Seus dados de acesso ao Tavvi.</p>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:16px">
+                    <span style="width:64px;height:64px;flex:0 0 64px;display:grid;place-items:center;border-radius:50%;background:var(--tv-hero-gradient);color:var(--tv-hero-ink);font-size:24px;font-weight:600;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08)">E</span>
+                    <span style="display:flex;flex-direction:column;gap:2px">
+                      <strong style="font-size:19px;font-weight:650;letter-spacing:-.015em">Eduardo Zamai</strong>
+                      <span style="font-size:13px;color:var(--tv-text-2)">eduardozamai@gmail.com</span>
+                      <span style="margin-top:6px;align-self:flex-start;padding:3px 9px;border-radius:999px;background:var(--tv-gold-soft);color:var(--tv-gold-text);font-size:11.5px;font-weight:600">Administrador da plataforma</span>
+                    </span>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Informações</span>
+                    <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                      <sc-for list="{{ profileInfo }}" as="row" hint-placeholder-count="5">
+                        <div style="{{ row.style }}">
+                          <span style="font-size:13.5px">{{ row.label }}</span>
+                          <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--tv-text-2);text-align:right">{{ row.value }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <span style="padding:0 16px;font-size:12px;line-height:1.45;color:var(--tv-text-3)">Nome e e-mail vêm do convite e não podem ser alterados por aqui.</span>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Segurança</span>
+                    <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                      <button type="button" onClick="{{ b.togglePw }}" style="width:100%;min-height:50px;padding:0 16px;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--tv-text);font:inherit;text-align:left;cursor:pointer" style-hover="background:var(--tv-hover)">
+                        <span style="width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/key-round.svg) center/contain no-repeat"></span></span>
+                        <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px">Senha</span><span style="font-size:12px;color:var(--tv-text-3)">{{ b.pwHint }}</span></span>
+                        <span style="font-size:13px;font-weight:500;color:var(--tv-gold-text)">{{ b.pwCta }}</span>
+                      </button>
+                      <div style="{{ b.pwWrap }}"><div style="min-height:0;overflow:hidden">
+                        <div style="padding:4px 16px 16px 56px;display:flex;flex-direction:column;gap:10px">
+                          <div style="display:flex;flex-direction:column;border-radius:10px;background:var(--tv-group)">
+                            <input type="password" placeholder="Senha atual" style="height:40px;padding:0 12px;border:0;outline:0;background:transparent;color:var(--tv-text);font-size:13.5px"></input>
+                            <div style="height:.5px;margin-left:12px;background:var(--tv-line-2)"></div>
+                            <input type="password" placeholder="Nova senha" style="height:40px;padding:0 12px;border:0;outline:0;background:transparent;color:var(--tv-text);font-size:13.5px"></input>
+                            <div style="height:.5px;margin-left:12px;background:var(--tv-line-2)"></div>
+                            <input type="password" placeholder="Confirmar nova senha" style="height:40px;padding:0 12px;border:0;outline:0;background:transparent;color:var(--tv-text);font-size:13.5px"></input>
+                          </div>
+                          <div style="display:flex;justify-content:flex-end;gap:8px">
+                            <button type="button" onClick="{{ b.togglePw }}" style="height:30px;padding:0 14px;border:0;border-radius:999px;background:var(--tv-neutral-soft);color:var(--tv-text);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer">Cancelar</button>
+                            <button type="button" onClick="{{ b.savePw }}" style="height:30px;padding:0 14px;border:0;border-radius:999px;background:var(--tv-btn);color:var(--tv-btn-text);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Alterar senha</button>
+                          </div>
+                        </div>
+                      </div></div>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Aparelhos com digital</span>
+                    <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                      <sc-for list="{{ b.devices }}" as="d" hint-placeholder-count="2">
+                        <div style="{{ d.wrap }}"><div style="min-height:0;overflow:hidden">
+                          <div style="{{ d.row }}">
+                            <span style="width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/smartphone.svg) center/contain no-repeat"></span></span>
+                            <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px">{{ d.name }}</span><span style="font-size:12px;color:var(--tv-text-3)">{{ d.meta }}</span></span>
+                            <button type="button" onClick="{{ d.remove }}" style="height:28px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--tv-danger);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-danger-soft)">Desligar</button>
+                          </div>
+                        </div></div>
+                      </sc-for>
+                      <sc-if value="{{ b.noDevices }}" hint-placeholder-val="{{ false }}">
+                        <div style="min-height:50px;padding:0 16px;display:flex;align-items:center;font-size:13px;color:var(--tv-text-3);animation:tvFadeUp 300ms ease both">Nenhum aparelho com digital ligada.</div>
+                      </sc-if>
+                    </div>
+                    <span style="padding:0 16px;font-size:12px;line-height:1.45;color:var(--tv-text-3)">Desligar pede e-mail e senha no próximo acesso por aquele aparelho.</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ b.isSettings }}" hint-placeholder-val="{{ false }}">
+                <div style="max-width:680px;display:flex;flex-direction:column;gap:28px;animation:tvFadeUp 360ms cubic-bezier(.2,.8,.2,1) both">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em">Configurações</h2>
+                    <p style="margin:0;font-size:13.5px;color:var(--tv-text-2)">Aparência, avisos e sessões.</p>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Aparência</span>
+                    <div style="padding:16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line)">
+                      <sc-for list="{{ b.themeCards }}" as="t" hint-placeholder-count="3">
+                        <button type="button" onClick="{{ t.pick }}" style="padding:0;display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:transparent;color:var(--tv-text);font:inherit;cursor:pointer">
+                          <span style="{{ t.frame }}">
+                            <span style="{{ t.left }}"><span style="{{ t.leftSide }}"></span><span style="{{ t.leftBar }}"></span></span>
+                            <span style="{{ t.right }}"><span style="{{ t.rightSide }}"></span><span style="{{ t.rightBar }}"></span></span>
+                          </span>
+                          <span style="{{ t.labelStyle }}">{{ t.label }}</span>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Notificações</span>
+                    <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                      <div style="min-height:56px;padding:8px 16px;display:flex;align-items:center;gap:12px">
+                        <span style="width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/smartphone.svg) center/contain no-repeat"></span></span>
+                        <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px">Neste aparelho</span><span style="font-size:12px;color:var(--tv-text-3)">{{ b.pushHint }}</span></span>
+                        <button type="button" role="switch" aria-checked="{{ b.push }}" aria-label="Ativar notificações" onClick="{{ b.togglePush }}" style="{{ b.trackStyle }}"><span style="{{ b.knobStyle }}"></span></button>
+                      </div>
+                      <div style="height:.5px;margin-left:56px;background:var(--tv-line-2)"></div>
+                      <button type="button" onClick="{{ b.sendTest }}" style="width:100%;height:46px;padding:0 16px;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--tv-gold-text);font:inherit;font-size:13.5px;font-weight:500;text-align:left;cursor:pointer" style-hover="background:var(--tv-hover)">
+                        <span style="width:28px;display:grid;place-items:center"><span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell-ring.svg) center/contain no-repeat"></span></span>{{ b.testLabel }}
+                      </button>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <span style="padding:0 16px;font-size:13px;font-weight:600;color:var(--tv-text-2)">Sessões</span>
+                    <div style="border-radius:14px;background:var(--tv-surface);box-shadow:0 0 0 .5px var(--tv-line);overflow:hidden">
+                      <button type="button" style="width:100%;height:46px;padding:0 16px;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--tv-danger);font:inherit;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-danger-soft)">
+                        <span style="width:28px;display:grid;place-items:center"><span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/monitor-smartphone.svg) center/contain no-repeat"></span></span>Sair de todos os aparelhos
+                      </button>
+                    </div>
+                    <span style="padding:0 16px;font-size:12px;line-height:1.45;color:var(--tv-text-3)">Encerra a sessão em todos os aparelhos e desliga a digital em todos eles, inclusive neste.</span>
+                  </div>
+                </div>
+              </sc-if>
+            </main>
+
+            <sc-if value="{{ b.popover }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:10px;bottom:62px;width:300px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;border-radius:16px;background:var(--tv-mat);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);box-shadow:var(--tv-pop),inset 0 0 0 .5px var(--tv-line-2);animation:tvPopIn 220ms cubic-bezier(.2,.8,.2,1) both;transform-origin:bottom left">
+                <div style="padding:10px 10px 8px;display:flex;align-items:center;gap:12px">
+                  <span style="width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:var(--tv-hero-gradient);color:var(--tv-hero-ink);font-size:17px;font-weight:600;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08)">E</span>
+                  <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:1px">
+                    <strong style="font-size:14px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Eduardo Zamai</strong>
+                    <span style="font-size:12px;color:var(--tv-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">eduardozamai@gmail.com</span>
+                    <span style="margin-top:3px;font-size:11px;color:var(--tv-text-3)">Administrador da plataforma</span>
+                  </span>
+                </div>
+
+                <div style="display:flex;flex-direction:column;border-radius:12px;background:var(--tv-group)">
+                  <button type="button" onClick="{{ b.goProfile }}" style="height:40px;padding:0 10px 0 7px;display:flex;align-items:center;gap:10px;border:0;border-radius:12px 12px 0 0;background:transparent;color:var(--tv-text);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-hover)">
+                    <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:14px;height:14px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/circle-user-round.svg) center/contain no-repeat"></span></span>
+                    <span style="flex:1;text-align:left">Perfil</span>
+                    <span style="width:13px;height:13px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center/contain no-repeat"></span>
+                  </button>
+                  <div style="height:.5px;margin-left:43px;background:var(--tv-line-2)"></div>
+                  <button type="button" onClick="{{ b.goSettings }}" style="height:40px;padding:0 10px 0 7px;display:flex;align-items:center;gap:10px;border:0;border-radius:0 0 12px 12px;background:transparent;color:var(--tv-text);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-hover)">
+                    <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:14px;height:14px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/settings.svg) center/contain no-repeat"></span></span>
+                    <span style="flex:1;text-align:left">Configurações</span>
+                    <span style="width:13px;height:13px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center/contain no-repeat"></span>
+                  </button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;border-radius:12px;background:var(--tv-group)">
+                  <button type="button" onClick="{{ b.toggleCenter }}" style="{{ b.notifRowStyle }}">
+                    <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="width:14px;height:14px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center/contain no-repeat"></span></span>
+                    <span style="flex:1;text-align:left">Notificações</span>
+                    <sc-if value="{{ b.hasUnread }}" hint-placeholder-val="{{ false }}">
+                      <span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;display:inline-grid;place-items:center;border-radius:999px;background:var(--tv-gold);color:#17150F;font-size:11.5px;font-weight:700">{{ b.count }}</span>
+                    </sc-if>
+                    <span style="width:13px;height:13px;color:var(--tv-text-3);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center/contain no-repeat"></span>
+                  </button>
+                  <div style="height:.5px;margin-left:12px;background:var(--tv-line-2)"></div>
+                  <div style="padding:8px 8px 8px 12px;display:flex;align-items:center;gap:10px">
+                    <span style="font-size:13px;color:var(--tv-text-2)">Tema</span>
+                    <div style="flex:1;padding:2px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:8px;background:var(--tv-neutral-soft)">
+                      <sc-for list="{{ b.themes }}" as="t" hint-placeholder-count="3">
+                        <button type="button" onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;flex-direction:column">
+                  <button type="button" style="height:36px;padding:0 12px;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;background:transparent;color:var(--tv-danger);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-danger-soft)">
+                    <span style="width:15px;height:15px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/log-out.svg) center/contain no-repeat"></span>Sair
+                  </button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ b.center }}" hint-placeholder-val="{{ false }}">
+              <section style="position:absolute;left:318px;bottom:62px;width:392px;max-height:620px;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--tv-mat);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);box-shadow:var(--tv-pop),inset 0 0 0 .5px var(--tv-line-2);animation:tvPopIn 240ms cubic-bezier(.2,.8,.2,1) both;transform-origin:bottom left">
+                <div style="padding:16px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <h3 style="margin:0;font-size:17px;font-weight:650;letter-spacing:-.015em">Notificações</h3>
+                    <sc-if value="{{ b.loading }}" hint-placeholder-val="{{ false }}">
+                      <span style="width:72px;height:10px;margin-top:4px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                    </sc-if>
+                    <sc-if value="{{ b.notLoading }}" hint-placeholder-val="{{ true }}">
+                      <span style="font-size:12px;color:var(--tv-text-3)">{{ b.subtitle }}</span>
+                    </sc-if>
+                  </div>
+                  <sc-if value="{{ b.hasUnread }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" onClick="{{ b.markAll }}" style="height:28px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:var(--tv-neutral-soft);color:var(--tv-text);font:inherit;font-size:12px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-active)">
+                      <span style="width:13px;height:13px;color:var(--tv-gold-text);background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center/contain no-repeat"></span>Marcar todas como lidas
+                    </button>
+                  </sc-if>
+                </div>
+
+                <div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 12px 12px;display:flex;flex-direction:column;gap:14px">
+                  <sc-if value="{{ b.loading }}" hint-placeholder-val="{{ false }}">
+                    <div role="status" aria-busy="true" aria-label="Carregando notificações" style="display:flex;flex-direction:column;gap:6px">
+                      <span style="width:44px;height:10px;margin:2px 4px 4px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                      <sc-for list="{{ skeletonRows }}" as="s" hint-placeholder-count="3">
+                        <div style="border-radius:12px;background:var(--tv-group);overflow:hidden">
+                          <div style="padding:12px;display:flex;gap:12px">
+                            <span style="width:34px;height:34px;flex:0 0 34px;border-radius:9px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                            <span style="flex:1;display:flex;flex-direction:column;gap:7px;padding-top:3px">
+                              <span style="display:flex;justify-content:space-between;gap:12px"><span style="{{ s.titleStyle }}"></span><span style="width:34px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span></span>
+                              <span style="width:100%;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                              <span style="{{ s.bodyStyle }}"></span>
+                            </span>
+                          </div>
+                          <sc-if value="{{ s.bar }}" hint-placeholder-val="{{ false }}">
+                            <div style="height:38px;border-top:.5px solid var(--tv-line-2);display:grid;grid-template-columns:1fr 1fr;align-items:center;justify-items:center">
+                              <span style="width:56px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                              <span style="width:56px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ b.showEmpty }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:40px 24px 48px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:tvFadeUp 420ms cubic-bezier(.2,.8,.2,1) both">
+                      <span style="width:56px;height:56px;margin-bottom:10px;display:grid;place-items:center;border-radius:50%;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="width:24px;height:24px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center/contain no-repeat"></span></span>
+                      <strong style="font-size:15px;font-weight:600;letter-spacing:-.01em">Tudo em dia</strong>
+                      <span style="font-size:12.5px;color:var(--tv-text-3)">Nenhuma notificação nova.</span>
+                    </div>
+                  </sc-if>
+
+                  <sc-for list="{{ b.groups }}" as="g" hint-placeholder-count="0">
+                    <div style="{{ g.wrapStyle }}"><div style="min-height:0;display:flex;flex-direction:column">
+                      <span style="padding:0 4px 6px;font-size:12px;font-weight:600;color:var(--tv-text-3);overflow:hidden">{{ g.label }}</span>
+                      <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+                        <div style="{{ it.wrapStyle }}"><div style="min-height:0;overflow:hidden">
+                          <article style="{{ it.cardStyle }}">
+                            <button type="button" onClick="{{ it.open }}" aria-label="{{ it.ariaOpen }}" style="width:100%;padding:12px;display:flex;align-items:flex-start;gap:12px;border:0;background:transparent;color:var(--tv-text);font:inherit;text-align:left;cursor:pointer" style-hover="background:var(--tv-hover)">
+                              <span style="width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:9px;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="{{ it.iconStyle }}"></span></span>
+                              <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:2px">
+                                <span style="display:flex;align-items:baseline;gap:10px">
+                                  <strong style="flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.3;letter-spacing:-.005em">{{ it.title }}</strong>
+                                  <time style="flex:0 0 auto;font-size:11.5px;color:var(--tv-text-3)">{{ it.time }}</time>
+                                </span>
+                                <span style="display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--tv-text-2);font-size:12.5px;line-height:1.4">{{ it.body }}</span>
+                              </span>
+                            </button>
+                            <sc-if value="{{ it.hasActions }}" hint-placeholder-val="{{ false }}">
+                              <div style="{{ it.barStyle }}">
+                                <sc-for list="{{ it.actions }}" as="a" hint-placeholder-count="0">
+                                  <button type="button" onClick="{{ a.run }}" disabled="{{ a.locked }}" style="{{ a.style }}" style-hover="background:var(--tv-hover)">
+                                    <sc-if value="{{ a.done }}" hint-placeholder-val="{{ false }}">
+                                      <span style="width:13px;height:13px;background:currentColor;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check.svg) center/contain no-repeat;animation:tvFadeUp 220ms cubic-bezier(.2,.8,.2,1) both"></span>
+                                    </sc-if>
+                                    {{ a.text }}
+                                  </button>
+                                </sc-for>
+                              </div>
+                            </sc-if>
+                          </article>
+                        </div></div>
+                      </sc-for>
+                    </div></div>
+                  </sc-for>
+
+                  <sc-if value="{{ b.hasMore }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" style="height:36px;border:0;border-radius:10px;background:transparent;color:var(--tv-gold-text);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-hover)">Carregar mais</button>
+                  </sc-if>
+                </div>
+              </section>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <p style="margin:0;font-size:13px;color:#6A655B">A primeira versão, com o estado atual recriado, continua em <a href="Notificacoes Premium.dc.html">Notificacoes Premium</a>.</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const U = n => `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/${n}.svg`;
+const icon = (n, s = 16) => ({ width: s, height: s, flex: `0 0 ${s}px`, background: 'currentColor', mask: `url(${U(n)}) center/contain no-repeat`, WebkitMask: `url(${U(n)}) center/contain no-repeat` });
+const KIND = { feedback_received: 'message-square-text', team_member_joined: 'user-plus', access_request: 'key-round', restaurant_joined: 'store', test: 'bell-ring' };
+const LIGHT = {
+  '--tv-bg': '#F5F3EE', '--tv-side': '#FAF9F6', '--tv-surface': '#FFFFFF', '--tv-hover': 'rgba(22,20,15,.04)', '--tv-active': 'rgba(22,20,15,.065)',
+  '--tv-line': 'rgba(22,20,15,.08)', '--tv-line-2': 'rgba(22,20,15,.14)', '--tv-text': '#17150F', '--tv-text-2': '#6A655B', '--tv-text-3': '#8F8A80',
+  '--tv-gold': '#B38B4D', '--tv-gold-text': '#86622C', '--tv-gold-soft': '#F3EBDD', '--tv-btn': '#17150F', '--tv-btn-text': '#FFFFFF',
+  '--tv-hero-gradient': 'linear-gradient(135deg,#DDBF8A 0%,#C9A266 48%,#B48A4E 100%)', '--tv-hero-ink': '#1D170E',
+  '--tv-danger': '#B2372C', '--tv-danger-soft': '#F7E3DF', '--tv-neutral-soft': 'rgba(22,20,15,.055)', '--tv-ok': '#2F7A4B', '--tv-ok-soft': '#E3F0E6',
+  '--tv-pop': '0 24px 60px -16px rgba(22,20,15,.28), 0 4px 12px rgba(22,20,15,.06)',
+  '--tv-mat': 'rgba(255,255,255,.84)', '--tv-group': 'rgba(22,20,15,.035)', '--tv-switch-off': 'rgba(22,20,15,.14)',
+  '--tv-skel': 'rgba(22,20,15,.06)', '--tv-skel-hi': 'rgba(22,20,15,.11)', '--tv-fresh': 'rgba(179,139,77,.14)',
+};
+const DARK = {
+  '--tv-bg': '#0D0C0A', '--tv-side': '#11100E', '--tv-surface': '#171613', '--tv-hover': 'rgba(255,248,235,.045)', '--tv-active': 'rgba(255,248,235,.08)',
+  '--tv-line': 'rgba(255,248,235,.075)', '--tv-line-2': 'rgba(255,248,235,.14)', '--tv-text': '#F2EEE6', '--tv-text-2': '#A6A094', '--tv-text-3': '#7C766B',
+  '--tv-gold': '#D0AC6E', '--tv-gold-text': '#D6B67C', '--tv-gold-soft': 'rgba(208,172,110,.12)', '--tv-btn': '#D0AC6E', '--tv-btn-text': '#15120C',
+  '--tv-hero-gradient': 'linear-gradient(135deg,#CFAE72 0%,#B28A4C 55%,#8F6B35 100%)', '--tv-hero-ink': '#17120A',
+  '--tv-danger': '#EE8C80', '--tv-danger-soft': 'rgba(238,140,128,.12)', '--tv-neutral-soft': 'rgba(255,248,235,.07)', '--tv-ok': '#7FC79A', '--tv-ok-soft': 'rgba(127,199,154,.12)',
+  '--tv-pop': '0 24px 56px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,248,235,.06)',
+  '--tv-mat': 'rgba(30,28,25,.82)', '--tv-group': 'rgba(255,248,235,.05)', '--tv-switch-off': 'rgba(255,248,235,.16)',
+  '--tv-skel': 'rgba(255,248,235,.06)', '--tv-skel-hi': 'rgba(255,248,235,.12)', '--tv-fresh': 'rgba(208,172,110,.14)',
+};
+const SEED = () => [
+  { id: 1, kind: 'access_request', title: 'João Lima quer entrar na equipe', body: 'Pediu acesso ao painel da Foods Lara como Garçom.', time: 'há 2 min', group: 'Hoje', actions: [{ label: 'Recusar', done: 'Recusado', role: 'destructive' }, { label: 'Aprovar', done: 'Aprovado', primary: true }] },
+  { id: 2, kind: 'feedback_received', title: 'Novo feedback', body: 'Mesa 12 deixou um comentário com foto sobre o Risoto de cogumelos.', time: 'há 14 min', group: 'Hoje', actions: [{ label: 'Ver feedback', done: 'Abrindo', primary: true }] },
+  { id: 3, kind: 'team_member_joined', title: 'Ana Souza entrou na equipe', body: 'Ela aceitou o convite e já acessa o painel como Garçom.', time: 'há 1 h', group: 'Hoje' },
+  { id: 4, kind: 'feedback_received', title: 'Novo feedback', body: 'Um cliente avaliou o atendimento do balcão e deixou uma sugestão.', time: 'ontem', group: 'Anteriores', actions: [{ label: 'Ignorar', done: 'Ignorado' }, { label: 'Responder', done: 'Abrindo', primary: true }] },
+];
+const INCOMING = [
+  { kind: 'access_request', title: 'Marina Reis quer entrar na equipe', body: 'Pediu acesso ao painel como Caixa.', actions: [{ label: 'Recusar', done: 'Recusado', role: 'destructive' }, { label: 'Aprovar', done: 'Aprovado', primary: true }] },
+  { kind: 'test', title: 'Notificação de teste', body: 'Se você está vendo isto, as notificações estão funcionando.' },
+  { kind: 'feedback_received', title: 'Novo feedback', body: 'Mesa 4 avaliou o pedido com 5 estrelas.', actions: [{ label: 'Ver feedback', done: 'Abrindo', primary: true }] },
+];
+const DEVICES = () => [
+  { id: 'd1', name: 'iPhone de Eduardo', meta: 'iOS · usado hoje às 09:42' },
+  { id: 'd2', name: 'Galaxy S23', meta: 'Android · usado há 3 dias' },
+];
+const BOARDS = [
+  { id: '2a', label: 'Restaurantes · conta e notificações abertas', page: 'rest', popover: true, center: true, mode: 'list', theme: 1 },
+  { id: '2b', label: 'Perfil', page: 'profile', popover: false, center: false, mode: 'list', theme: 1 },
+  { id: '2c', label: 'Configurações', page: 'settings', popover: false, center: false, mode: 'list', theme: 1 },
+  { id: '2d', label: 'Escuro · notificações abertas', page: 'rest', popover: true, center: true, mode: 'list', theme: 2 },
+  { id: '2e', label: 'Vazio', page: 'rest', popover: true, center: true, mode: 'empty', theme: 1 },
+  { id: '2f', label: 'Carregando (skeleton)', page: 'rest', popover: true, center: true, mode: 'loading', theme: 1 },
+];
+const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)';
+const EASE_IN = 'cubic-bezier(.4,0,1,1)';
+const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ms = n => (REDUCED ? 0 : n);
+const SHIM = 'linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%)';
+const bar = (w, h) => ({ width: w, height: h, borderRadius: 5, background: SHIM, backgroundSize: '200% 100%', animation: 'tvShimmer 1.4s ease-in-out infinite' });
+const collapse = (open, leaving) => ({ display: 'grid', gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0, transition: leaving ? `grid-template-rows ${ms(300)}ms ${EASE_OUT} ${ms(140)}ms, opacity ${ms(180)}ms ease` : 'none' });
+
+class Component extends DCLogic {
+  state = Object.fromEntries(BOARDS.map(b => [b.id, {
+    page: b.page, popover: b.popover, center: b.center, theme: b.theme,
+    items: b.mode === 'list' ? SEED().map(i => ({ ...i, phase: 'rest' })) : [],
+    push: b.mode !== 'empty', sending: false, nextIn: 0,
+    pwOpen: false, pwSaved: false, devices: DEVICES().map(d => ({ ...d, leaving: false })),
+  }]));
+  timers = new Set();
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, t) { const h = setTimeout(() => { this.timers.delete(h); fn(); }, t); this.timers.add(h); }
+  upd(id, patch) { this.setState(s => ({ [id]: { ...s[id], ...(typeof patch === 'function' ? patch(s[id]) : patch) } })); }
+  patchItem(bid, iid, p) { this.upd(bid, s => ({ items: s.items.map(x => (x.id === iid ? { ...x, ...p } : x)) })); }
+  arrive(bid, item) {
+    const id = Date.now() + Math.random();
+    this.upd(bid, s => ({ items: [{ ...item, id, time: 'agora', group: 'Hoje', phase: 'enter', fresh: true }, ...s.items] }));
+    requestAnimationFrame(() => requestAnimationFrame(() => this.patchItem(bid, id, { phase: 'in' })));
+    this.later(() => this.patchItem(bid, id, { phase: 'rest' }), ms(620));
+    this.later(() => this.patchItem(bid, id, { fresh: false }), 1600);
+  }
+  dismiss(bid, iid, delay = 0) {
+    this.later(() => {
+      this.patchItem(bid, iid, { phase: 'leave' });
+      this.later(() => this.upd(bid, s => ({ items: s.items.filter(x => x.id !== iid) })), ms(480));
+    }, delay);
+  }
+  renderVals() {
+    const boards = BOARDS.map(b => {
+      const st = this.state[b.id];
+      const dark = st.theme === 2;
+      const loading = b.mode === 'loading';
+      const live = st.items.filter(i => i.phase !== 'leave');
+      const n = live.length;
+      const go = page => () => this.upd(b.id, { page, popover: false, center: false });
+      const groups = loading ? [] : ['Hoje', 'Anteriores'].map(label => {
+        const raw = st.items.filter(i => i.group === label);
+        const gone = raw.length > 0 && raw.every(i => i.phase === 'leave');
+        return {
+          label, n: raw.length,
+          wrapStyle: { display: 'grid', gridTemplateRows: gone ? '0fr' : '1fr', opacity: gone ? 0 : 1, marginBottom: gone ? -14 : 0, transition: gone ? `grid-template-rows ${ms(300)}ms ${EASE_OUT} ${ms(160)}ms, opacity ${ms(180)}ms ease, margin ${ms(300)}ms ${EASE_OUT} ${ms(160)}ms` : 'none' },
+          items: raw.map(i => {
+            const settled = i.phase === 'in' || i.phase === 'rest';
+            const tr = i.phase === 'in'
+              ? { rows: `grid-template-rows ${ms(380)}ms ${EASE_OUT}`, card: `opacity ${ms(300)}ms ease ${ms(90)}ms, transform ${ms(460)}ms ${EASE_OUT} ${ms(40)}ms, background-color 900ms ease` }
+              : i.phase === 'leave'
+                ? { rows: `grid-template-rows ${ms(300)}ms ${EASE_OUT} ${ms(150)}ms`, card: `opacity ${ms(180)}ms ease, transform ${ms(240)}ms ${EASE_IN}` }
+                : { rows: 'none', card: 'background-color 900ms ease' };
+            const locked = i.doneIdx != null || i.phase === 'leave';
+            const acts = (i.actions || []).slice(0, 2);
+            return {
+              ...i,
+              ariaOpen: `${i.title}. Marcar como lida e abrir`,
+              wrapStyle: { display: 'grid', gridTemplateRows: settled ? '1fr' : '0fr', transition: tr.rows },
+              cardStyle: {
+                margin: '0 0 6px', borderRadius: 12, overflow: 'hidden',
+                background: i.fresh ? 'var(--tv-fresh)' : 'var(--tv-group)',
+                opacity: settled ? 1 : 0,
+                transform: i.phase === 'enter' ? 'translateY(-10px) scale(.97)' : i.phase === 'leave' ? 'translateX(18px) scale(.98)' : 'none',
+                transformOrigin: 'top center', transition: tr.card,
+              },
+              iconStyle: icon(KIND[i.kind]),
+              open: () => { if (!locked) this.dismiss(b.id, i.id); },
+              hasActions: acts.length > 0,
+              barStyle: { display: 'grid', gridTemplateColumns: `repeat(${acts.length}, minmax(0,1fr))`, borderTop: '.5px solid var(--tv-line-2)' },
+              actions: acts.map((a, k) => {
+                const done = i.doneIdx === k;
+                const dim = i.doneIdx != null && !done;
+                return {
+                  done, locked, text: done ? (a.done || a.label) : a.label,
+                  run: e => {
+                    e.stopPropagation();
+                    if (locked) return;
+                    this.patchItem(b.id, i.id, { doneIdx: k });
+                    this.dismiss(b.id, i.id, ms(720));
+                  },
+                  style: {
+                    height: 40, padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    border: 0, borderLeft: k > 0 ? '.5px solid var(--tv-line-2)' : 0, borderRadius: 0,
+                    background: done ? 'var(--tv-active)' : 'transparent',
+                    color: a.role === 'destructive' ? 'var(--tv-danger)' : 'var(--tv-gold-text)',
+                    font: 'inherit', fontSize: 13.5, fontWeight: a.primary ? 650 : 450, letterSpacing: '-.005em', whiteSpace: 'nowrap',
+                    opacity: dim ? 0.35 : 1, cursor: locked ? 'default' : 'pointer',
+                    transition: 'background-color 160ms ease, opacity 220ms ease',
+                  },
+                };
+              }),
+            };
+          }),
+        };
+      }).filter(g => g.n);
+      const themeLabels = ['Sistema', 'Claro', 'Escuro'];
+      const pane = (bg, side, barc) => [{ flex: 1, display: 'flex', background: bg }, { width: '28%', background: side, borderRight: '1px solid rgba(128,120,100,.15)' }, { width: '34%', height: 8, margin: '12px 0 0 10px', borderRadius: 4, background: barc }];
+      const L = pane('#F5F3EE', '#FAF9F6', '#C9A266');
+      const D = pane('#0D0C0A', '#171613', '#B28A4C');
+      return {
+        ...b, vars: dark ? DARK : LIGHT, loading, notLoading: !loading,
+        isRest: st.page === 'rest', isProfile: st.page === 'profile', isSettings: st.page === 'settings',
+        goRest: go('rest'), goProfile: go('profile'), goSettings: go('settings'),
+        popover: st.popover, center: st.popover && st.center,
+        togglePopover: () => this.upd(b.id, s => ({ popover: !s.popover, center: false })),
+        toggleCenter: () => this.upd(b.id, s => ({ center: !s.center })),
+        navRestStyle: { height: 32, padding: '0 10px 0 8px', display: 'flex', alignItems: 'center', gap: 10, border: 0, borderRadius: 8, background: st.page === 'rest' ? 'var(--tv-active)' : 'transparent', color: st.page === 'rest' ? 'var(--tv-text)' : 'var(--tv-text-2)', font: 'inherit', fontSize: 13.5, fontWeight: st.page === 'rest' ? 600 : 500, cursor: 'pointer' },
+        accountRowStyle: { height: 48, padding: '0 8px', display: 'flex', alignItems: 'center', gap: 10, border: 0, borderRadius: 10, background: st.popover ? 'var(--tv-active)' : 'transparent', color: 'var(--tv-text)', font: 'inherit', cursor: 'pointer', transition: 'background-color 160ms ease' },
+        notifRowStyle: { height: 40, padding: '0 10px 0 7px', display: 'flex', alignItems: 'center', gap: 10, border: 0, borderRadius: '12px 12px 0 0', background: st.center ? 'var(--tv-active)' : 'transparent', color: 'var(--tv-text)', font: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer' },
+        themes: themeLabels.map((label, k) => ({
+          label, pick: () => this.upd(b.id, { theme: k }),
+          style: { height: 26, border: 0, borderRadius: 6, background: st.theme === k ? (dark ? 'rgba(255,248,235,.14)' : '#FFFFFF') : 'transparent', color: st.theme === k ? 'var(--tv-text)' : 'var(--tv-text-2)', boxShadow: st.theme === k ? '0 1px 3px rgba(0,0,0,.1), 0 0 0 .5px var(--tv-line)' : 'none', font: 'inherit', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'background-color 160ms ease' },
+        })),
+        themeCards: themeLabels.map((label, k) => {
+          const sel = st.theme === k;
+          const left = k === 2 ? D : L, right = k === 1 ? L : D;
+          return {
+            label, pick: () => this.upd(b.id, { theme: k }),
+            frame: { width: '100%', aspectRatio: '16 / 10', display: 'flex', borderRadius: 10, overflow: 'hidden', boxShadow: sel ? '0 0 0 2px var(--tv-gold), 0 0 0 5px var(--tv-gold-soft)' : '0 0 0 .5px var(--tv-line-2)', transition: 'box-shadow 180ms ease' },
+            left: left[0], leftSide: left[1], leftBar: left[2],
+            right: right[0], rightSide: right[1], rightBar: right[2],
+            labelStyle: { fontSize: 12.5, fontWeight: sel ? 600 : 500, color: sel ? 'var(--tv-text)' : 'var(--tv-text-2)' },
+          };
+        }),
+        count: n > 99 ? '99+' : n, hasUnread: !loading && n > 0, showEmpty: !loading && st.items.length === 0,
+        subtitle: n === 0 ? 'Nenhuma não lida' : n === 1 ? '1 não lida' : `${n} não lidas`,
+        markAll: () => live.forEach((i, k) => { this.patchItem(b.id, i.id, { doneIdx: i.doneIdx ?? -1 }); this.dismiss(b.id, i.id, ms(k * 60)); }),
+        push: st.push, pushHint: st.push ? 'Avisos mesmo com o app fechado' : 'Desativadas neste aparelho',
+        togglePush: () => this.upd(b.id, s => ({ push: !s.push })),
+        trackStyle: { position: 'relative', width: 40, height: 24, flex: '0 0 40px', padding: 0, border: 0, borderRadius: 12, background: st.push ? 'var(--tv-gold)' : 'var(--tv-switch-off)', cursor: 'pointer', transition: 'background 200ms cubic-bezier(.2,.8,.2,1)' },
+        knobStyle: { position: 'absolute', top: 2, left: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.04)', transform: st.push ? 'translateX(16px)' : 'none', transition: 'transform 220ms cubic-bezier(.2,.8,.2,1)' },
+        testLabel: st.sending ? 'Enviando…' : 'Enviar notificação de teste',
+        sendTest: () => {
+          if (st.sending) return;
+          this.upd(b.id, { sending: true });
+          this.later(() => { this.upd(b.id, s => ({ sending: false, nextIn: s.nextIn + 1 })); this.arrive(b.id, INCOMING[st.nextIn % INCOMING.length]); }, 700);
+        },
+        groups, hasMore: !loading && n >= 4,
+        canSimulate: b.center && !loading,
+        simulate: () => { this.upd(b.id, s => ({ popover: true, center: true, nextIn: s.nextIn + 1 })); this.arrive(b.id, INCOMING[st.nextIn % INCOMING.length]); },
+        pwHint: st.pwSaved ? 'Alterada agora' : 'Última alteração há 2 meses',
+        pwCta: st.pwOpen ? '' : 'Alterar',
+        pwWrap: { display: 'grid', gridTemplateRows: st.pwOpen ? '1fr' : '0fr', opacity: st.pwOpen ? 1 : 0, transition: `grid-template-rows ${ms(320)}ms ${EASE_OUT}, opacity ${ms(220)}ms ease` },
+        togglePw: () => this.upd(b.id, s => ({ pwOpen: !s.pwOpen })),
+        savePw: () => this.upd(b.id, { pwOpen: false, pwSaved: true }),
+        devices: st.devices.map((d, k) => ({
+          ...d,
+          wrap: collapse(!d.leaving, d.leaving),
+          row: { minHeight: 56, padding: '8px 10px 8px 16px', display: 'flex', alignItems: 'center', gap: 12, borderTop: k > 0 ? '.5px solid var(--tv-line-2)' : 0, transform: d.leaving ? 'translateX(14px)' : 'none', transition: d.leaving ? `transform ${ms(220)}ms ${EASE_IN}` : 'none' },
+          remove: () => {
+            this.upd(b.id, s => ({ devices: s.devices.map(x => (x.id === d.id ? { ...x, leaving: true } : x)) }));
+            this.later(() => this.upd(b.id, s => ({ devices: s.devices.filter(x => x.id !== d.id) })), ms(460));
+          },
+        })),
+        noDevices: st.devices.length === 0,
+      };
+    });
+    const kpis = [['circle-check', 'Ativos', 2], ['pencil', 'Rascunho', 0], ['pause', 'Suspensos', 0]].map(([n, label, value]) => ({ icon: icon(n, 15), label, value }));
+    const restaurants = [{ name: 'Foods Lara', slug: '/foods-lara', type: 'Hamburgueria' }, { name: 'Cantina do Zé', slug: '/cantina-do-ze', type: 'Cantina italiana' }];
+    const info = [['Nome', 'Eduardo Zamai'], ['E-mail', 'eduardozamai@gmail.com'], ['Papel', 'Administrador da plataforma'], ['Membro desde', '14 de março de 2026'], ['Último acesso', 'Hoje, 09:42 · este aparelho']];
+    const profileInfo = info.map(([label, value], k) => ({ label, value, style: { minHeight: 46, padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, borderTop: k > 0 ? '.5px solid var(--tv-line-2)' : 0, marginLeft: 0 } }));
+    const skeletonRows = [['46%', '62%', true], ['58%', '40%', false], ['38%', '70%', false]].map(([t, bd, hasBar]) => ({ titleStyle: bar(t, 11), bodyStyle: bar(bd, 9), bar: hasBar }));
+    return { boards, kpis, restaurants, profileInfo, skeletonRows };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition, type ReactNode } from 'react'
 import { LuMap, LuMapPin } from 'react-icons/lu'
 import { Combobox } from '@/components/ui/combobox'
 import { Spinner } from '@/components/ui/spinner'
@@ -31,6 +31,7 @@ export function AddressFields({
   onChange,
   onMapsUrlChange,
   onRemove,
+  reviewStatus,
 }: {
   value: AddressDraft
   legacyAddress: string | null
@@ -42,6 +43,8 @@ export function AddressFields({
   onChange: (change: (current: AddressDraft) => AddressDraft) => void
   onMapsUrlChange: (value: string) => void
   onRemove: () => void
+  /** Status do link "Avaliar no Google", abaixo do campo do Maps. */
+  reviewStatus?: ReactNode
 }) {
   const [looking, startLookup] = useTransition()
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -281,6 +284,7 @@ export function AddressFields({
         <span id="address-maps-help" className="tv-contact-help">
           No Google Maps, abra o perfil do restaurante → Compartilhar → Copiar link.
         </span>
+        {reviewStatus}
         {mapsError ? <span className="tv-contact-field-error">{mapsError}</span> : null}
       </div>
 

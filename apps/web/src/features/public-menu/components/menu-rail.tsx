@@ -51,11 +51,12 @@ export function MenuRail({
           aria-label={isOpen ? 'Fechar categorias' : 'Ver categorias'}
           className="menu-chip flex min-h-11 shrink-0 items-center gap-2 px-4 text-[0.8125rem] font-semibold"
         >
-          {isOpen ? (
-            <RiCloseLine className="size-4" aria-hidden="true" />
-          ) : (
-            <RiRestaurantLine className="size-4" aria-hidden="true" />
-          )}
+          {/* Os dois ícones ficam montados e se cruzam (menu.css), em vez de
+              um trocar o outro de uma vez. */}
+          <span className="menu-rail-toggle-icon" aria-hidden="true">
+            <RiRestaurantLine className="is-closed size-4" />
+            <RiCloseLine className="is-open size-4" />
+          </span>
           {isOpen ? null : (
             <span className="max-w-[9rem] truncate">{currentName}</span>
           )}
@@ -108,7 +109,7 @@ export function MenuRail({
                     setIsOpen(false)
                   }}
                   aria-current={current ? 'true' : undefined}
-                  className="menu-chip flex min-h-11 items-center whitespace-nowrap px-4 text-[0.8125rem] font-semibold transition-colors"
+                  className="menu-chip flex min-h-11 items-center whitespace-nowrap px-4 text-[0.8125rem] font-semibold"
                   // A categoria ativa usa `--m-accent` como fundo e
                   // `--m-on-accent` como texto. É o único lugar do cardápio
                   // em que o destaque vira SUPERFÍCIE, e é por isso que

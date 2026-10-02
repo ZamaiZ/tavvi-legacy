@@ -4,9 +4,17 @@
 .workspace-territory:has(.tv-console-root) { background: var(--tv-bg); }
 .tv-console-root { position: relative; min-height: 100dvh; color: var(--tv-text); }
 .tv-console-main { position: relative; min-height: 100dvh; margin-left: var(--tv-sidebar-width, 60px); background: var(--tv-bg); transition: margin-left 200ms var(--tv-ease); }
+.tv-page-loading-mask { position: absolute; z-index: 35; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--tv-bg) 12%, transparent); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); animation: tv-page-mask-in 520ms var(--tv-ease) both; }
+@keyframes tv-page-mask-in { 0% { opacity: 0; -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); } 45% { opacity: .8; } 100% { opacity: 1; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); } }
+.tv-sidebar-link.is-loading { position: relative; }
+.tv-sidebar-link.is-loading::after { position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--tv-active) 44%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); content: ''; animation: tv-sidebar-mask 800ms ease-in-out infinite alternate; }
+@keyframes tv-sidebar-mask { from { opacity: .45; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .tv-page-loading-mask, .tv-sidebar-link.is-loading::after { animation: none; } }
 
 .tv-sidebar { position: fixed; z-index: 40; inset: 0 auto 0 0; width: var(--tv-sidebar-width, 60px); padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; border-right: 1px solid var(--tv-line); background: var(--tv-side); transition: width 200ms var(--tv-ease); }
 .tv-sidebar button { font-family: inherit; }
+/* Anel interno: em repouso fica rente à borda e assenta 2 px para dentro. */
+.tv-sidebar button, .tv-sidebar-link { outline-offset: 0; }
 .tv-sidebar button:focus-visible, .tv-sidebar-link:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
 .tv-sidebar-brand { min-width: 0; height: 40px; margin-bottom: 6px; padding: 0 4px; display: flex; align-items: center; gap: 9px; }
 .tv-sidebar-mark { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); }
@@ -20,28 +28,29 @@
 .tv-sidebar-brand-copy strong { overflow: hidden; color: var(--tv-text); font-size: 13px; font-weight: 600; text-overflow: ellipsis; }
 .tv-sidebar-brand-copy small { overflow: hidden; color: var(--tv-text-3); font-size: 11px; text-overflow: ellipsis; }
 .tv-sidebar-collapse { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; }
-.tv-sidebar-collapse:hover { background: var(--tv-hover); color: var(--tv-text); }
+@media (hover: hover) { .tv-sidebar-collapse:hover { background: var(--tv-hover); color: var(--tv-text); } }
 .tv-sidebar-collapse svg { width: 16px; height: 16px; }
 
 /* Seletor de restaurante: o bloco da marca vira botão com 2+ restaurantes. */
-.tv-sidebar-switch { min-width: 0; height: 40px; flex: 1; margin: 0 0 0 -4px; padding: 0 4px; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: transparent; color: inherit; text-align: left; cursor: pointer; transition: background-color 150ms var(--tv-ease); }
-.tv-sidebar-switch:hover, .tv-sidebar-switch[aria-expanded="true"] { background: var(--tv-hover); }
+.tv-sidebar-switch { min-width: 0; height: 40px; flex: 1; margin: 0 0 0 -4px; padding: 0 4px; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: transparent; color: inherit; text-align: left; cursor: pointer; transition: var(--tv-transition); }
+.tv-sidebar-switch[aria-expanded="true"] { background: var(--tv-hover); }
+@media (hover: hover) { .tv-sidebar-switch:hover { background: var(--tv-hover); } }
 .tv-sidebar-switch-icon { width: 14px; height: 14px; flex: 0 0 14px; color: var(--tv-text-3); }
 .tv-sidebar:not(.is-expanded) .tv-sidebar-switch { height: auto; flex: 0 0 auto; margin: 0; padding: 0; }
 .tv-sidebar:not(.is-expanded) .tv-sidebar-switch-icon { display: none; }
 
-.tv-sidebar-search { width: 100%; height: 30px; flex: 0 0 30px; margin-bottom: 12px; padding: 0 9px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text-3); font-size: 12.5px; text-align: left; cursor: pointer; transition: border-color 150ms var(--tv-ease); }
-.tv-sidebar-search:hover { border-color: var(--tv-line-2); }
+.tv-sidebar-search { width: 100%; height: 30px; flex: 0 0 30px; margin-bottom: 12px; padding: 0 9px; display: flex; align-items: center; gap: 9px; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text-3); font-size: 12.5px; text-align: left; cursor: pointer; transition: var(--tv-transition); }
+@media (hover: hover) { .tv-sidebar-search:hover { border-color: var(--tv-line-2); } }
 .tv-sidebar-search > svg { width: 15px; height: 15px; flex: 0 0 15px; }
 .tv-sidebar-search > span { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; }
 .tv-sidebar-search > kbd { flex: 0 0 auto; padding: 1px 5px; border: 1px solid var(--tv-line); border-radius: 5px; color: var(--tv-text-3); font-family: inherit; font-size: 10.5px; line-height: 1.3; white-space: nowrap; }
 
 .tv-sidebar-section-label { padding: 0 9px 6px; color: var(--tv-text-3); font-size: 11px; font-weight: 500; white-space: nowrap; }
 .tv-sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
-.tv-sidebar-link { position: relative; min-width: 0; height: 30px; padding: 0 9px; display: flex; align-items: center; gap: 9px; overflow: hidden; border-radius: 7px; color: var(--tv-text-2); font-size: 13px; font-weight: 450; text-decoration: none; white-space: nowrap; transition: background-color 150ms var(--tv-ease), color 150ms var(--tv-ease); }
-.tv-sidebar-link:hover { background: var(--tv-active); }
+.tv-sidebar-link { position: relative; min-width: 0; height: 30px; padding: 0 9px; display: flex; align-items: center; gap: 9px; overflow: hidden; border-radius: 7px; color: var(--tv-text-2); font-size: 13px; font-weight: 450; text-decoration: none; white-space: nowrap; transition: var(--tv-transition); }
+@media (hover: hover) { .tv-sidebar-link:hover { background: var(--tv-active); } }
 .tv-sidebar-link.is-active { background: var(--tv-active); color: var(--tv-text); font-weight: 590; }
-.tv-sidebar-link > svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.tv-sidebar-link > svg { width: 16px; height: 16px; flex: 0 0 16px; transition: var(--tv-transition); }
 .tv-sidebar-link.is-active > svg { color: var(--tv-gold-text); }
 .tv-sidebar-link > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .tv-sidebar-link > small { color: var(--tv-text-3); font-size: 11px; font-weight: 450; }
@@ -49,7 +58,7 @@
 .tv-sidebar-footer { margin-top: auto; display: flex; flex-direction: column; }
 .tv-sidebar-collapse-bottom { display: none; }
 .tv-sidebar-account { width: 100%; min-width: 0; padding: 6px; display: flex; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: transparent; color: var(--tv-text); text-align: left; cursor: pointer; }
-.tv-sidebar-account:hover { background: var(--tv-hover); }
+@media (hover: hover) { .tv-sidebar-account:hover { background: var(--tv-hover); } }
 .tv-sidebar-avatar { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 11.5px; font-weight: 600; }
 .tv-sidebar-account-copy strong { overflow: hidden; color: var(--tv-text); font-size: 12.5px; font-weight: 500; text-overflow: ellipsis; }
 .tv-sidebar-account-copy small { overflow: hidden; color: var(--tv-text-3); font-size: 11px; text-overflow: ellipsis; }
@@ -71,51 +80,101 @@
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account { padding: 0; justify-content: center; }
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account { height: 38px; }
 .tv-sidebar:not(.is-expanded) .tv-sidebar-collapse-bottom { width: 100%; height: 30px; margin-bottom: 4px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; }
-.tv-sidebar-collapse-bottom:hover { background: var(--tv-hover); color: var(--tv-text); }
+@media (hover: hover) { .tv-sidebar-collapse-bottom:hover { background: var(--tv-hover); color: var(--tv-text); } }
 .tv-sidebar-collapse-bottom svg { width: 16px; height: 16px; }
 
-/* Popover de conta. */
+/* Ao expandir, os rótulos entram com fade enquanto a largura anima. Ao
+   recolher saem na hora: o layout recolhido centraliza os ícones, e uma
+   saída animada faria os ícones pularem duas vezes. */
+.tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { transition: var(--tv-transition); }
+@starting-style {
+  .tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { opacity: 0; }
+}
+
+/* Popover de conta (handoff Notificacoes Premium, quadros 1a–1d): material
+   translúcido, listas agrupadas e hierarquia por peso. O material fica no
+   ::before, e não no popover: elemento com backdrop-filter vira a raiz do
+   desfoque dos filhos, e a central (filha dele, aberta ao lado) perderia o
+   blur. Pelo mesmo motivo a entrada não segura o último quadro (backwards,
+   e não both): opacidade animada também vira raiz. */
 .tv-popover-catcher { position: fixed; z-index: 90; inset: 0; }
-.tv-account-popover { position: fixed; z-index: 91; left: 10px; bottom: 62px; width: 272px; padding: 12px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); transform-origin: left bottom; animation: tv-pop-in 150ms var(--tv-ease) both; }
+.tv-account-popover { --tv-text-3: var(--tv-mat-text-3); position: fixed; z-index: 91; left: 10px; bottom: 62px; width: 300px; padding: 6px; display: flex; flex-direction: column; gap: 6px; border-radius: 16px; color: var(--tv-text); transform-origin: left bottom; animation: tv-pop-in 150ms var(--tv-ease) backwards; }
+.tv-account-popover::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none; }
+/* O mesmo material na central (notifications.css cuida do resto dela). */
+.tv-account-popover::before, .tv-notif-panel { background: var(--tv-mat); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); box-shadow: var(--tv-pop-lg), inset 0 0 0 .5px var(--tv-line-2); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tv-account-popover::before, .tv-notif-panel { background: var(--tv-surface); }
+}
+/* Sobre uma foto escura no tema claro (ou clara no escuro), o material
+   translúcido derruba o contraste; quem pede menos transparência ou mais
+   contraste recebe a superfície opaca. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .tv-account-popover::before, .tv-notif-panel { background: var(--tv-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 /* "Sair de todos os aparelhos" abre o alerta do README §6.5 (scrim 80) por cima do popover. */
 .tv-account-popover.is-under-confirm { z-index: 79; }
-.tv-account-head { min-width: 0; display: flex; align-items: center; gap: 10px; }
-.tv-account-avatar { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 13px; font-weight: 600; }
-.tv-account-user { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-.tv-account-user strong { overflow: hidden; font-size: 12.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.tv-account-user small { color: var(--tv-text-3); font-size: 11px; }
-.tv-account-section { display: flex; flex-direction: column; gap: 6px; }
-.tv-account-label { color: var(--tv-text-3); font-size: 11px; font-weight: 500; }
-/* "Nome": o campo fica na própria seção; "Salvar" só com mudança. */
-.tv-account-name { display: flex; align-items: center; gap: 6px; }
-.tv-account-name input { min-width: 0; flex: 1; height: 30px; padding: 0 8px; border: 1px solid var(--tv-line); border-radius: 7px; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 12.5px; }
-.tv-account-name input:focus { border-color: var(--tv-gold); }
+.tv-account-head { min-width: 0; padding: 10px 10px 8px; display: flex; align-items: center; gap: 12px; }
+.tv-account-avatar { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 17px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08); }
+.tv-account-user { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.tv-account-user > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-account-user strong { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+.tv-account-user span { color: var(--tv-text-2); font-size: 12px; }
+.tv-account-user small { margin-top: 3px; color: var(--tv-text-3); font-size: 11px; }
+
+/* Grupos no estilo das listas agrupadas do iOS, com hairline entre linhas. */
+.tv-account-group { display: flex; flex-direction: column; border-radius: 12px; background: var(--tv-group); }
+.tv-account-hairline { height: .5px; margin-left: 12px; flex: 0 0 auto; background: var(--tv-line-2); }
+.tv-account-hairline.is-inset { margin-left: 45px; }
+/* Sem central (escolha de restaurante), "Instalar app" abre o grupo — sem
+   hairline em cima — ou, sem ela também, o grupo some. */
+.tv-account-group > .tv-account-hairline:first-child { display: none; }
+.tv-account-group:empty { display: none; }
+.tv-account-label { flex: 0 0 auto; color: var(--tv-text-2); font-size: 13px; }
+/* "Nome": a linha é o próprio campo; "Salvar" só com mudança. Sem borda no
+   campo, o anel de foco vai na linha. */
+.tv-account-name { min-width: 0; height: 40px; padding: 0 6px 0 12px; display: flex; align-items: center; gap: 10px; border-radius: 12px 12px 0 0; transition: var(--tv-transition); }
+@media (forced-colors: none) { .tv-account-name { outline: 2px solid transparent; outline-offset: 0; } }
+.tv-account-name:has(input:focus-visible) { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+.tv-account-name input { min-width: 0; flex: 1; height: 28px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 13px; text-align: right; }
 .tv-account-name input::placeholder { color: var(--tv-text-3); }
-.tv-account-name-save { height: 30px; padding: 0 10px; flex: 0 0 auto; display: inline-flex; align-items: center; border: 0; border-radius: 7px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-.tv-account-name-save:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+.tv-account-name input:disabled { opacity: .6; }
+.tv-account-name-save { height: 26px; padding: 0 10px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
 .tv-account-name-save:disabled { cursor: default; opacity: .5; }
-.tv-account-name-save .tv-spinner { width: 14px; height: 14px; }
-.tv-theme-segment { padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 9px; background: var(--tv-neutral-soft); }
-.tv-theme-segment button { height: 26px; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
-.tv-theme-segment button[aria-pressed="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 2px rgba(22,20,15,.08), 0 0 0 .5px var(--tv-line-2); }
-.tv-theme-segment button:focus-visible, .tv-account-action:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
-.tv-account-divider { height: 1px; margin: 0; border: 0; background: var(--tv-line); }
-/* "Instalar app" e "Sair" dividem a caixa; muda só a cor. */
-.tv-account-action, .tv-signout-button { height: 30px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 500; text-align: left; cursor: pointer; }
-.tv-account-action { color: var(--tv-text); }
-.tv-account-action:hover { background: var(--tv-hover); }
-.tv-account-action svg { width: 14px; height: 14px; }
-.tv-account-note { margin: 0; padding: 0 8px; color: var(--tv-text-3); font-size: 11.5px; line-height: 1.45; }
-.tv-signout-button { color: var(--tv-danger); }
-.tv-signout-button:hover { background: var(--tv-danger-soft); }
-.tv-account-action:disabled, .tv-signout-button:disabled { cursor: progress; opacity: .6; }
-.tv-signout-button svg, .tv-signout-button .tv-spinner { width: 14px; height: 14px; }
+.tv-account-name-save[aria-busy="true"] { cursor: progress; opacity: .7; }
+.tv-account-name-save .tv-spinner { width: 12px; height: 12px; }
+@media (hover: hover) { .tv-account-name-save:hover:not(:disabled):not([aria-busy="true"]) { opacity: .9; } }
+.tv-account-theme { min-width: 0; padding: 8px 8px 8px 12px; display: flex; align-items: center; gap: 10px; }
+.tv-theme-segment { min-width: 0; flex: 1; padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 8px; background: var(--tv-neutral-soft); }
+.tv-theme-segment button { height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+.tv-theme-segment button[aria-pressed="true"] { background: var(--tv-seg-on); color: var(--tv-text); box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 0 0 .5px var(--tv-line); }
+@media (hover: hover) { .tv-theme-segment button:not([aria-pressed="true"]):hover { color: var(--tv-text); } }
+
+/* Linhas de ação ("Notificações", "Instalar app"): ícone em tile. */
+.tv-account-row { width: 100%; height: 40px; padding: 0 10px 0 7px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 12px; background: transparent; color: var(--tv-text); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+@media (hover: hover) { .tv-account-row:hover { background: var(--tv-hover); } }
+.tv-account-row[aria-expanded="true"] { background: var(--tv-active); }
+.tv-account-tile { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 7px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.tv-account-tile.is-neutral { background: var(--tv-neutral-soft); color: var(--tv-text-2); }
+.tv-account-tile svg { width: 14px; height: 14px; }
+.tv-account-row-label { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-account-row .tv-notif-count { min-width: 20px; height: 20px; margin: 0; padding: 0 6px; font-size: 11.5px; line-height: 20px; }
+.tv-account-chevron { width: 13px; height: 13px; flex: 0 0 13px; color: var(--tv-text-3); }
+.tv-account-note { margin: 0; padding: 0 12px 10px 43px; color: var(--tv-text-3); font-size: 11.5px; line-height: 1.45; }
+
+.tv-signout-button { height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--tv-danger); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+@media (hover: hover) { .tv-signout-button:hover { background: var(--tv-danger-soft); } }
+.tv-signout-button:disabled { cursor: progress; opacity: .6; }
+.tv-signout-button svg, .tv-signout-button .tv-spinner { width: 15px; height: 15px; flex: 0 0 15px; }
+.tv-theme-segment button:focus-visible, .tv-account-row:focus-visible, .tv-account-name-save:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
 
 /* Popover "Seus restaurantes". */
 .tv-switch-popover { position: fixed; z-index: 91; top: 52px; left: 10px; width: 272px; padding: 6px; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); transform-origin: left top; animation: tv-pop-in 150ms var(--tv-ease) both; }
 .tv-switch-label { padding: 6px 8px 4px; color: var(--tv-text-3); font-size: 11px; font-weight: 500; }
-.tv-switch-row { min-width: 0; height: 40px; padding: 0 8px; display: flex; align-items: center; gap: 9px; border-radius: 8px; color: var(--tv-text); text-decoration: none; outline: 0; }
-.tv-switch-row:hover, .tv-switch-row:focus-visible { background: var(--tv-active); }
+/* As setas movem o foco entre as linhas: destaque de lista, que entra seco
+   e sai em 100 ms. */
+.tv-switch-row { min-width: 0; height: 40px; padding: 0 8px; display: flex; align-items: center; gap: 9px; border-radius: 8px; color: var(--tv-text); text-decoration: none; outline: 0; transition-duration: var(--tv-dur-1); }
+.tv-switch-row:focus-visible { background: var(--tv-active); transition-duration: 0s; }
+@media (hover: hover) { .tv-switch-row:hover { background: var(--tv-active); transition-duration: 0s; } }
 .tv-switch-mark { width: 24px; height: 24px; flex: 0 0 24px; display: grid; place-items: center; overflow: hidden; border-radius: 7px; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 10px; font-weight: 650; letter-spacing: .02em; }
 .tv-switch-mark.is-logo { border: 1px solid var(--tv-line); background: var(--tv-surface); }
 .tv-switch-mark.is-logo img { width: 100%; height: 100%; padding: 2px; object-fit: contain; }
@@ -124,8 +183,9 @@
 .tv-switch-copy small { color: var(--tv-text-3); font-size: 11px; }
 .tv-switch-row > svg { width: 14px; height: 14px; flex: 0 0 14px; color: var(--tv-gold-text); }
 .tv-switch-divider { height: 1px; margin: 4px 2px; border: 0; background: var(--tv-line); }
-.tv-switch-all { height: 32px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 8px; color: var(--tv-text-2); font-size: 12.5px; text-decoration: none; outline: 0; }
-.tv-switch-all:hover, .tv-switch-all:focus-visible { background: var(--tv-active); color: var(--tv-text); }
+.tv-switch-all { height: 32px; padding: 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 8px; color: var(--tv-text-2); font-size: 12.5px; text-decoration: none; outline: 0; transition-duration: var(--tv-dur-1); }
+.tv-switch-all:focus-visible { background: var(--tv-active); color: var(--tv-text); transition-duration: 0s; }
+@media (hover: hover) { .tv-switch-all:hover { background: var(--tv-active); color: var(--tv-text); transition-duration: 0s; } }
 .tv-switch-all svg { width: 14px; height: 14px; flex: 0 0 14px; }
 
 /* Paleta ⌘K. */
@@ -137,8 +197,9 @@
 .tv-command-input input::placeholder { color: var(--tv-text-3); }
 .tv-command-input kbd { padding: 1px 6px; border: 1px solid var(--tv-line); border-radius: 5px; color: var(--tv-text-3); font-family: inherit; font-size: 10.5px; }
 .tv-command-results { max-height: 340px; padding: 6px; display: flex; flex-direction: column; gap: 1px; overflow: auto; }
-.tv-command-row { width: 100%; padding: 8px 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
-.tv-command-row.is-selected { background: var(--tv-active); }
+.tv-command-row { width: 100%; padding: 8px 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; transition-duration: var(--tv-dur-1); }
+/* A seleção segue a seta e o mouse: entra seca e sai em 100 ms. */
+.tv-command-row.is-selected { background: var(--tv-active); transition-duration: 0s; }
 .tv-command-tile { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 7px; background: var(--tv-surface-2); color: var(--tv-gold-text); }
 .tv-command-tile svg { width: 14px; height: 14px; }
 .tv-command-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
@@ -167,7 +228,7 @@
   .tv-mobile-tabs .tv-sidebar-link > span { display: block; flex: initial; font-size: 10.5px; text-align: center; }
   .tv-mobile-tabs .tv-sidebar-link > small { display: none; }
   .tv-console-main { min-height: 100dvh; margin: 0; padding: 48px 0 calc(84px + env(safe-area-inset-bottom)); }
-  .tv-account-popover { left: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(272px, calc(100vw - 24px)); }
+  .tv-account-popover { left: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(300px, calc(100vw - 24px)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -117,7 +117,7 @@
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: opacity 150ms var(--tv-ease);
+  transition: var(--tv-transition);
   -webkit-tap-highlight-color: transparent;
 }
 .tv-nf-primary { border: 0; background: var(--tv-btn); color: var(--tv-btn-text); }
@@ -126,7 +126,7 @@
 .tv-nf-primary:focus-visible,
 .tv-nf-secondary:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 .tv-nf-primary:active,
-.tv-nf-secondary:active { opacity: .82; }
+.tv-nf-secondary:active { opacity: .82; transition-duration: 0s; }
 @media (hover: hover) {
   .tv-nf-primary:hover,
   .tv-nf-secondary:hover { opacity: .88; }
@@ -176,6 +176,9 @@
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+@media (hover: hover) {
+  .tv-nf-footnote a:hover { text-decoration-color: var(--tv-gold); }
 }
 /* `translate` e `scale` separados, e não `transform`, para a animação de
    escala não desfazer o centramento. */

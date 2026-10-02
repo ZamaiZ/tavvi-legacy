@@ -1,0 +1,141 @@
+/* Central de notificações: console e painel, desktop e celular. Só
+   tokens --tv-*; o badge repete as cores do .tv-tabbar-badge. */
+
+.tv-notif-count { min-width: 18px; height: 18px; margin-left: auto; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--tv-gold); color: #17150F; font-size: 11px; font-weight: 700; line-height: 18px; white-space: nowrap; }
+.tv-notif-count.is-row { margin-right: 4px; }
+
+.tv-sidebar-avatar { position: relative; }
+.tv-sidebar-account-dot { position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; border: 2px solid var(--tv-side, var(--tv-surface)); border-radius: 50%; background: var(--tv-gold); }
+
+.tv-notif { display: flex; flex-direction: column; gap: 8px; }
+.tv-notif-test { height: 34px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 9px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+.tv-notif-test svg { width: 14px; height: 14px; color: var(--tv-text-3); }
+@media (hover: hover) { .tv-notif-test:hover { background: var(--tv-hover); color: var(--tv-text); } }
+.tv-notif-test:disabled { cursor: progress; opacity: .7; }
+.tv-notif-test:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+.tv-notif-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tv-notif-title { margin: 0; color: var(--tv-text-3); font-size: 11px; font-weight: 500; letter-spacing: .02em; text-transform: uppercase; }
+.tv-notif-markall, .tv-notif-more { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.tv-notif-markall { height: 28px; padding: 0 6px; border-radius: 7px; }
+.tv-notif-more { height: 36px; border-radius: 9px; }
+@media (hover: hover) { .tv-notif-markall:hover, .tv-notif-more:hover { background: var(--tv-hover); } }
+.tv-notif-markall:disabled, .tv-notif-more:disabled { color: var(--tv-text-3); cursor: default; }
+.tv-notif-markall svg { width: 14px; height: 14px; }
+.tv-notif-markall:focus-visible, .tv-notif-more:focus-visible, .tv-notif-item:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+
+.tv-notif-list { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; list-style: none; }
+.tv-notif-item { width: 100%; padding: 10px; display: flex; align-items: flex-start; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--tv-text); font: inherit; text-align: left; cursor: pointer; }
+@media (hover: hover) { .tv-notif-item:hover { background: var(--tv-hover); } }
+.tv-notif-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.tv-notif-icon svg { width: 15px; height: 15px; }
+.tv-notif-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.tv-notif-copy strong { font-size: 13.5px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.tv-notif-copy span { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--tv-text-2); font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; }
+.tv-notif-copy time { color: var(--tv-text-3); font-size: 11.5px; }
+
+.tv-notif-state { margin: 0; padding: 18px 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--tv-text-3); font-size: 13px; }
+.tv-notif-empty { padding: 22px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.tv-notif-empty strong { color: var(--tv-text); font-size: 14px; font-weight: 600; }
+.tv-notif-empty span { color: var(--tv-text-3); font-size: 12.5px; }
+
+/* Desktop: a central abre ao lado do popover da conta (que é fixo e serve de
+   base), com o mesmo material dele — fundo, blur e sombra estão junto do
+   popover, em console-shell.css. O cabeçalho fica fixo e o resto rola. */
+.tv-notif-panel { position: absolute; left: calc(100% + 8px); bottom: 0; width: 392px; max-height: min(580px, 70vh); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; color: var(--tv-text); }
+.tv-notif.is-panel { min-height: 0; flex: 1 1 auto; gap: 0; }
+.tv-notif-header { padding: 16px 16px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.tv-notif-heading { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tv-notif-heading h3 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -.015em; outline: 0; }
+.tv-notif-heading > span { color: var(--tv-text-3); font-size: 12px; }
+.tv-notif-heading > .tv-skel { width: 72px; height: 10px; margin-top: 4px; }
+.is-panel .tv-notif-markall { height: 28px; padding: 0 10px; flex: 0 0 auto; border-radius: 999px; background: var(--tv-neutral-soft); color: var(--tv-text); font-size: 12px; font-weight: 500; }
+@media (hover: hover) { .is-panel .tv-notif-markall:hover { background: var(--tv-active); } }
+.is-panel .tv-notif-markall[aria-busy="true"] { cursor: progress; }
+.is-panel .tv-notif-markall svg, .is-panel .tv-notif-markall .tv-spinner { width: 13px; height: 13px; color: var(--tv-gold-text); }
+.tv-notif-scroll { min-height: 0; flex: 1; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; overscroll-behavior: contain; }
+
+/* "Neste aparelho": push deste navegador num interruptor e, no mesmo grupo,
+   o teste. As colunas de 28px alinham o ícone do teste com o tile. */
+.tv-notif-device { margin: 0 4px; flex: 0 0 auto; display: flex; flex-direction: column; border-radius: 12px; background: var(--tv-group); }
+.tv-notif-device-row { width: 100%; min-height: 52px; padding: 8px 10px 8px 12px; display: flex; align-items: center; gap: 12px; border: 0; border-radius: 12px 12px 0 0; background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
+button.tv-notif-device-row { cursor: pointer; }
+@media (hover: hover) { button.tv-notif-device-row:hover { background: var(--tv-hover); } }
+.tv-notif-device-tile { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-neutral-soft); color: var(--tv-text-2); }
+.tv-notif-device-tile svg { width: 14px; height: 14px; }
+.tv-notif-device-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.tv-notif-device-copy strong { font-size: 13px; font-weight: 500; }
+.tv-notif-device-copy small { color: var(--tv-text-3); font-size: 11.5px; }
+.tv-notif-chevron { width: 13px; height: 13px; flex: 0 0 13px; color: var(--tv-text-3); transition: transform var(--tv-dur-3) var(--tv-ease); }
+.tv-notif-device-row[aria-expanded="true"] .tv-notif-chevron { transform: rotate(90deg); }
+.tv-notif-device .tv-account-note { padding: 0 12px 10px 52px; }
+.tv-notif-hairline { height: .5px; margin-left: 52px; flex: 0 0 auto; background: var(--tv-line-2); }
+.tv-notif-switch { position: relative; width: 40px; height: 24px; flex: 0 0 40px; padding: 0; border: 0; border-radius: 12px; background: var(--tv-switch-off); cursor: pointer; transition: var(--tv-transition); transition-duration: var(--tv-dur-3); }
+.tv-notif-switch[aria-checked="true"] { background: var(--tv-gold); }
+.tv-notif-switch[aria-busy="true"] { opacity: .6; cursor: progress; }
+.tv-notif-switch-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 2px 4px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.04); transition: transform 220ms var(--tv-ease); }
+.tv-notif-switch[aria-checked="true"] .tv-notif-switch-knob { transform: translateX(16px); }
+.tv-notif-device-test { width: 100%; height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 12px; border: 0; border-radius: 0 0 12px 12px; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+/* Sem push no navegador, o teste é a única linha do grupo. */
+.tv-notif-device-test:first-child { border-radius: 12px; }
+@media (hover: hover) { .tv-notif-device-test:hover { background: var(--tv-hover); } }
+.tv-notif-device-test[aria-busy="true"] { cursor: progress; }
+.tv-notif-device-test-icon { width: 28px; flex: 0 0 28px; display: grid; place-items: center; }
+.tv-notif-device-test-icon svg, .tv-notif-device-test-icon .tv-spinner { width: 14px; height: 14px; }
+
+/* Lista agrupada por dia (Hoje, Anteriores), com a hora na linha do título. */
+.tv-notif-group { display: flex; flex-direction: column; gap: 2px; }
+.tv-notif-group-label { margin: 0; padding: 0 12px 4px; color: var(--tv-text-3); font-size: 12px; font-weight: 600; }
+.is-panel .tv-notif-item { padding: 10px 12px; gap: 12px; border-radius: 12px; }
+.is-panel .tv-notif-icon { width: 34px; height: 34px; flex-basis: 34px; border-radius: 9px; }
+.is-panel .tv-notif-icon svg { width: 16px; height: 16px; }
+.is-panel .tv-notif-copy .tv-notif-line { min-width: 0; display: flex; align-items: baseline; gap: 10px; overflow: visible; color: inherit; font-size: inherit; }
+.is-panel .tv-notif-line strong { min-width: 0; flex: 1; letter-spacing: -.005em; }
+.is-panel .tv-notif-line time { flex: 0 0 auto; }
+.is-panel .tv-notif-more { height: 36px; margin: 0 4px; flex: 0 0 auto; border-radius: 10px; font-size: 13px; font-weight: 500; }
+.is-panel .tv-notif-more[aria-busy="true"] { cursor: progress; }
+.is-panel .tv-notif-empty { padding: 44px 24px 52px; gap: 4px; }
+.is-panel .tv-notif-empty strong { font-size: 15px; letter-spacing: -.01em; }
+/* .tv-notif-empty span pinta todo span do vazio de cinza: o tile precisa vencer. */
+.tv-notif-empty .tv-notif-empty-icon { width: 56px; height: 56px; margin-bottom: 10px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.tv-notif-empty .tv-notif-empty-icon svg { width: 24px; height: 24px; }
+.tv-notif-markall:focus-visible, .tv-notif-device-row:focus-visible, .tv-notif-switch:focus-visible, .tv-notif-device-test:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+
+/* Carregando: a anatomia do item em skeleton. tv-skel-shimmer, e não
+   tv-shimmer: esse nome já é do .tv-skeleton (platform.css). */
+.tv-skel { display: block; border-radius: 5px; background: linear-gradient(90deg, var(--tv-skel) 0%, var(--tv-skel-hi) 50%, var(--tv-skel) 100%); background-size: 200% 100%; animation: tv-skel-shimmer 1.4s ease-in-out infinite; }
+@keyframes tv-skel-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.tv-notif-skeleton { display: flex; flex-direction: column; gap: 2px; }
+.tv-notif-skeleton-label { width: 44px; height: 10px; margin: 2px 12px 8px; }
+.tv-notif-skeleton-row { padding: 10px 12px; display: flex; gap: 12px; }
+.tv-notif-skeleton-tile { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 9px; }
+.tv-notif-skeleton-copy { min-width: 0; flex: 1; padding-top: 3px; display: flex; flex-direction: column; gap: 7px; }
+.tv-notif-skeleton-line { display: flex; justify-content: space-between; gap: 12px; }
+.tv-notif-skeleton-title { height: 11px; }
+.tv-notif-skeleton-time { width: 34px; height: 9px; flex: 0 0 34px; }
+.tv-notif-skeleton-body { height: 9px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-skel { animation: none; background: var(--tv-skel); }
+  .tv-notif-switch, .tv-notif-switch-knob, .tv-notif-chevron { transition: none; }
+}
+
+/* Celular: folha do painel (MobileSheet) e subtela Conta do console. */
+.tv-notif-sheet { padding: 0 var(--tv-gutter, 16px) calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+.tv-notif-sheet .tv-notif, .tv-account-sheet .tv-notif { margin-top: 8px; padding: 6px; border-radius: 14px; background: var(--tv-surface); }
+.tv-notif-sheet .tv-notif-head, .tv-account-sheet .tv-notif-head { padding: 4px 6px 0; }
+.tv-notif-sheet .tv-notif-item, .tv-account-sheet .tv-notif-item { min-height: 56px; }
+.tv-notif-sheet-nav { position: relative; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+.tv-notif-sheet-nav h2 { margin: 0; color: var(--tv-text); font-size: 17px; font-weight: 600; }
+.tv-notif-sheet-back { position: absolute; left: 0; height: 40px; padding: 0 4px; display: inline-flex; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 16px; }
+.tv-notif-sheet-back svg { width: 20px; height: 20px; }
+
+/* No toque não há hover; o press entra seco e solta devagar. */
+@media (hover: none) {
+  .tv-notif-item:active,
+  button.tv-notif-device-row:active,
+  .tv-notif-device-test:active { background: var(--tv-active, var(--tv-hover)); transition-duration: 0s; }
+  .tv-notif-test:active:not(:disabled),
+  .tv-notif-markall:active:not(:disabled),
+  .tv-notif-more:active:not(:disabled),
+  .tv-notif-sheet-back:active { opacity: .5; transition-duration: 0s; }
+}

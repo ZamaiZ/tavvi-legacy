@@ -80,13 +80,13 @@ export async function redeemPlatformInviteAction(
   })
 }
 
-// O banco gravou o aviso na transação do resgate. Reivindicar usa a sessão
-// de quem resgatou; o envio fica para depois da resposta, e falhar nele
-// nunca desfaz o resgate.
+// O banco gravou o aviso na transação do resgate (memberships_notify →
+// dispatch_notification). O envio fica para depois da resposta, e falhar
+// nele nunca desfaz o resgate.
 function notifyAfterRedeem() {
   after(async () => {
     try {
-      await push.deliverPush(await push.claimPushDeliveries())
+      await push.deliverPendingPushes()
     } catch (error) {
       console.error('[push] aviso de convite não enviado', error instanceof Error ? error.message : error)
     }

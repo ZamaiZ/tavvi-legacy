@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LuArrowLeftRight, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette } from 'react-icons/lu'
+import { LuArrowLeftRight, LuBell, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette } from 'react-icons/lu'
 import { AccountNameAction } from '@/components/shell/account-name-action'
 import { useSignOut } from '@/components/shell/account-panel'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
-import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
+import { NotificationCenterSheet } from '@/features/notifications/components/notification-center-sheet'
+import { UnreadBadge } from '@/features/notifications/components/unread-badge'
+import { useNotifications } from '@/features/notifications/notifications-provider'
 import { useRestaurantShell } from '@/components/shell/console-shell'
 import { useTheme } from '@/components/theme/theme-provider'
 import { markStackedFromList } from '@/lib/viewport'
@@ -25,6 +27,8 @@ export function SettingsMobile() {
   const [themeOpen, setThemeOpen] = useState(false)
   const [switchOpen, setSwitchOpen] = useState(false)
   const [signOutOpen, setSignOutOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const { unreadCount } = useNotifications()
   const root = `/restaurantes/${restaurantId}`
 
   useEffect(() => {
@@ -79,7 +83,14 @@ export function SettingsMobile() {
       </div>
 
       <PwaInstallAction variant="row" />
-      <PwaNotificationsAction variant="row" />
+      <div className="tv-group">
+        <button type="button" className="tv-mlink" aria-haspopup="dialog" onClick={() => setNotificationsOpen(true)}>
+          <span className="tv-mlink-icon" aria-hidden="true"><LuBell /></span>
+          <span className="tv-mlink-copy"><span>Notificações</span></span>
+          <UnreadBadge count={unreadCount} className="is-row" />
+          <LuChevronRight aria-hidden="true" />
+        </button>
+      </div>
 
       <div className="tv-group">
         <button type="button" className="tv-group-danger" disabled={pending} onClick={() => setSignOutOpen(true)}>
@@ -90,6 +101,7 @@ export function SettingsMobile() {
       {email ? <p className="tv-msettings-email">{email}</p> : null}
 
       <ThemeSheet open={themeOpen} onOpenChange={setThemeOpen} />
+      <NotificationCenterSheet open={notificationsOpen} onOpenChange={setNotificationsOpen} />
       {restaurants.length > 1 ? <SwitchRestaurantSheet open={switchOpen} onOpenChange={setSwitchOpen} /> : null}
       <PanelConfirm
         open={signOutOpen}

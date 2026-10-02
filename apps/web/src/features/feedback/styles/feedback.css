@@ -1,0 +1,81 @@
+/* Feedbacks do painel: desktop e celular. Tokens --tv-*; a tela cheia das
+   fotos é sempre escura, nos dois temas (exceção registrada no plano). */
+
+.tv-fb-page { display: flex; flex-direction: column; gap: 14px; }
+@media (min-width: 768px) {
+  .tv-fb-page { width: 100%; max-width: 880px; margin: 0 auto; padding: 28px 32px 48px; }
+}
+
+.tv-fb-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tv-fb-chip { height: 32px; padding: 0 14px; border: 1px solid var(--tv-line); border-radius: 999px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.tv-fb-chip[aria-pressed="true"] { border-color: transparent; background: var(--tv-btn); color: var(--tv-btn-text); }
+.tv-fb-chip:disabled { cursor: progress; }
+.tv-fb-loading { display: inline-flex; align-items: center; gap: 6px; color: var(--tv-text-3); font-size: 13px; }
+.tv-fb-chip:focus-visible, .tv-fb-card:focus-visible, .tv-fb-more:focus-visible, .tv-fb-action:focus-visible, .tv-fb-detail-photo:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+
+.tv-fb-list { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; list-style: none; }
+.tv-fb-card { width: 100%; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--tv-line); border-radius: 16px; background: var(--tv-surface); color: var(--tv-text); font: inherit; text-align: left; cursor: pointer; }
+@media (hover: hover) { .tv-fb-card:hover { background: var(--tv-hover); } }
+.tv-fb-card.is-unread { border-color: color-mix(in oklab, var(--tv-gold) 45%, var(--tv-line)); }
+.tv-fb-card-head { display: flex; align-items: center; gap: 8px; color: var(--tv-text-3); font-size: 12.5px; }
+.tv-fb-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--tv-gold); }
+.tv-fb-card-text { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 4; font-size: 14.5px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.tv-fb-card.is-unread .tv-fb-card-text { font-weight: 500; }
+.tv-fb-card-photos { display: flex; gap: 6px; }
+.tv-fb-card-photos img, .tv-fb-photo-missing { width: 64px; height: 64px; display: block; border-radius: 10px; background: var(--tv-neutral-soft); object-fit: cover; }
+.tv-fb-more { align-self: center; height: 38px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 999px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.tv-fb-more:disabled { cursor: progress; opacity: .7; }
+
+/* Detalhe: Dialog no desktop, MobileSheet no celular. */
+.tv-fb-dialog { width: min(560px, calc(100vw - 32px)); max-width: 560px; }
+.tv-fb-detail { display: flex; flex-direction: column; gap: 14px; }
+.tv-fb-detail.is-sheet { padding: 4px var(--tv-gutter, 16px) calc(24px + env(safe-area-inset-bottom)); }
+.tv-fb-detail-date { color: var(--tv-text-3); font-size: 13px; }
+.tv-fb-detail-text { margin: 0; color: var(--tv-text); font-size: 15px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+.tv-fb-detail-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tv-fb-detail-photo { aspect-ratio: 1; padding: 0; overflow: hidden; border: 0; border-radius: 12px; background: var(--tv-neutral-soft); cursor: zoom-in; }
+.tv-fb-detail-photo img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform var(--tv-dur-3) var(--tv-ease); }
+.tv-fb-detail-photo span { height: 100%; padding: 8px; display: grid; place-items: center; color: var(--tv-text-3); font-size: 12px; text-align: center; }
+.tv-fb-detail-photo:disabled { cursor: default; }
+.tv-fb-detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.tv-fb-action { height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.tv-fb-action svg { width: 15px; height: 15px; }
+.tv-fb-action.is-danger { color: var(--tv-danger); }
+.tv-fb-action:disabled { cursor: progress; opacity: .6; }
+
+/* Tela cheia das fotos: faixa com scroll-snap nativo. */
+.tv-fb-viewer-scrim { position: fixed; z-index: 120; inset: 0; background: rgba(0, 0, 0, .92); }
+.tv-fb-viewer { position: fixed; z-index: 121; inset: 0; display: flex; align-items: center; outline: 0; }
+.tv-fb-viewer-strip { width: 100%; height: 100%; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
+.tv-fb-viewer-strip::-webkit-scrollbar { display: none; }
+.tv-fb-viewer-slide { flex: 0 0 100%; height: 100%; margin: 0; display: grid; place-items: center; scroll-snap-align: start; }
+.tv-fb-viewer-slide img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.tv-fb-viewer-slide figcaption { color: #fff; font-size: 14px; }
+.tv-fb-viewer-close, .tv-fb-viewer-nav { position: absolute; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; cursor: pointer; }
+.tv-fb-viewer-close { top: calc(12px + env(safe-area-inset-top)); right: 12px; }
+.tv-fb-viewer-nav { top: 50%; translate: 0 -50%; }
+.tv-fb-viewer-nav.is-prev { left: 12px; }
+.tv-fb-viewer-nav.is-next { right: 12px; }
+.tv-fb-viewer svg { width: 22px; height: 22px; }
+
+@media (max-width: 767px) {
+  /* No celular, o deslize nativo basta. */
+  .tv-fb-viewer-nav { display: none; }
+}
+
+/* Hover de quem não tinha nenhum (spec 2026-10-01 §2.5). */
+@media (hover: hover) {
+  .tv-fb-chip:not([aria-pressed="true"]):hover:not(:disabled) { border-color: var(--tv-line-2); color: var(--tv-text); }
+  .tv-fb-more:hover:not(:disabled),
+  .tv-fb-action:hover:not(:disabled) { background: var(--tv-surface-2); }
+  .tv-fb-action.is-danger:hover:not(:disabled) { background: var(--tv-danger-soft); }
+  .tv-fb-detail-photo:hover:not(:disabled) img { transform: scale(1.03); }
+  .tv-fb-viewer-close:hover, .tv-fb-viewer-nav:hover { background: rgba(255, 255, 255, .24); }
+}
+/* No toque não há hover; o press entra seco e solta devagar. */
+@media (hover: none) {
+  .tv-fb-card:active { background: var(--tv-active, var(--tv-hover)); transition-duration: 0s; }
+  .tv-fb-chip:active:not(:disabled),
+  .tv-fb-more:active:not(:disabled),
+  .tv-fb-action:active:not(:disabled) { opacity: .75; transition-duration: 0s; }
+}

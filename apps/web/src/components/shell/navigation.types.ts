@@ -6,6 +6,7 @@ export type NavIconName =
   | 'palette'
   | 'contact'
   | 'team'
+  | 'feedback'
 
 export type NavLeaf = {
   kind: 'leaf'
@@ -28,7 +29,7 @@ export type NavGroup = {
 
 export type NavItem = NavLeaf | NavGroup
 
-export type MobileTabIcon = 'mail' | 'store' | 'menu' | 'service' | 'team' | 'settings'
+export type MobileTabIcon = 'mail' | 'store' | 'menu' | 'service' | 'feedback' | 'team' | 'settings'
 
 // Aba da tab bar do celular. `exact` acende só na rota exata (o Cardápio é
 // prefixo de todas as outras); `match` acende também em outras rotas

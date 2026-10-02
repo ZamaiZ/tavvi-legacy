@@ -3,16 +3,27 @@ import type { Database, Json } from '../integrations/supabase/database.types.js'
 import type { AdminContext } from './request-context.js'
 import { HttpError } from './errors.js'
 
+// Tentativas por minuto em cada balde.
+const RATE_LIMITS = {
+  'auth:login': 10,
+  'auth:device': 10,
+  'auth:device-unlink': 10,
+  mutation: 60,
+  'notifications:devices': 20,
+  'notifications:test': 5,
+} as const
+
+export type RateLimitBucket = keyof typeof RATE_LIMITS
+
 export async function enforceRateLimit(
   supabase: SupabaseClient<Database>,
-  bucket: 'auth:login' | 'auth:device' | 'auth:device-unlink' | 'mutation',
+  bucket: RateLimitBucket,
   identifier: string,
 ) {
-  const max = bucket === 'mutation' ? 60 : 10
   const result = await supabase.rpc('check_rate_limit', {
     p_bucket: bucket,
     p_identifier: identifier,
-    p_max: max,
+    p_max: RATE_LIMITS[bucket],
     p_window_seconds: 60,
   })
   if (result.error) throw new HttpError(500, 'RATE_LIMIT_CHECK_FAILED', 'Não foi possível concluir esta operação.')

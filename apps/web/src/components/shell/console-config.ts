@@ -3,7 +3,7 @@ import { getRestaurantMobileTabs } from './navigation'
 import type { MobileTab } from './navigation.types'
 import type { SidebarIdentity } from './sidebar'
 
-export type ConsoleIcon = 'mail' | 'store' | 'menu' | 'palette' | 'contact' | 'team'
+export type ConsoleIcon = 'mail' | 'store' | 'menu' | 'palette' | 'contact' | 'team' | 'feedback'
 
 export type ConsoleLeaf = {
   kind: 'leaf'
@@ -51,7 +51,7 @@ export type ConsoleConfig = {
   userDescription?: string | null
   homeHref?: string
   showNewInvite?: boolean
-  counts?: { pendingInvites: number; restaurants: number }
+  counts?: { pendingInvites: number; restaurants: number; unreadFeedback?: number; unreadNotifications?: number }
   railWidths?: { collapsed: number; pinned: number }
   mobileTabs?: MobileTab[]
   restaurant?: RestaurantShellInfo
@@ -116,6 +116,8 @@ export function getRestaurantConsoleConfig({
   restaurantId,
   canEdit,
   restaurants,
+  unreadFeedback = 0,
+  unreadNotifications = 0,
 }: {
   email: string | null
   displayName: string | null
@@ -127,8 +129,10 @@ export function getRestaurantConsoleConfig({
   restaurantId: string
   canEdit: boolean
   restaurants: RestaurantSwitchEntry[]
+  unreadFeedback?: number
+  unreadNotifications?: number
 }): ConsoleConfig {
-  const iconMap = { menu: 'menu', palette: 'palette', contact: 'contact', team: 'team' } as const
+  const iconMap = { menu: 'menu', palette: 'palette', contact: 'contact', team: 'team', feedback: 'feedback' } as const
   const leaves = navigation.flatMap((group) => group.children).map((leaf) => ({
     kind: 'leaf' as const,
     key: leaf.icon,
@@ -149,7 +153,7 @@ export function getRestaurantConsoleConfig({
     items: [{ kind: 'group', id: 'restaurant', label: 'Restaurante', children: leaves }],
     leaves,
     showNewInvite: false,
-    counts: { pendingInvites: 0, restaurants: 0 },
+    counts: { pendingInvites: 0, restaurants: 0, unreadFeedback, unreadNotifications },
     railWidths: { collapsed: 60, pinned: 232 },
     mobileTabs: getRestaurantMobileTabs(restaurantId, canEdit),
     restaurant: { restaurantId, canEdit, restaurants },

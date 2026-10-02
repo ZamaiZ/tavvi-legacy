@@ -1,13 +1,16 @@
 import 'server-only'
 import { uuidSchema } from '@/domain/common'
-import { completeOnboardingSchema, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema, type UpdateRestaurantProfileInput } from '@/domain/restaurant'
+import type { GoogleReviewOutcome, GoogleReviewStatus } from '@/domain/google-review'
+import { completeOnboardingSchema, generateGoogleReviewSchema, parseContact, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema, type GoogleReview, type UpdateRestaurantProfileInput } from '@/domain/restaurant'
 import type { RevalidationTarget } from '@/server/revalidate'
 import { getRestaurantRevalidationTarget } from './revalidation-target'
 import { countVisibleItemsWithoutMedia } from './menu-read'
 import { fitContrast } from '@/lib/color'
 import { isBaseInRange, PRESETS } from '@/lib/theme/presets'
 import { CONTRAST_MINIMUMS } from '@/lib/theme/resolve'
+import { resolveGoogleReview } from '@/server/integrations/google-review'
 import { recordAudit } from '@/server/security/audit'
+import { enforceRateLimit, RateLimitedError } from '@/server/security/rate-limit'
 import { createUserClient } from './_client'
 import { ConflictError, currentTerritory, requireRestaurantAdmin, requirePlatformAdmin, UserFacingError } from './auth'
 
@@ -16,22 +19,60 @@ async function db() {
 }
 // Monta o jsonb `contact`. O endereço do CEP substitui o texto antigo;
 // sem endereço novo, o texto antigo volta como estava (o formulário o
-// devolve) ou some, quando o dono escolheu "Remover endereço".
-function storedContact(contact: UpdateRestaurantProfileInput['contact']): Record<string, unknown> {
+// devolve) ou some, quando o dono escolheu "Remover endereço". O link de
+// avaliação entra só como o servidor decidiu.
+function storedContact(
+  contact: UpdateRestaurantProfileInput['contact'],
+  googleReview: GoogleReview | null,
+): Record<string, unknown> {
   const { address, legacyAddress, ...rest } = contact
   const stored: Record<string, unknown> = { ...rest }
   if (address) stored.address = address
   else if (legacyAddress) stored.address = legacyAddress
+  if (googleReview) stored.googleReview = googleReview
   return stored
 }
 
-export async function updateRestaurantProfile(
-  input: unknown,
-): Promise<RevalidationTarget> {
+type ReviewDecision = { review: GoogleReview | null; status: GoogleReviewStatus }
+
+// A resolução nunca impede salvar o resto do Contato: limite estourado e
+// Google fora do ar viram status, não erro.
+async function decideGoogleReview(
+  userId: string,
+  mapsUrl: string | undefined,
+  current: GoogleReview | undefined,
+): Promise<ReviewDecision> {
+  if (!mapsUrl) return { review: null, status: 'none' }
+  if (current && current.mapsUrl === mapsUrl) return { review: current, status: 'active' }
+  try {
+    await enforceRateLimit('maps:resolve', `user:${userId}`)
+  } catch (error) {
+    if (error instanceof RateLimitedError) return { review: null, status: 'unavailable' }
+    throw error
+  }
+  const resolved = await resolveGoogleReview(mapsUrl)
+  if (resolved.status === 'ok') return { review: { url: resolved.url, mapsUrl }, status: 'active' }
+  return { review: null, status: resolved.status }
+}
+
+async function readContact(restaurantId: string): Promise<unknown> {
+  const supabase = await db()
+  const { data, error } = await supabase.from('restaurants').select('contact').eq('id', restaurantId).maybeSingle()
+  if (error) throw new Error(`Não foi possível ler o contato: ${error.message}`)
+  if (!data) throw new UserFacingError('Restaurante não encontrado.')
+  return data.contact
+}
+
+export type ProfileSaveResult = GoogleReviewOutcome & { target: RevalidationTarget }
+
+export async function updateRestaurantProfile(input: unknown): Promise<ProfileSaveResult> {
   const data = updateRestaurantProfileSchema.parse(input)
   // Autorizacao por POSSE do recurso, nao so por estar autenticado. E o
   // que fecha IDOR: saber o id de outro restaurante nao basta.
-  await requireRestaurantAdmin(data.restaurantId)
+  const user = await requireRestaurantAdmin(data.restaurantId)
+
+  const current = parseContact(await readContact(data.restaurantId))
+  const decision = await decideGoogleReview(user.id, data.contact.mapsUrl, current.googleReview)
 
   const supabase = await db()
   const { error } = await supabase
@@ -39,7 +80,7 @@ export async function updateRestaurantProfile(
     .update({
       name: data.name,
       description: data.description ?? null,
-      contact: storedContact(data.contact),
+      contact: storedContact(data.contact, decision.review),
     })
     .eq('id', data.restaurantId)
 
@@ -52,7 +93,41 @@ export async function updateRestaurantProfile(
     restaurantId: data.restaurantId,
   })
 
-  return getRestaurantRevalidationTarget(data.restaurantId)
+  return {
+    target: await getRestaurantRevalidationTarget(data.restaurantId),
+    googleReview: decision.status,
+    googleReviewUrl: decision.review?.url ?? null,
+  }
+}
+
+// "Gerar agora": para restaurante que salvou o Maps antes deste recurso, ou
+// quando o Google estava fora do ar. Regrava SÓ a chave googleReview; o resto
+// do jsonb volta exatamente como foi lido.
+export async function generateGoogleReview(input: unknown): Promise<ProfileSaveResult> {
+  const { restaurantId } = generateGoogleReviewSchema.parse(input)
+  const user = await requireRestaurantAdmin(restaurantId)
+
+  const raw = await readContact(restaurantId)
+  const mapsUrl = parseContact(raw).mapsUrl
+  if (!mapsUrl) throw new UserFacingError('Salve um link do Google Maps antes de gerar o botão de avaliação.')
+
+  await enforceRateLimit('maps:resolve', `user:${user.id}`)
+  const resolved = await resolveGoogleReview(mapsUrl)
+
+  const next: Record<string, unknown> =
+    raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...(raw as Record<string, unknown>) } : {}
+  if (resolved.status === 'ok') next.googleReview = { url: resolved.url, mapsUrl }
+  else delete next.googleReview
+
+  const supabase = await db()
+  const { error } = await supabase.from('restaurants').update({ contact: next }).eq('id', restaurantId)
+  if (error) throw new Error(`Não foi possível salvar o link de avaliação: ${error.message}`)
+
+  return {
+    target: await getRestaurantRevalidationTarget(restaurantId),
+    googleReview: resolved.status === 'ok' ? 'active' : resolved.status,
+    googleReviewUrl: resolved.status === 'ok' ? resolved.url : null,
+  }
 }
 
 export async function setRestaurantStatus(

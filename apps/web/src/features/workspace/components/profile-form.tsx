@@ -15,9 +15,10 @@ import {
 } from '@/features/workspace/lib/address-draft'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { isGoogleMapsUrl, MAPS_URL_ERROR, type RestaurantContact } from '@/domain/restaurant'
+import { activeGoogleReviewUrl, isGoogleMapsUrl, MAPS_URL_ERROR, type RestaurantContact } from '@/domain/restaurant'
 import type { ThemeChoice } from '@/domain/theme'
-import { updateRestaurantProfileAction } from '@/server/actions/restaurants'
+import { generateGoogleReviewAction, updateRestaurantProfileAction } from '@/server/actions/restaurants'
+import { GoogleReviewStatusLine, reviewStateFrom, type ReviewState } from '@/features/workspace/components/google-review-status'
 
 type ProfileValues = {
   name: string
@@ -60,6 +61,11 @@ function canonicalPhone(value: string) {
   return `55${number}`
 }
 
+function initialReview(contact: RestaurantContact): ReviewState {
+  const url = activeGoogleReviewUrl(contact)
+  return url ? { kind: 'active', url } : { kind: 'missing' }
+}
+
 export function ProfileForm({
   restaurantId,
   name,
@@ -97,10 +103,14 @@ export function ProfileForm({
   const [saved, setSaved] = useState(original)
   const valuesRef = useRef(values)
   const [pending, startTransition] = useTransition()
-  const locked = pending || busy === true
+  const [generating, startGenerating] = useTransition()
+  const [review, setReview] = useState<ReviewState>(() => initialReview(contact))
+  // "Gerar agora" também trava a superfície inteira (loading integral).
+  const locked = pending || generating || busy === true
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const dirty = JSON.stringify(values) !== JSON.stringify(saved)
+  const mapsEdited = values.mapsUrl.trim() !== saved.mapsUrl.trim()
 
   function update<K extends keyof ProfileValues>(key: K, value: ProfileValues[K]) {
     const next = { ...valuesRef.current, [key]: value }
@@ -179,7 +189,22 @@ export function ProfileForm({
       setValues(persisted)
       setSaved(persisted)
       toast.add({ title: 'Dados salvos', type: 'success' })
+      setReview(reviewStateFrom(result.data.googleReview, result.data.googleReviewUrl))
       onSaved?.()
+    })
+  }
+
+  function generate() {
+    if (locked || dirty) return
+    startGenerating(async () => {
+      const result = await generateGoogleReviewAction({ restaurantId })
+      if (!result.ok) {
+        toast.add({ title: result.error, type: 'error' })
+        return
+      }
+      const next = reviewStateFrom(result.data.googleReview, result.data.googleReviewUrl)
+      setReview(next)
+      if (next.kind === 'active') toast.add({ title: 'Botão de avaliação ativado', type: 'success' })
     })
   }
 
@@ -193,6 +218,7 @@ export function ProfileForm({
     address: previewAddress(values.address) ?? values.legacyAddress ?? '',
     mapsUrl: values.mapsUrl.trim(),
     coverPath,
+    reviewActive: review.kind === 'active' && !mapsEdited,
   }
   const saveLabel = continueLabel ?? 'Salvar'
 
@@ -302,6 +328,17 @@ export function ProfileForm({
             onChange={(change) => update('address', change(valuesRef.current.address))}
             onMapsUrlChange={(next) => update('mapsUrl', next)}
             onRemove={removeAddress}
+            reviewStatus={
+              <GoogleReviewStatusLine
+                state={review}
+                hasMapsUrl={values.mapsUrl.trim().length > 0}
+                edited={mapsEdited}
+                dirty={dirty}
+                generating={generating}
+                disabled={locked}
+                onGenerate={generate}
+              />
+            }
           />
         </fieldset>
 

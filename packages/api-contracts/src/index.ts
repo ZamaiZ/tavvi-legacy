@@ -1,5 +1,6 @@
 export * from './auth.js'
 export * from './common.js'
+export * from './notifications.js'
 export * from './platform.js'
 export * from './restaurants.js'
 export * from './routes.js'

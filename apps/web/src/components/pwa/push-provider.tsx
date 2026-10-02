@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { deletePushSubscriptionAction, savePushSubscriptionAction, sendTestPushAction } from '@/server/actions/push'
+import { deletePushSubscriptionAction, savePushSubscriptionAction } from '@/server/actions/push'
 import { detectPlatform } from './platform'
 import { readPushChoice, serializeSubscription, subscribePush, usesKey, withTimeout, writePushChoice } from './push-client'
 
@@ -21,7 +21,6 @@ type PushContextValue = {
   pending: boolean
   enable: () => Promise<PushResult>
   disable: () => Promise<PushResult>
-  sendTest: () => Promise<PushResult>
 }
 
 const PushContext = createContext<PushContextValue | null>(null)
@@ -160,15 +159,7 @@ export function PushProvider({
       }, 'Não foi possível desativar as notificações neste aparelho.')
     }
 
-    function sendTest(): Promise<PushResult> {
-      if (busy.current) return Promise.resolve({ ok: false, error: '' })
-      return guard(async () => {
-        const result = await sendTestPushAction()
-        return result.ok ? { ok: true } : result
-      }, 'Não foi possível enviar a notificação de teste.')
-    }
-
-    return { availability, subscribed, pending, enable, disable, sendTest }
+    return { availability, subscribed, pending, enable, disable }
   }, [availability, subscribed, pending, vapidPublicKey])
 
   return <PushContext.Provider value={value}>{children}</PushContext.Provider>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+body{margin:0;background:#E9E6DF;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.003em;font-variant-numeric:tabular-nums}
+a{color:#86622C}a:hover{color:#B38B4D}
+input{font:inherit}
+@keyframes tvShimmer{0%{background-position:150% 0}100%{background-position:-50% 0}}
+@keyframes tvSpin{to{transform:rotate(360deg)}}
+@keyframes tvFadeUp{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<section style="padding:56px 56px 24px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <span style="font-size:12px;font-weight:600;color:#86622C;letter-spacing:.02em">PROPOSTA</span>
+    <h1 style="margin:0;font-size:28px;font-weight:650;letter-spacing:-.02em;color:#17150F">Conta e central de notificações</h1>
+    <p style="margin:0;font-size:14px;line-height:1.5;color:#6A655B;text-wrap:pretty">Material translúcido, listas agrupadas e hierarquia por peso em vez de caixa-alta, seguindo o HIG. O push do aparelho vira um interruptor e o teste passa a morar no mesmo grupo. Tudo nos tokens --tv-* do repositório. Notificações aceitam até duas ações com borda. Os quadros são interativos: o corpo marca como lida, as ações confirmam e saem, “Enviar notificação de teste” simula chegadas e “Marcar todas” dispensa em cascata.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+    <sc-for list="{{ boards }}" as="b" hint-placeholder-count="4">
+      <div id="{{ b.id }}" style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="padding:3px 8px;border-radius:6px;background:#17150F;color:#fff;font-size:12px;font-weight:600">{{ b.id }}</span>
+          <span style="font-size:13px;color:#6A655B">{{ b.label }}</span>
+        </div>
+        <div style="{{ b.vars }}">
+          <div style="position:relative;width:740px;height:620px;padding:20px;box-sizing:border-box;display:flex;align-items:flex-end;gap:8px;border-radius:18px;overflow:hidden;background:var(--tv-bg);color:var(--tv-text)">
+            <div style="position:absolute;inset:0 auto 0 0;width:236px;background:var(--tv-side);border-right:1px solid var(--tv-line)"></div>
+            <div style="position:absolute;top:22px;left:268px;display:flex;align-items:baseline;gap:8px"><strong style="font-size:15px;font-weight:600">Entradas</strong><span style="font-size:12px;color:var(--tv-text-3)">1 item</span></div>
+
+            <!-- Popover de conta -->
+            <div style="position:relative;width:300px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;border-radius:16px;background:var(--tv-mat);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);box-shadow:var(--tv-pop),inset 0 0 0 .5px var(--tv-line-2)">
+              <div style="padding:10px 10px 8px;display:flex;align-items:center;gap:12px">
+                <span style="width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:var(--tv-hero-gradient);color:var(--tv-hero-ink);font-size:17px;font-weight:600;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.08)">C</span>
+                <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:1px">
+                  <strong style="font-size:14px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.savedName }}</strong>
+                  <span style="font-size:12px;color:var(--tv-text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">carlao@gmail.com</span>
+                  <span style="margin-top:3px;font-size:11px;color:var(--tv-text-3)">Administrador · Foods Lara</span>
+                </span>
+              </div>
+
+              <div style="display:flex;flex-direction:column;border-radius:12px;background:var(--tv-group)">
+                <label style="height:40px;padding:0 6px 0 12px;display:flex;align-items:center;gap:10px">
+                  <span style="font-size:13px;color:var(--tv-text-2)">Nome</span>
+                  <input value="{{ b.name }}" onChange="{{ b.onName }}" style="min-width:0;flex:1;height:28px;padding:0;border:0;outline:0;background:transparent;color:var(--tv-text);font-size:13px;text-align:right"></input>
+                  <sc-if value="{{ b.dirty }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" onClick="{{ b.onSave }}" style="height:26px;padding:0 10px;border:0;border-radius:999px;background:var(--tv-btn);color:var(--tv-btn-text);font-size:12px;font-weight:600;cursor:pointer">Salvar</button>
+                  </sc-if>
+                </label>
+                <div style="height:.5px;margin-left:12px;background:var(--tv-line-2)"></div>
+                <div style="padding:8px 8px 8px 12px;display:flex;align-items:center;gap:10px">
+                  <span style="font-size:13px;color:var(--tv-text-2)">Tema</span>
+                  <div style="flex:1;padding:2px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:8px;background:var(--tv-neutral-soft)">
+                    <sc-for list="{{ b.themes }}" as="t" hint-placeholder-count="3">
+                      <button type="button" onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;border-radius:12px;background:var(--tv-group)">
+                <button type="button" onClick="{{ b.toggleOpen }}" style="{{ b.notifRowStyle }}">
+                  <span style="width:26px;height:26px;display:grid;place-items:center;border-radius:7px;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat"></span></span>
+                  <span style="flex:1;text-align:left">Notificações</span>
+                  <sc-if value="{{ b.hasUnread }}" hint-placeholder-val="{{ true }}">
+                    <span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;display:inline-grid;place-items:center;border-radius:999px;background:var(--tv-gold);color:#17150F;font-size:11.5px;font-weight:700">{{ b.count }}</span>
+                  </sc-if>
+                  <span style="width:13px;height:13px;color:var(--tv-text-3);background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/chevron-right.svg) center / contain no-repeat"></span>
+                </button>
+              </div>
+
+              <button type="button" style="height:38px;padding:0 12px;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;background:transparent;color:var(--tv-danger);font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-danger-soft)">
+                <span style="width:15px;height:15px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/log-out.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/log-out.svg) center / contain no-repeat"></span>
+                Sair
+              </button>
+            </div>
+
+            <!-- Central de notificações -->
+            <sc-if value="{{ b.open }}" hint-placeholder-val="{{ true }}">
+            <section style="position:relative;width:392px;max-height:580px;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:var(--tv-mat);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);box-shadow:var(--tv-pop),inset 0 0 0 .5px var(--tv-line-2)">
+              <div style="padding:16px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <h3 style="margin:0;font-size:17px;font-weight:650;letter-spacing:-.015em">Notificações</h3>
+                  <sc-if value="{{ b.loading }}" hint-placeholder-val="{{ false }}">
+                    <span style="width:72px;height:10px;margin-top:4px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                  </sc-if>
+                  <sc-if value="{{ b.notLoading }}" hint-placeholder-val="{{ true }}">
+                    <span style="font-size:12px;color:var(--tv-text-3)">{{ b.subtitle }}</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ b.hasUnread }}" hint-placeholder-val="{{ true }}">
+                  <button type="button" onClick="{{ b.markAll }}" style="height:28px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:var(--tv-neutral-soft);color:var(--tv-text);font-size:12px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-active)">
+                    <span style="width:13px;height:13px;color:var(--tv-gold-text);background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat"></span>
+                    {{ b.markLabel }}
+                  </button>
+                </sc-if>
+              </div>
+
+              <div style="flex:1;min-height:0;overflow-y:auto;padding:0 8px 8px;display:flex;flex-direction:column;gap:14px">
+                <div style="margin:0 4px;display:flex;flex-direction:column;border-radius:12px;background:var(--tv-group)">
+                  <div style="min-height:52px;padding:8px 10px 8px 12px;display:flex;align-items:center;gap:12px">
+                    <span style="width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;border-radius:8px;background:var(--tv-neutral-soft);color:var(--tv-text-2)"><span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/smartphone.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/smartphone.svg) center / contain no-repeat"></span></span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:1px">
+                      <span style="font-size:13px;font-weight:500">Neste aparelho</span>
+                      <span style="font-size:11.5px;color:var(--tv-text-3)">{{ b.pushHint }}</span>
+                    </span>
+                    <button type="button" role="switch" aria-checked="{{ b.push }}" aria-label="Ativar notificações" onClick="{{ b.togglePush }}" style="{{ b.trackStyle }}">
+                      <span style="{{ b.knobStyle }}"></span>
+                    </button>
+                  </div>
+                  <div style="height:.5px;margin-left:52px;background:var(--tv-line-2)"></div>
+                  <button type="button" onClick="{{ b.sendTest }}" style="height:40px;padding:0 12px;display:flex;align-items:center;gap:12px;border:0;border-radius:0 0 12px 12px;background:transparent;color:var(--tv-gold-text);font-size:13px;font-weight:500;text-align:left;cursor:pointer" style-hover="background:var(--tv-hover)">
+                    <span style="width:28px;display:grid;place-items:center"><span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell-ring.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell-ring.svg) center / contain no-repeat"></span></span>
+                    {{ b.testLabel }}
+                  </button>
+                </div>
+
+                <sc-if value="{{ b.loading }}" hint-placeholder-val="{{ false }}">
+                  <div aria-busy="true" style="display:flex;flex-direction:column;gap:2px">
+                    <span style="width:44px;height:10px;margin:2px 12px 8px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                    <sc-for list="{{ skeletonRows }}" as="s" hint-placeholder-count="4">
+                      <div style="padding:10px 12px;display:flex;gap:12px">
+                        <span style="width:34px;height:34px;flex:0 0 34px;border-radius:9px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                        <span style="flex:1;display:flex;flex-direction:column;gap:7px;padding-top:3px">
+                          <span style="display:flex;justify-content:space-between;gap:12px">
+                            <span style="{{ s.titleStyle }}"></span>
+                            <span style="width:34px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                          </span>
+                          <span style="width:100%;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%);background-size:200% 100%;animation:tvShimmer 1.4s ease-in-out infinite"></span>
+                          <span style="{{ s.bodyStyle }}"></span>
+                        </span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ b.showEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="animation:tvFadeUp 420ms cubic-bezier(.2,.8,.2,1) both;padding:44px 24px 52px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center">
+                    <span style="width:56px;height:56px;margin-bottom:10px;display:grid;place-items:center;border-radius:50%;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="width:24px;height:24px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat"></span></span>
+                    <strong style="font-size:15px;font-weight:600;letter-spacing:-.01em">Tudo em dia</strong>
+                    <span style="font-size:12.5px;color:var(--tv-text-3)">Nenhuma notificação nova.</span>
+                  </div>
+                </sc-if>
+
+                <sc-for list="{{ b.groups }}" as="g" hint-placeholder-count="0">
+                  <div style="{{ g.wrapStyle }}"><div style="min-height:0;display:flex;flex-direction:column">
+                    <span style="{{ g.labelStyle }}">{{ g.label }}</span>
+                    <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+                      <div style="{{ it.wrapStyle }}"><div style="min-height:0;overflow:hidden;padding:1px 0">
+                        <div style="{{ it.cardStyle }}" style-hover="background:var(--tv-hover)">
+                          <button type="button" onClick="{{ it.open }}" aria-label="{{ it.ariaOpen }}" style="width:100%;padding:0;display:flex;align-items:flex-start;gap:12px;border:0;background:transparent;color:var(--tv-text);font:inherit;text-align:left;cursor:pointer;outline-offset:4px;border-radius:8px">
+                            <span style="width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:9px;background:var(--tv-gold-soft);color:var(--tv-gold-text)"><span style="{{ it.iconStyle }}"></span></span>
+                            <span style="min-width:0;flex:1;display:flex;flex-direction:column;gap:2px">
+                              <span style="display:flex;align-items:baseline;gap:10px">
+                                <strong style="flex:1;min-width:0;font-size:13.5px;font-weight:600;line-height:1.3;letter-spacing:-.005em">{{ it.title }}</strong>
+                                <time style="flex:0 0 auto;font-size:11.5px;color:var(--tv-text-3)">{{ it.time }}</time>
+                              </span>
+                              <span style="display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--tv-text-2);font-size:12.5px;line-height:1.4">{{ it.body }}</span>
+                            </span>
+                          </button>
+                          <sc-if value="{{ it.hasActions }}" hint-placeholder-val="{{ false }}">
+                            <div style="margin-top:10px;padding-left:46px;display:flex;flex-wrap:wrap;gap:8px">
+                              <sc-for list="{{ it.actions }}" as="a" hint-placeholder-count="0">
+                                <button type="button" onClick="{{ a.run }}" disabled="{{ a.locked }}" style="{{ a.style }}" style-hover="background:var(--tv-hover)" style-active="transform:scale(.97)">
+                                  <sc-if value="{{ a.done }}" hint-placeholder-val="{{ false }}">
+                                    <span style="width:12px;height:12px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check.svg) center / contain no-repeat;animation:tvFadeUp 220ms cubic-bezier(.2,.8,.2,1) both"></span>
+                                  </sc-if>
+                                  {{ a.text }}
+                                </button>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </div></div>
+                    </sc-for>
+                  </div></div>
+                </sc-for>
+
+                <sc-if value="{{ b.hasMore }}" hint-placeholder-val="{{ false }}">
+                  <button type="button" style="height:36px;margin:0 4px;border:0;border-radius:10px;background:transparent;color:var(--tv-gold-text);font-size:13px;font-weight:500;cursor:pointer" style-hover="background:var(--tv-hover)">Carregar mais</button>
+                </sc-if>
+              </div>
+            </section>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="padding:24px 56px 72px;display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <span style="font-size:12px;font-weight:600;color:#8F8A80;letter-spacing:.02em">ATUAL</span>
+    <h2 style="margin:0;font-size:20px;font-weight:650;letter-spacing:-.015em;color:#17150F">Como está hoje</h2>
+  </div>
+  <div id="0a" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:8px"><span style="padding:3px 8px;border-radius:6px;background:#8F8A80;color:#fff;font-size:12px;font-weight:600">0a</span><span style="font-size:13px;color:#6A655B">Recriação de account-popover.tsx + notification-list.tsx</span></div>
+    <div style="position:relative;width:740px;height:420px;padding:20px;box-sizing:border-box;display:flex;align-items:flex-end;gap:8px;border-radius:18px;overflow:hidden;background:#F5F3EE;color:#17150F">
+      <div style="position:absolute;inset:0 auto 0 0;width:236px;background:#FAF9F6;border-right:1px solid rgba(22,20,15,.08)"></div>
+      <div style="position:relative;width:272px;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;border:1px solid rgba(22,20,15,.08);border-radius:14px;background:#fff;box-shadow:0 18px 44px -12px rgba(22,20,15,.22),0 2px 6px rgba(22,20,15,.06)">
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#F3EBDD;color:#86622C;font-size:13px;font-weight:600">C</span><span style="display:flex;flex-direction:column"><strong style="font-size:12.5px;font-weight:500">carlao@gmail.com</strong><small style="color:#8F8A80;font-size:11px">Administrador · Foods Lara</small></span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="color:#8F8A80;font-size:11px;font-weight:500">Nome</span><div style="display:flex;gap:6px"><span style="flex:1;height:30px;padding:0 8px;display:flex;align-items:center;border:1px solid rgba(22,20,15,.08);border-radius:7px;font-size:12.5px">carlaos</span><span style="height:30px;padding:0 10px;display:inline-flex;align-items:center;border-radius:7px;background:#F3EBDD;color:#86622C;font-size:12.5px;font-weight:600">Salvar</span></div></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="color:#8F8A80;font-size:11px;font-weight:500">Tema</span><div style="padding:2px;display:grid;grid-template-columns:repeat(3,1fr);border-radius:9px;background:rgba(22,20,15,.055)"><span style="height:26px;display:grid;place-items:center;font-size:12px;font-weight:500;color:#6A655B">Sistema</span><span style="height:26px;display:grid;place-items:center;font-size:12px;font-weight:500;border-radius:7px;background:#fff;box-shadow:0 1px 2px rgba(22,20,15,.08),0 0 0 .5px rgba(22,20,15,.14)">Claro</span><span style="height:26px;display:grid;place-items:center;font-size:12px;font-weight:500;color:#6A655B">Escuro</span></div></div>
+        <div style="height:30px;padding:0 8px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:#6A655B"><span style="width:14px;height:14px;color:#8F8A80;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat"></span>Notificações</div>
+        <div style="height:1px;background:rgba(22,20,15,.08)"></div>
+        <div style="height:30px;padding:0 8px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:#B2372C"><span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/log-out.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/log-out.svg) center / contain no-repeat"></span>Sair</div>
+      </div>
+      <div style="position:relative;width:380px;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px;border:1px solid rgba(22,20,15,.08);border-radius:14px;background:#fff;box-shadow:0 18px 44px -12px rgba(22,20,15,.22),0 2px 6px rgba(22,20,15,.06)">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="color:#8F8A80;font-size:11px;font-weight:500">Neste aparelho</span><div style="height:30px;padding:0 8px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:#6A655B"><span style="width:14px;height:14px;color:#8F8A80;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell.svg) center / contain no-repeat"></span>Ativar notificações</div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="height:34px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(22,20,15,.08);border-radius:9px;font-size:12.5px;font-weight:500;color:#6A655B"><span style="width:14px;height:14px;color:#8F8A80;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell-ring.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/bell-ring.svg) center / contain no-repeat"></span>Enviar notificação de teste</div>
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="color:#8F8A80;font-size:11px;font-weight:500;letter-spacing:.02em">NÃO LIDAS</span><span style="height:28px;padding:0 6px;display:inline-flex;align-items:center;gap:6px;color:#8F8A80;font-size:12.5px;font-weight:600"><span style="width:14px;height:14px;background:currentColor;-webkit-mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat;mask:url(https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/check-check.svg) center / contain no-repeat"></span>Marcar todas como lidas</span></div>
+          <div style="padding:22px 8px;display:flex;flex-direction:column;align-items:center;gap:2px"><strong style="font-size:14px;font-weight:600">Tudo em dia</strong><span style="color:#8F8A80;font-size:12.5px">Nenhuma notificação nova.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ICON = n => `https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/icons/${n}.svg`;
+const KIND = { feedback_received: 'message-square-text', team_member_joined: 'user-plus', access_request: 'key-round', restaurant_joined: 'store', test: 'bell-ring' };
+const LIGHT = {
+  '--tv-bg': '#F5F3EE', '--tv-side': '#FAF9F6', '--tv-surface': '#FFFFFF', '--tv-hover': 'rgba(22,20,15,.04)', '--tv-active': 'rgba(22,20,15,.065)',
+  '--tv-line': 'rgba(22,20,15,.08)', '--tv-line-2': 'rgba(22,20,15,.14)', '--tv-text': '#17150F', '--tv-text-2': '#6A655B', '--tv-text-3': '#8F8A80',
+  '--tv-gold': '#B38B4D', '--tv-gold-text': '#86622C', '--tv-gold-soft': '#F3EBDD', '--tv-btn': '#17150F', '--tv-btn-text': '#FFFFFF',
+  '--tv-hero-gradient': 'linear-gradient(135deg,#DDBF8A 0%,#C9A266 48%,#B48A4E 100%)', '--tv-hero-ink': '#1D170E',
+  '--tv-danger': '#B2372C', '--tv-danger-soft': '#F7E3DF', '--tv-neutral-soft': 'rgba(22,20,15,.055)',
+  '--tv-pop': '0 24px 60px -16px rgba(22,20,15,.28), 0 4px 12px rgba(22,20,15,.06)',
+  '--tv-mat': 'rgba(255,255,255,.84)', '--tv-group': 'rgba(22,20,15,.035)', '--tv-switch-off': 'rgba(22,20,15,.14)',
+  '--tv-skel': 'rgba(22,20,15,.06)', '--tv-skel-hi': 'rgba(22,20,15,.11)', '--tv-gold-line': 'rgba(179,139,77,.55)', '--tv-fresh': 'rgba(179,139,77,.10)',
+};
+const DARK = {
+  '--tv-bg': '#0D0C0A', '--tv-side': '#11100E', '--tv-surface': '#171613', '--tv-hover': 'rgba(255,248,235,.045)', '--tv-active': 'rgba(255,248,235,.08)',
+  '--tv-line': 'rgba(255,248,235,.075)', '--tv-line-2': 'rgba(255,248,235,.14)', '--tv-text': '#F2EEE6', '--tv-text-2': '#A6A094', '--tv-text-3': '#7C766B',
+  '--tv-gold': '#D0AC6E', '--tv-gold-text': '#D6B67C', '--tv-gold-soft': 'rgba(208,172,110,.12)', '--tv-btn': '#D0AC6E', '--tv-btn-text': '#15120C',
+  '--tv-hero-gradient': 'linear-gradient(135deg,#CFAE72 0%,#B28A4C 55%,#8F6B35 100%)', '--tv-hero-ink': '#17120A',
+  '--tv-danger': '#EE8C80', '--tv-danger-soft': 'rgba(238,140,128,.12)', '--tv-neutral-soft': 'rgba(255,248,235,.07)',
+  '--tv-pop': '0 24px 56px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,248,235,.06)',
+  '--tv-mat': 'rgba(30,28,25,.82)', '--tv-group': 'rgba(255,248,235,.05)', '--tv-switch-off': 'rgba(255,248,235,.16)',
+  '--tv-skel': 'rgba(255,248,235,.06)', '--tv-skel-hi': 'rgba(255,248,235,.12)', '--tv-gold-line': 'rgba(208,172,110,.45)', '--tv-fresh': 'rgba(208,172,110,.10)',
+};
+const SEED = () => [
+  { id: 1, kind: 'access_request', title: 'João Lima quer entrar na equipe', body: 'Pediu acesso ao painel da Foods Lara como Garçom.', time: 'há 2 min', group: 'Hoje', actions: [{ label: 'Recusar', done: 'Recusado' }, { label: 'Aprovar', done: 'Aprovado', primary: true }] },
+  { id: 2, kind: 'feedback_received', title: 'Novo feedback', body: 'Mesa 12 deixou um comentário com foto sobre o Risoto de cogumelos.', time: 'há 14 min', group: 'Hoje', actions: [{ label: 'Ver feedback', done: 'Abrindo', primary: true }] },
+  { id: 3, kind: 'team_member_joined', title: 'Ana Souza entrou na equipe', body: 'Ela aceitou o convite e já acessa o painel como Garçom.', time: 'há 1 h', group: 'Hoje' },
+  { id: 4, kind: 'feedback_received', title: 'Novo feedback', body: 'Um cliente avaliou o atendimento do balcão e deixou uma sugestão.', time: 'ontem', group: 'Anteriores', actions: [{ label: 'Responder', done: 'Abrindo' }] },
+];
+const INCOMING = [
+  { kind: 'test', title: 'Notificação de teste', body: 'Se você está vendo isto, o tempo real está funcionando.' },
+  { kind: 'access_request', title: 'Marina Reis quer entrar na equipe', body: 'Pediu acesso ao painel como Cozinha.', actions: [{ label: 'Recusar', done: 'Recusado' }, { label: 'Aprovar', done: 'Aprovado', primary: true }] },
+  { kind: 'feedback_received', title: 'Novo feedback', body: 'Mesa 4 avaliou o pedido com 5 estrelas.', actions: [{ label: 'Ver feedback', done: 'Abrindo', primary: true }] },
+];
+const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)';
+const EASE_IN = 'cubic-bezier(.4,0,1,1)';
+const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ms = n => (REDUCED ? 0 : n);
+const BOARDS = [
+  { id: '1a', label: 'Lista · claro', mode: 'list', dark: false, theme: 1 },
+  { id: '1b', label: 'Vazio · claro', mode: 'empty', dark: false, theme: 1 },
+  { id: '1c', label: 'Carregando (skeleton) · claro', mode: 'loading', dark: false, theme: 1 },
+  { id: '1d', label: 'Lista · escuro', mode: 'list', dark: true, theme: 2 },
+];
+const SHIM = 'linear-gradient(90deg,var(--tv-skel) 0%,var(--tv-skel-hi) 50%,var(--tv-skel) 100%)';
+const bar = (w, h) => ({ width: w, height: h, borderRadius: 5, background: SHIM, backgroundSize: '200% 100%', animation: 'tvShimmer 1.4s ease-in-out infinite' });
+
+class Component extends DCLogic {
+  state = Object.fromEntries(BOARDS.map(b => [b.id, {
+    items: b.mode === 'list' ? SEED().map(i => ({ ...i, phase: 'rest' })) : [], push: b.mode !== 'empty' ? true : false, open: true,
+    name: 'carlaos', saved: 'carlaos', theme: b.theme, sending: false, nextIn: 0,
+  }]));
+  timers = new Set();
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, t) { const h = setTimeout(() => { this.timers.delete(h); fn(); }, t); this.timers.add(h); }
+  upd(id, patch) { this.setState(s => ({ [id]: { ...s[id], ...(typeof patch === 'function' ? patch(s[id]) : patch) } })); }
+  patchItem(bid, iid, p) { this.upd(bid, s => ({ items: s.items.map(x => (x.id === iid ? { ...x, ...p } : x)) })); }
+  arrive(bid, item) {
+    const id = Date.now() + Math.random();
+    this.upd(bid, s => ({ items: [{ ...item, id, time: 'agora', group: 'Hoje', phase: 'enter', fresh: true }, ...s.items] }));
+    requestAnimationFrame(() => requestAnimationFrame(() => this.patchItem(bid, id, { phase: 'in' })));
+    this.later(() => this.patchItem(bid, id, { phase: 'rest' }), ms(620));
+    this.later(() => this.patchItem(bid, id, { fresh: false }), 1600);
+  }
+  dismiss(bid, iid, delay = 0) {
+    this.later(() => {
+      this.patchItem(bid, iid, { phase: 'leave' });
+      this.later(() => this.upd(bid, s => ({ items: s.items.filter(x => x.id !== iid) })), ms(480));
+    }, delay);
+  }
+  renderVals() {
+    const boards = BOARDS.map(b => {
+      const st = this.state[b.id];
+      const loading = b.mode === 'loading';
+      const live = st.items.filter(i => i.phase !== 'leave');
+      const n = live.length;
+      const groups = loading ? [] : ['Hoje', 'Anteriores'].map(label => {
+        const raw = st.items.filter(i => i.group === label);
+        const gone = raw.length > 0 && raw.every(i => i.phase === 'leave');
+        return {
+          label, n: raw.length,
+          wrapStyle: { display: 'grid', gridTemplateRows: gone ? '0fr' : '1fr', opacity: gone ? 0 : 1, marginBottom: gone ? -14 : 0, transition: gone ? `grid-template-rows ${ms(300)}ms ${EASE_OUT} ${ms(160)}ms, opacity ${ms(180)}ms ease, margin ${ms(300)}ms ${EASE_OUT} ${ms(160)}ms` : 'none' },
+          labelStyle: { padding: '0 12px 4px', fontSize: 12, fontWeight: 600, color: 'var(--tv-text-3)', overflow: 'hidden' },
+          items: raw.map(i => {
+            const settled = i.phase === 'in' || i.phase === 'rest';
+            const tr = i.phase === 'in'
+              ? { rows: `grid-template-rows ${ms(380)}ms ${EASE_OUT}`, card: `opacity ${ms(300)}ms ease ${ms(90)}ms, transform ${ms(460)}ms ${EASE_OUT} ${ms(40)}ms, background-color 900ms ease` }
+              : i.phase === 'leave'
+                ? { rows: `grid-template-rows ${ms(300)}ms ${EASE_OUT} ${ms(150)}ms`, card: `opacity ${ms(180)}ms ease, transform ${ms(240)}ms ${EASE_IN}` }
+                : { rows: 'none', card: 'background-color 900ms ease' };
+            const locked = i.doneIdx != null || i.phase === 'leave';
+            const acts = (i.actions || []).slice(0, 2);
+            return {
+              ...i,
+              ariaOpen: `${i.title}. Marcar como lida e abrir`,
+              wrapStyle: { display: 'grid', gridTemplateRows: settled ? '1fr' : '0fr', transition: tr.rows },
+              cardStyle: {
+                padding: '10px 12px', borderRadius: 12,
+                background: i.fresh ? 'var(--tv-fresh)' : 'transparent',
+                opacity: settled ? 1 : 0,
+                transform: i.phase === 'enter' ? 'translateY(-10px) scale(.97)' : i.phase === 'leave' ? 'translateX(18px) scale(.98)' : 'none',
+                transformOrigin: 'top center', transition: tr.card,
+              },
+              iconStyle: { width: 16, height: 16, background: 'currentColor', WebkitMask: `url(${ICON(KIND[i.kind])}) center / contain no-repeat`, mask: `url(${ICON(KIND[i.kind])}) center / contain no-repeat` },
+              open: () => { if (!locked) this.dismiss(b.id, i.id); },
+              hasActions: acts.length > 0,
+              actions: acts.map((a, k) => {
+                const done = i.doneIdx === k;
+                const dim = i.doneIdx != null && !done;
+                return {
+                  done, locked, text: done ? (a.done || a.label) : a.label,
+                  run: e => {
+                    e.stopPropagation();
+                    if (locked) return;
+                    this.patchItem(b.id, i.id, { doneIdx: k });
+                    this.dismiss(b.id, i.id, ms(720));
+                  },
+                  style: {
+                    height: 28, padding: '0 12px', display: 'inline-flex', alignItems: 'center', gap: 6,
+                    border: `1px solid ${a.primary ? 'var(--tv-gold-line)' : 'var(--tv-line-2)'}`, borderRadius: 999,
+                    background: done ? (a.primary ? 'var(--tv-gold-soft)' : 'var(--tv-neutral-soft)') : 'transparent',
+                    color: a.primary ? 'var(--tv-gold-text)' : 'var(--tv-text)',
+                    font: 'inherit', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap',
+                    opacity: dim ? 0.35 : 1, cursor: locked ? 'default' : 'pointer',
+                    transition: 'background-color 160ms ease, opacity 220ms ease, transform 120ms ease, border-color 160ms ease',
+                  },
+                };
+              }),
+            };
+          }),
+        };
+      }).filter(g => g.n);
+      return {
+        ...b, vars: b.dark ? DARK : LIGHT, loading, notLoading: !loading,
+        open: st.open, toggleOpen: () => this.upd(b.id, s => ({ open: !s.open })),
+        notifRowStyle: { height: 40, padding: '0 10px 0 7px', display: 'flex', alignItems: 'center', gap: 10, border: 0, borderRadius: 12, background: st.open ? 'var(--tv-active)' : 'transparent', color: 'var(--tv-text)', font: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer' },
+        name: st.name, savedName: st.saved, dirty: st.name.trim() !== st.saved && st.name.trim() !== '',
+        onName: e => this.upd(b.id, { name: e.target.value }),
+        onSave: e => { e.preventDefault(); this.upd(b.id, s => ({ saved: s.name.trim() })); },
+        themes: ['Sistema', 'Claro', 'Escuro'].map((label, k) => ({
+          label, pick: () => this.upd(b.id, { theme: k }),
+          style: { height: 26, border: 0, borderRadius: 6, background: st.theme === k ? (b.dark ? 'rgba(255,248,235,.14)' : '#FFFFFF') : 'transparent', color: st.theme === k ? 'var(--tv-text)' : 'var(--tv-text-2)', boxShadow: st.theme === k ? '0 1px 3px rgba(0,0,0,.1), 0 0 0 .5px var(--tv-line)' : 'none', font: 'inherit', fontSize: 12, fontWeight: 500, cursor: 'pointer' },
+        })),
+        count: n > 99 ? '99+' : n, hasUnread: !loading && n > 0, showEmpty: !loading && st.items.length === 0,
+        subtitle: n === 0 ? 'Nenhuma não lida' : n === 1 ? '1 não lida' : `${n} não lidas`,
+        markLabel: 'Marcar todas como lidas',
+        markAll: () => live.forEach((i, k) => { this.patchItem(b.id, i.id, { doneIdx: i.doneIdx ?? -1 }); this.dismiss(b.id, i.id, ms(k * 60)); }),
+        push: st.push, pushHint: st.push ? 'Avisos mesmo com o app fechado' : 'Desativadas neste aparelho',
+        togglePush: () => this.upd(b.id, s => ({ push: !s.push })),
+        trackStyle: { position: 'relative', width: 40, height: 24, flex: '0 0 40px', padding: 0, border: 0, borderRadius: 12, background: st.push ? 'var(--tv-gold)' : 'var(--tv-switch-off)', cursor: 'pointer', transition: 'background 200ms cubic-bezier(.2,.8,.2,1)' },
+        knobStyle: { position: 'absolute', top: 2, left: 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.04)', transform: st.push ? 'translateX(16px)' : 'none', transition: 'transform 220ms cubic-bezier(.2,.8,.2,1)' },
+        testLabel: st.sending ? 'Enviando…' : 'Enviar notificação de teste',
+        sendTest: () => {
+          if (st.sending) return;
+          this.upd(b.id, { sending: true });
+          this.later(() => { this.upd(b.id, s => ({ sending: false, nextIn: s.nextIn + 1 })); this.arrive(b.id, INCOMING[st.nextIn % INCOMING.length]); }, 700);
+        },
+        groups, hasMore: !loading && n >= 4,
+      };
+    });
+    const skeletonRows = [['46%', '62%'], ['58%', '40%'], ['38%', '70%'], ['52%', '48%']].map(([t, bd]) => ({ titleStyle: bar(t, 11), bodyStyle: bar(bd, 9) }));
+    return { boards, skeletonRows };
+  }
+}
+</script>
+</body>
+</html>

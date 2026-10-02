@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useState, type MouseEvent, type ReactNode } from 'react'
-import { LuBell, LuBellOff, LuBellRing } from 'react-icons/lu'
+import { LuBell, LuBellOff, LuChevronRight, LuSmartphone } from 'react-icons/lu'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { usePush, type PushResult } from './push-provider'
@@ -20,16 +20,18 @@ type Action = {
 const PENDING_LABEL: Record<string, string> = {
   on: 'Ativando…',
   off: 'Desativando…',
-  test: 'Enviando teste…',
 }
 
-// "Notificações": logo abaixo de "Instalar app" nas telas de conta (Ajustes
-// do painel, Conta do console, popover do desktop). A permissão do
-// navegador só é pedida num toque em "Ativar notificações", nunca sozinha.
-export function PwaNotificationsAction({ variant, className }: { variant: 'row' | 'popover'; className?: string }) {
-  const { availability, subscribed, pending, enable, disable, sendTest } = usePush()
+// Push deste aparelho: fica no topo da central de notificações ("Neste
+// aparelho"): no desktop, como interruptor dentro do grupo da central
+// (`group`); no celular, como linha da folha de Ajustes do painel e da
+// subtela Conta do console (`row`). A permissão do navegador só é pedida
+// num toque, nunca sozinha. Sem suporte, não renderiza nada — nem o rótulo.
+export function PwaNotificationsAction({ variant, className, label }: { variant: 'row' | 'group'; className?: string; label?: string }) {
+  const { availability, subscribed, pending, enable, disable } = usePush()
   const [helpOpen, setHelpOpen] = useState(false)
   const helpId = useId()
+  const hintId = useId()
   const [runningKey, setRunningKey] = useState<string | null>(null)
   if (availability === 'unsupported') return null
 
@@ -39,10 +41,11 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
       : availability === 'denied'
         ? 'As notificações deste app estão bloqueadas. Libere nas configurações do navegador e volte aqui.'
         : null
+  const helpHint = availability === 'needs-install' ? 'Disponíveis no app instalado' : 'Bloqueadas no navegador'
 
-  // Os botões trocam depois de ativar ou desativar. Dentro do popover ou do
+  // Na linha, os botões trocam depois de ativar ou desativar; dentro do
   // sheet, o foco volta ao tema atual, como no "Instalar app", para o Tab
-  // continuar preso no diálogo.
+  // continuar preso no diálogo. O interruptor não troca: o foco fica nele.
   function settle(event: MouseEvent<HTMLButtonElement>, task: Promise<PushResult>, success: string, refocus: boolean) {
     const dialog = event.currentTarget.closest('[role="dialog"]')
     void task.then((result) => {
@@ -60,24 +63,20 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
           key: 'help',
           icon: <LuBellOff aria-hidden="true" />,
           label: 'Notificações',
-          hint: availability === 'needs-install' ? 'Disponíveis no app instalado' : 'Bloqueadas no navegador',
+          hint: helpHint,
           run: () => setHelpOpen((open) => !open),
           expands: true,
         },
       ]
     : subscribed
       ? [
-          {
-            key: 'test',
-            icon: <LuBellRing aria-hidden="true" />,
-            label: 'Enviar notificação de teste',
-            hint: 'Ativas neste aparelho',
-            run: (event) => settle(event, sendTest(), 'Notificação enviada', false),
-          },
+          // O teste mora na central ("Enviar notificação de teste") e passa
+          // pelo caminho inteiro, não só pelo push deste aparelho.
           {
             key: 'off',
             icon: <LuBellOff aria-hidden="true" />,
             label: 'Desativar notificações',
+            hint: 'Ativas neste aparelho',
             run: (event) => settle(event, disable(), 'Notificações desativadas', true),
           },
         ]
@@ -108,22 +107,58 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
     }
   }
 
-  if (variant === 'popover') {
+  // Primeira linha do grupo "Neste aparelho" da central (o teste vem logo
+  // abaixo, montado pela NotificationList). Bloqueado ou só no app
+  // instalado, o interruptor sai e a linha abre a explicação. Ocupado, o
+  // interruptor segue focável (aria-disabled): desabilitado, perderia o foco
+  // e o Tab escaparia do popover.
+  if (variant === 'group') {
+    const tile = <span className="tv-notif-device-tile" aria-hidden="true"><LuSmartphone /></span>
     return (
-      <div className="tv-account-section">
-        {actions.map((action) => (
-          <button key={action.key} {...buttonProps(action)} className="tv-account-action">
-            {running(action) ? <SpinnerRing decorative /> : action.icon}
-            <span>{running(action) ? PENDING_LABEL[action.key] ?? action.label : action.label}</span>
-          </button>
-        ))}
-        {help ? <p id={helpId} className="tv-account-note" hidden={!helpOpen}>{help}</p> : null}
-      </div>
+      <>
+        {help ? (
+          <>
+            <button type="button" className="tv-notif-device-row" aria-expanded={helpOpen} aria-controls={helpId} onClick={() => setHelpOpen((open) => !open)}>
+              {tile}
+              <span className="tv-notif-device-copy"><strong>Neste aparelho</strong><small>{helpHint}</small></span>
+              <LuChevronRight className="tv-notif-chevron" aria-hidden="true" />
+            </button>
+            <p id={helpId} className="tv-account-note" hidden={!helpOpen}>{help}</p>
+          </>
+        ) : (
+          <div className="tv-notif-device-row">
+            {tile}
+            <span className="tv-notif-device-copy">
+              <strong>Neste aparelho</strong>
+              <small id={hintId}>{subscribed ? 'Avisos mesmo com o app fechado' : 'Desativadas neste aparelho'}</small>
+            </span>
+            <button
+              type="button"
+              role="switch"
+              className="tv-notif-switch"
+              aria-checked={subscribed}
+              aria-label="Ativar notificações"
+              aria-describedby={hintId}
+              aria-disabled={pending || undefined}
+              aria-busy={pending || undefined}
+              onClick={(event) => {
+                if (pending) return
+                if (subscribed) settle(event, disable(), 'Notificações desativadas', false)
+                else settle(event, enable(), 'Notificações ativadas', false)
+              }}
+            >
+              <span className="tv-notif-switch-knob" />
+            </button>
+          </div>
+        )}
+        <span className="tv-notif-hairline" aria-hidden="true" />
+      </>
     )
   }
 
   return (
     <>
+      {label ? <h2 className="tv-group-label">{label}</h2> : null}
       <div className={className ? `tv-group ${className}` : 'tv-group'}>
         {actions.map((action) => (
           <button key={action.key} {...buttonProps(action)} className="tv-mlink">

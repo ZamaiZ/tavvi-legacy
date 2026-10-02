@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx/esm --watch src/index.ts",
     "compile": "pnpm --dir ../../packages/api-contracts build && tsc --project tsconfig.json",
-    "start": "node --env-file-if-exists=.env dist/index.js"
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "push:keys": "web-push generate-vapid-keys"
   },
   "keywords": [],
   "author": "",
@@ -21,11 +22,13 @@
     "@tavvi/api-contracts": "workspace:*",
     "express": "^5.2.1",
     "ngrok": "5.0.0-beta.2",
+    "web-push": "^3.6.7",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@types/web-push": "^3.6.4",
     "tsx": "^4.19.0",
     "typescript": "~6.0.3"
   }

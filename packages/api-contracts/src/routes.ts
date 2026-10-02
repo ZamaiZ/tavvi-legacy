@@ -21,4 +21,16 @@ export const API_ROUTES = {
     restaurants: `${apiRoot}/platform/restaurants`,
     restaurant: (id: string) => withId(`${apiRoot}/platform/restaurants`, id),
   },
+  notifications: {
+    // Montada à mão: o URLSearchParams do React Native não é completo.
+    list: (cursor?: { createdAt: string; id: string }) => cursor
+      ? `${apiRoot}/notifications?createdAt=${encodeURIComponent(cursor.createdAt)}&id=${encodeURIComponent(cursor.id)}`
+      : `${apiRoot}/notifications`,
+    count: `${apiRoot}/notifications/count`,
+    read: (id: string) => `${withId(`${apiRoot}/notifications`, id)}/read`,
+    readAll: `${apiRoot}/notifications/read-all`,
+    test: `${apiRoot}/notifications/test`,
+    devices: `${apiRoot}/notifications/devices`,
+    device: (token: string) => withId(`${apiRoot}/notifications/devices`, token),
+  },
 } as const

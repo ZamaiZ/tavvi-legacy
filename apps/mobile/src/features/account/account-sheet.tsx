@@ -1,5 +1,6 @@
 import { BottomSheet, RNHostView } from '@expo/ui'
-import { LogOut, MonitorSmartphone } from 'lucide-react-native'
+import { router } from 'expo-router'
+import { Bell, ChevronRight, LogOut, MonitorSmartphone } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Circle, LinearGradient, Stop } from 'react-native-svg'
@@ -10,10 +11,12 @@ import { toast } from '@/components/primitives/toast'
 import { useAuth } from '@/features/auth/auth-context'
 import { brand, radii, useAppTheme } from '@/theme'
 
-// Aba Conta: sheet com Tema, Sair e Sair de todos os aparelhos, aberto pelo
-// toque na aba (ver app/(app)/_layout.tsx). O liga/desliga da biometria fica
-// fora da interface; desativar continua na tela de login.
-export function AccountSheet({ open, onOpenChange }: { open: boolean; onOpenChange(open: boolean): void }) {
+// Aba Conta: sheet com Notificações, Tema, Sair e Sair de todos os
+// aparelhos, aberto pelo toque na aba (ver app/(app)/_layout.tsx). O
+// liga/desliga da biometria fica fora da interface; desativar continua na
+// tela de login. Com a linha de Notificações, o sheet passou do meio da
+// tela em celulares pequenos: 'full' deixa arrastar para ver tudo.
+export function AccountSheet({ open, onOpenChange, unreadNotifications = 0 }: { open: boolean; onOpenChange(open: boolean): void; unreadNotifications?: number }) {
   const { colors, resolved, preference, setPreference } = useAppTheme()
   const { user, signOut, signOutEverywhere } = useAuth()
   const [confirm, setConfirm] = useState<'signOut' | 'everywhere' | null>(null)
@@ -59,7 +62,7 @@ export function AccountSheet({ open, onOpenChange }: { open: boolean; onOpenChan
 
   return (
     <>
-    <BottomSheet isPresented={open} onDismiss={() => onOpenChange(false)} showDragIndicator={false} snapPoints={['half']} contentPadding={0} containerColor={colors.background}>
+    <BottomSheet isPresented={open} onDismiss={() => onOpenChange(false)} showDragIndicator={false} snapPoints={['half', 'full']} contentPadding={0} containerColor={colors.background}>
       <RNHostView>
         <View style={[styles.sheet, { backgroundColor: colors.background }]}>
           <View style={[styles.handle, { backgroundColor: colors.line2 }]} />
@@ -80,6 +83,24 @@ export function AccountSheet({ open, onOpenChange }: { open: boolean; onOpenChan
               <AppText variant="rowMeta" style={{ color: colors.subtle }}>Administrador da plataforma</AppText>
             </View>
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={unreadNotifications > 0 ? `Notificações, ${unreadNotifications} não lidas` : 'Notificações'}
+            onPress={() => {
+              onOpenChange(false)
+              router.push('/notifications')
+            }}
+            style={({ pressed }) => [styles.notifications, { backgroundColor: pressed ? colors.field : colors.surface }]}
+          >
+            <Bell size={18} color={colors.foreground} strokeWidth={1.9} />
+            <AppText variant="bodyMedium" style={[styles.notificationsLabel, { color: colors.foreground }]}>Notificações</AppText>
+            {unreadNotifications > 0 ? (
+              <View style={[styles.count, { backgroundColor: colors.gold }]}>
+                <AppText variant="badge" style={{ color: colors.goldInk, fontWeight: '700' }}>{unreadNotifications > 99 ? '99+' : unreadNotifications}</AppText>
+              </View>
+            ) : null}
+            <ChevronRight size={18} color={colors.subtle} strokeWidth={1.9} />
+          </Pressable>
           <View style={styles.group}>
             <AppText variant="caps" style={[styles.groupLabel, { color: colors.subtle }]}>Aparência</AppText>
             <View style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -151,4 +172,7 @@ const styles = StyleSheet.create({
   card: { padding: 8, borderRadius: radii.card, borderCurve: 'continuous' },
   signOut: { minHeight: 48, paddingHorizontal: 16, borderRadius: radii.card, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
   signOutAll: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  notifications: { minHeight: 48, paddingHorizontal: 14, borderRadius: radii.card, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', gap: 10 },
+  notificationsLabel: { flex: 1 },
+  count: { minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: radii.full, alignItems: 'center', justifyContent: 'center' },
 })

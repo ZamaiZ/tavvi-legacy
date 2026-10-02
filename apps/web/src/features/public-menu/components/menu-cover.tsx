@@ -1,84 +1,74 @@
 import Image from 'next/image'
-import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
+import { FcGoogle } from 'react-icons/fc'
+import {
+  LuBookOpen,
+  LuChevronRight,
+  LuInstagram,
+  LuMapPin,
+  LuMessageCircle,
+  LuMessageSquareText,
+  LuPhone,
+} from 'react-icons/lu'
 import { publicMediaUrl } from '@/lib/media-url'
 import { directionsUrl, displayAddress, type RestaurantContact } from '@/domain/restaurant'
 
 type ContactLink = { label: string; href: string; icon: React.ReactNode }
 
-// A coluna ZERO do feed, e não uma faixa antes dele. Assim o gesto tem um
-// significado só no cardápio inteiro: horizontal é onde estou, vertical é o
-// que tem nesta parada.
+// A coluna ZERO do feed: a tela inicial. Capa, identidade, os contatos em
+// ícones e a lista do que dá para fazer aqui (Avaliar no Google, Ver
+// cardápio, Feedback anônimo), no desenho do Candour. Deslizar para o lado
+// continua levando aos pratos.
 //
-// A FOTO é uma faixa, não a tela toda. O primeiro desenho dava 100% da altura
-// à capa, com a identidade espremida no rodapé — e capa de restaurante
-// costuma ser uma textura genérica, que não merece a tela inteira. Quem
-// importa aqui é o nome, o contato e o endereço.
+// A FOTO é uma faixa, não a tela toda: capa de restaurante costuma ser uma
+// textura genérica. A altura usa dvh, e não %, porque a tela agora cresce
+// com o conteúdo (rola na vertical em aparelho baixo) e % de um pai com
+// altura automática não vale nada.
 export function MenuCover({
   name,
   description,
   logoPath,
   coverPath,
   contact,
+  googleReviewUrl,
+  hasDishes,
+  onViewMenu,
+  onOpenFeedback,
 }: {
   name: string
   description: string | null
   logoPath: string | null
   coverPath: string | null
   contact: RestaurantContact
+  /** Só com link de avaliação gerado a partir do Maps salvo. */
+  googleReviewUrl: string | null
+  hasDishes: boolean
+  onViewMenu: () => void
+  onOpenFeedback: () => void
 }) {
   const addressText = displayAddress(contact)
   const directions = directionsUrl(contact)
-  // O predicado é escrito à mão: a inferência automática de `filter` só
-  // chegou no TypeScript 5.5, e o projeto declara `^5`, que permite 5.0.
-  // Anotado como `(Atalho | null)[]` ANTES do filtro: sem isso o TypeScript
-  // infere o tipo do literal — com `icone: Element` em vez de `ReactNode` —
-  // e o predicado escrito à mão deixa de ser atribuível.
-  //
-  // A ordem e os rótulos são os da prévia do painel (README §7.8): Ligar,
-  // WhatsApp, @instagram e Como chegar. O primeiro fica em destaque.
+  const handle = contact.instagram?.replace(/^@+/, '') ?? ''
+  // Anotado ANTES do filtro pelo mesmo motivo de sempre: sem isso o TS
+  // infere `icon: Element` e o predicado escrito à mão deixa de servir.
   const candidates: (ContactLink | null)[] = [
     contact.phone
-      ? {
-          label: 'Ligar',
-          href: `tel:${contact.phone.replace(/\D/g, '')}`,
-          icon: <LuPhone className="size-4 shrink-0" aria-hidden="true" />,
-        }
+      ? { label: 'Ligar', href: `tel:${contact.phone.replace(/\D/g, '')}`, icon: <LuPhone aria-hidden="true" /> }
       : null,
     contact.whatsapp
-      ? {
-          label: 'WhatsApp',
-          href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`,
-          icon: <LuMessageCircle className="size-4 shrink-0" aria-hidden="true" />,
-        }
+      ? { label: 'WhatsApp', href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`, icon: <LuMessageCircle aria-hidden="true" /> }
       : null,
-    contact.instagram
-      ? {
-          label: `@${contact.instagram.replace(/^@+/, '')}`,
-          href: `https://instagram.com/${contact.instagram.replace(/^@+/, '')}`,
-          icon: <LuInstagram className="size-4 shrink-0" aria-hidden="true" />,
-        }
+    handle
+      ? { label: `Instagram @${handle}`, href: `https://instagram.com/${handle}`, icon: <LuInstagram aria-hidden="true" /> }
       : null,
-    directions
-      ? {
-          label: 'Como chegar',
-          href: directions,
-          icon: <LuMapPin className="size-4 shrink-0" aria-hidden="true" />,
-        }
-      : null,
+    directions ? { label: 'Como chegar', href: directions, icon: <LuMapPin aria-hidden="true" /> } : null,
   ]
-
-  const links: ContactLink[] = candidates.filter(
-    (link): link is ContactLink => link !== null,
-  )
+  const links: ContactLink[] = candidates.filter((link): link is ContactLink => link !== null)
 
   return (
     <section className="menu-column" aria-label={`Sobre ${name}`}>
       <div className="menu-screens">
-        <div className="menu-screen flex flex-col">
-          {/* A faixa. `max-h` é o que impede ela de crescer sem limite numa
-              tela alta, e `min-h` o que impede de virar um filete num
-              aparelho baixo ou em paisagem. */}
-          <div className="relative h-[34%] max-h-[300px] min-h-[140px] w-full shrink-0 overflow-hidden">
+        <div className="menu-screen is-cover flex flex-col">
+          <div className="relative h-[34dvh] max-h-[300px] min-h-[140px] w-full shrink-0 overflow-hidden">
             {coverPath ? (
               <Image
                 src={publicMediaUrl('image', coverPath)}
@@ -100,119 +90,101 @@ export function MenuCover({
                 }}
               />
             )}
-
-            {/* A esfumaçada liga a faixa ao fundo do tema, em vez de cortar
-                seco. */}
             <div
               aria-hidden="true"
               className="absolute inset-x-0 bottom-0 h-24"
-              style={{
-                background:
-                  'linear-gradient(to top, var(--m-base) 4%, transparent 100%)',
-              }}
+              style={{ background: 'linear-gradient(to top, var(--m-base) 4%, transparent 100%)' }}
             />
           </div>
 
-          {/* A identidade ocupa o resto da coluna, com o fundo do tema — o
-              texto não fica mais sobre foto, então some também o risco de
-              contraste imprevisível aqui. */}
-          <div className="flex min-h-0 flex-1 flex-col justify-center">
-            <div className="mx-auto w-full max-w-[720px] px-5">
+          <div className="flex flex-1 flex-col justify-center">
+            <div className="mx-auto w-full max-w-[720px] px-5 pb-6">
               {logoPath ? (
-                // `-mt-14` sobe o logo sobre a faixa, e `relative z-10` é o
-                // que o mantém NA FRENTE dela: elemento posicionado pinta
-                // por cima de estático, e era esse o defeito do logo cortado.
+                // `relative z-10` mantém o logo NA FRENTE da faixa.
                 <div
                   className="menu-photo relative z-10 -mt-14 mb-5 size-20 overflow-hidden border-4"
-                  style={{
-                    borderColor: 'var(--m-base)',
-                    background: 'var(--m-base)',
-                  }}
+                  style={{ borderColor: 'var(--m-base)', background: 'var(--m-base)', borderRadius: '50%' }}
                 >
                   <Image
                     src={publicMediaUrl('image', logoPath)}
                     alt=""
                     fill
                     sizes="80px"
-                    // Está na primeira tela. Sem isto o `next/image` usa
-                    // `lazy`, e o navegador só busca o logo depois do layout,
-                    // com prioridade baixa.
                     loading="eager"
                     className="p-1"
-                    // No `style`, e não como classe: `menu.css` entra sem
-                    // `@layer`, e no Tailwind v4 regra sem camada vence
-                    // utilitário em `@layer utilities`. Medido.
+                    // No `style`: `menu.css` entra sem `@layer` e venceria o utilitário.
                     style={{ objectFit: 'contain' }}
                   />
                 </div>
               ) : null}
 
-              <h1 className="menu-display text-[2rem] font-semibold leading-tight">
-                {name}
-              </h1>
+              <h1 className="menu-display text-[2rem] font-semibold leading-tight">{name}</h1>
 
               {description ? (
-                <p
-                  className="mt-2 text-[0.9375rem] leading-relaxed"
-                  style={{ color: 'var(--m-muted)' }}
-                >
+                <p className="mt-2 text-[0.9375rem] leading-relaxed" style={{ color: 'var(--m-muted)' }}>
                   {description}
                 </p>
               ) : null}
 
               {links.length > 0 ? (
-                <div className="mt-5 grid grid-cols-2 gap-2">
-                  {links.map((link, index) => (
+                <div className="mt-5 flex flex-wrap gap-2.5">
+                  {links.map((link) => (
+                    // Todos em `_blank`, como antes (num `tel:` não faz
+                    // nada de útil; fica por consistência).
                     <a
                       key={link.href}
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      // min-h-11 são os 44px de alvo de toque. Sobrando um
-                      // atalho sozinho na última linha, ele ocupa as duas
-                      // colunas. As cores vão no `style` pelo mesmo motivo do
-                      // logo: `menu.css` fica fora de `@layer`.
-                      className="menu-block flex min-h-11 min-w-0 items-center justify-center gap-2 px-3 text-sm font-medium [&:last-child:nth-child(odd)]:col-span-2"
-                      style={
-                        index === 0
-                          ? { background: 'var(--m-accent)', color: 'var(--m-on-accent)' }
-                          : { background: 'var(--m-chip)' }
-                      }
+                      aria-label={link.label}
+                      title={link.label}
+                      className="menu-contact"
                     >
-                      {/* O ícone entra na Fase 5: só o rótulo fazia os três
-                          atalhos virarem uma fileira de palavras iguais, e o
-                          reconhecimento de marca é mais rápido que a leitura.
-
-                          Todos abrem em `_blank`. Registrado: num `tel:` isso
-                          não faz nada de útil — fica por consistência, a
-                          pedido do dono do projeto. */}
                       {link.icon}
-                      <span className="truncate">{link.label}</span>
                     </a>
                   ))}
                 </div>
               ) : null}
 
               {addressText ? (
-                <p
-                  className="mt-4 text-[0.8125rem] leading-relaxed"
-                  style={{ color: 'var(--m-muted)' }}
-                >
+                <p className="mt-3 text-[0.8125rem] leading-relaxed" style={{ color: 'var(--m-muted)' }}>
                   {addressText}
                 </p>
               ) : null}
+
+              <ul className="mt-6 flex flex-col gap-2" aria-label="O que fazer aqui">
+                {googleReviewUrl ? (
+                  <li>
+                    <a className="menu-block menu-action" href={googleReviewUrl} target="_blank" rel="noopener noreferrer">
+                      <span className="menu-action-icon is-brand" aria-hidden="true"><FcGoogle /></span>
+                      <span className="menu-action-label">Avaliar no Google</span>
+                      <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+                    </a>
+                  </li>
+                ) : null}
+                {hasDishes ? (
+                  <li>
+                    <button type="button" className="menu-block menu-action" onClick={onViewMenu}>
+                      <span className="menu-action-icon" aria-hidden="true"><LuBookOpen /></span>
+                      <span className="menu-action-label">Ver cardápio</span>
+                      <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+                    </button>
+                  </li>
+                ) : null}
+                <li>
+                  <button type="button" className="menu-block menu-action" aria-haspopup="dialog" onClick={onOpenFeedback}>
+                    <span className="menu-action-icon" aria-hidden="true"><LuMessageSquareText /></span>
+                    <span className="menu-action-label">Deixar feedback anônimo</span>
+                    <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+                  </button>
+                </li>
+              </ul>
             </div>
           </div>
 
-          {/* A dica fica ancorada no rodapé da coluna, e não colada no
-              endereço: ela é sobre o GESTO, não sobre o restaurante. Existe
-              porque o eixo horizontal não é o que a pessoa espera ao abrir
-              uma página, e aparece só na capa. */}
+          {/* A dica é sobre o GESTO, não sobre o restaurante: fica no rodapé. */}
           <div className="mx-auto w-full max-w-[720px] shrink-0 px-5 pb-10">
-            <p
-              className="text-[0.75rem] font-medium uppercase tracking-[0.14em]"
-              style={{ color: 'var(--m-muted)' }}
-            >
+            <p className="text-[0.75rem] font-medium uppercase tracking-[0.14em]" style={{ color: 'var(--m-muted)' }}>
               Deslize para ver o cardápio →
             </p>
           </div>

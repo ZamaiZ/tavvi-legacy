@@ -1,21 +1,15 @@
 import 'server-only'
-import type { Database } from '@/domain/database.types'
-import { MEMBER_ROLE_LABELS } from '@/domain/invite'
 import {
   pushEndpointSchema,
   pushSubscriptionChangeSchema,
   pushSubscriptionSchema,
-  type PushMessage,
   type PushSubscriptionInput,
 } from '@/domain/push'
-import { pwaAppName } from '@/lib/pwa'
 import type { PrivateTerritory } from '@/lib/route-paths'
-import { sendWebPush, type PushDelivery } from '@/server/push/web-push'
+import { env } from '@/server/env'
 import { enforceRateLimit } from '@/server/security/rate-limit'
 import { createUserClient } from './_client'
 import { currentTerritory, getCurrentUser, UserFacingError } from './auth'
-
-type ClaimRow = Database['public']['Functions']['claim_push_deliveries']['Returns'][number]
 
 // Sem redirect, de propósito: o provedor chama estas funções também em
 // /entrar e /convite, e redirecionar tiraria a pessoa da tela.
@@ -25,6 +19,17 @@ async function session(): Promise<{ territory: PrivateTerritory; userId: string 
   const user = await getCurrentUser()
   if (!user) throw new UserFacingError('Entre novamente para mexer nas notificações.')
   return { territory, userId: user.id }
+}
+
+// Função ou tabela de push ausente no banco é migração não aplicada. Dizer
+// isso na tela poupa a caça no log: foi o que escondeu o 0024 faltando.
+function failure(action: string, error: { code?: string; message: string }): Error {
+  if (error.code === 'PGRST202' || error.code === 'PGRST205' || error.code === '42P01') {
+    return new UserFacingError(
+      'As notificações ainda não estão configuradas no banco: falta aplicar a migração 0031_push_subscriptions.sql no Supabase.',
+    )
+  }
+  return new Error(`${action}: ${error.message}`)
 }
 
 async function save(territory: PrivateTerritory, subscription: PushSubscriptionInput): Promise<void> {
@@ -38,22 +43,13 @@ async function save(territory: PrivateTerritory, subscription: PushSubscriptionI
       ? new Date(subscription.expirationTime).toISOString()
       : undefined,
   })
-  if (error) throw new Error(`Não foi possível salvar o aparelho: ${error.message}`)
+  if (error) throw failure('Não foi possível salvar o aparelho', error)
 }
 
 async function remove(territory: PrivateTerritory, endpoint: string): Promise<void> {
   const supabase = await createUserClient(territory)
   const { error } = await supabase.rpc('delete_push_subscription', { p_endpoint: endpoint })
-  if (error) throw new Error(`Não foi possível remover o aparelho: ${error.message}`)
-}
-
-// Aparelhos que o serviço de push deu como mortos. Falhar aqui não
-// atrapalha ninguém: o próximo envio tenta de novo.
-async function prune(territory: PrivateTerritory, endpoints: string[]): Promise<void> {
-  if (!endpoints.length) return
-  const supabase = await createUserClient(territory)
-  const { error } = await supabase.rpc('prune_push_subscriptions', { p_endpoints: endpoints })
-  if (error) console.error('[push] poda falhou', error.message)
+  if (error) throw failure('Não foi possível remover o aparelho', error)
 }
 
 export async function savePushSubscription(input: unknown): Promise<void> {
@@ -77,71 +73,22 @@ export async function deletePushSubscription(input: unknown): Promise<void> {
   await remove(territory, pushEndpointSchema.parse(input))
 }
 
-export async function sendTestPush(): Promise<{ delivered: number }> {
-  const { territory, userId } = await session()
-  await enforceRateLimit('push:test', `user:${userId}`)
-
-  const supabase = await createUserClient(territory)
-  const { data, error } = await supabase.rpc('my_push_subscriptions', { p_territory: territory })
-  if (error) throw new Error(`Não foi possível ler os aparelhos: ${error.message}`)
-  if (!data?.length) throw new UserFacingError('Nenhum aparelho com notificações ativas.')
-
-  const { delivered, gone } = await sendWebPush({
-    targets: data,
-    message: {
-      title: 'Notificações ativas',
-      body: `Este aparelho vai receber os avisos do ${pwaAppName(territory)}.`,
-      url: '/',
-      tag: 'tavvi-push-test',
-    },
-  })
-  await prune(territory, gone)
-  if (!delivered) throw new UserFacingError('O serviço de notificações não respondeu. Tente de novo.')
-  return { delivered }
-}
-
-function messageFor(row: ClaimRow): PushMessage {
-  if (row.kind === 'restaurant_joined') {
-    return {
-      title: 'Novo restaurante na Tavvi',
-      body: `${row.restaurant_name} aceitou o convite (${row.actor_email}).`,
-      url: `/restaurantes/${row.restaurant_id}`,
-      tag: row.event_id,
-    }
+// A entrega (navegadores e app do console) é da API Express, que reivindica
+// as notificações pendentes uma vez e envia nos dois canais. Aqui só se
+// avisa que há notificação nova. Roda em after(), depois de qualquer ação
+// que dispare notificação, em qualquer território — inclusive o público,
+// sem sessão: quem autoriza é a chave do servidor. Falha vira log, nunca
+// erro da ação que disparou.
+export async function deliverPendingPushes(): Promise<void> {
+  try {
+    const response = await fetch(`${env.API_BASE_URL.replace(/\/$/, '')}/api/v1/internal/push/deliver`, {
+      method: 'POST',
+      headers: { 'x-server-key': env.APP_SERVER_KEY },
+      signal: AbortSignal.timeout(5000),
+      cache: 'no-store',
+    })
+    if (!response.ok) console.error('[push] a API recusou a entrega', response.status)
+  } catch (error) {
+    console.error('[push] a API não respondeu', error instanceof Error ? error.message : error)
   }
-  const role = MEMBER_ROLE_LABELS[row.member_role]?.toLocaleLowerCase('pt-BR') ?? 'membro'
-  return {
-    title: `Novo membro em ${row.restaurant_name}`,
-    body: `${row.actor_email} entrou na equipe como ${role}.`,
-    url: `/restaurantes/${row.restaurant_id}/equipe`,
-    tag: row.event_id,
-  }
-}
-
-// Depois de um resgate de convite. O gatilho do banco gravou o evento na
-// mesma transação; quem resgatou o reivindica aqui, uma vez só.
-export async function claimPushDeliveries(): Promise<PushDelivery[]> {
-  const territory = await currentTerritory()
-  if (territory === 'site') return []
-  const supabase = await createUserClient(territory)
-  const { data, error } = await supabase.rpc('claim_push_deliveries')
-  if (error) {
-    console.error('[push] reivindicação falhou', error.message)
-    return []
-  }
-
-  const byEvent = new Map<string, PushDelivery>()
-  for (const row of data ?? []) {
-    const delivery = byEvent.get(row.event_id) ?? { message: messageFor(row), targets: [] }
-    delivery.targets.push({ endpoint: row.endpoint, p256dh: row.p256dh, auth: row.auth })
-    byEvent.set(row.event_id, delivery)
-  }
-  return [...byEvent.values()]
-}
-
-export async function deliverPush(deliveries: PushDelivery[]): Promise<void> {
-  if (!deliveries.length) return
-  const results = await Promise.all(deliveries.map((delivery) => sendWebPush(delivery)))
-  const territory = await currentTerritory()
-  if (territory !== 'site') await prune(territory, results.flatMap((result) => result.gone))
 }

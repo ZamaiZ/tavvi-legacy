@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MenuItemDTO, PublicMenuDTO } from '@/domain/menu'
+import { activeGoogleReviewUrl } from '@/domain/restaurant'
+import { FeedbackSheet } from './feedback-sheet'
 import { MenuCover } from './menu-cover'
 import { MenuDetails } from './menu-details'
 import { MenuDish } from './menu-dish'
@@ -25,6 +27,7 @@ export function MenuFeed({
   const feedRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [detailsItem, setDetailsItem] = useState<MenuItemDTO | null>(null)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   // Lista PLANA: a capa e todos os pratos de todas as categorias, em ordem.
   // Trocar o conjunto de colunas ao escolher categoria impediria a categoria
@@ -83,6 +86,16 @@ export function MenuFeed({
   // teclado desde o primeiro instante.
   useEffect(() => {
     function handleKeydown(event: KeyboardEvent) {
+      // Com uma folha aberta, ou com o foco num campo, as setas são do
+      // texto, não do feed: sem isto, escrever o feedback andaria o cardápio.
+      if (feedbackOpen || detailsItem) return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+      ) {
+        return
+      }
       if (event.key === 'ArrowRight') {
         scrollToColumn(Math.min(activeIndex + 1, columns.length))
       }
@@ -92,7 +105,7 @@ export function MenuFeed({
     }
     window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
-  }, [activeIndex, columns.length, scrollToColumn])
+  }, [activeIndex, columns.length, scrollToColumn, feedbackOpen, detailsItem])
 
   return (
     <>
@@ -110,6 +123,10 @@ export function MenuFeed({
           logoPath={menu.restaurant.logoPath}
           coverPath={menu.restaurant.coverPath}
           contact={menu.restaurant.contact}
+          googleReviewUrl={activeGoogleReviewUrl(menu.restaurant.contact)}
+          hasDishes={!isEmpty}
+          onViewMenu={() => scrollToColumn(1)}
+          onOpenFeedback={() => setFeedbackOpen(true)}
         />
 
         {isEmpty ? (
@@ -149,6 +166,14 @@ export function MenuFeed({
         item={detailsItem}
         presetId={presetId}
         onClose={() => setDetailsItem(null)}
+      />
+
+      <FeedbackSheet
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        slug={menu.restaurant.slug}
+        restaurantName={menu.restaurant.name}
+        presetId={presetId}
       />
     </>
   )

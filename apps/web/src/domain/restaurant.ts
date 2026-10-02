@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { plainTextSchema, slugSchema, uuidSchema } from './common'
+import { googleReviewUrlSchema } from './google-review'
 import { inviteTokenSchema, type MemberRole } from './invite'
 import { themeSchema } from './theme'
 
@@ -58,14 +59,19 @@ export function isGoogleMapsUrl(value: string): boolean {
   return rule === 'any' || url.pathname === '/maps' || url.pathname.startsWith('/maps/')
 }
 
-// Guardado como foi colado. O link de avaliação do Google precisa do Place
-// ID, que o link curto não traz — derivá-lo fica para quando a avaliação
-// for construída (spec §8).
+// Guardado como foi colado. O link de avaliação do Google sai dele no
+// servidor, ao salvar o Contato (googleReview, abaixo).
 export const mapsUrlSchema = z
   .string()
   .trim()
   .max(500, { error: 'Link longo demais (máximo de 500 caracteres).' })
   .refine(isGoogleMapsUrl, { error: MAPS_URL_ERROR })
+
+// Calculado SÓ no servidor: o formulário não envia esta chave, e o esquema
+// de gravação nem a conhece. `mapsUrl` registra de qual link ele saiu;
+// trocar o link invalida o botão até o próximo cálculo.
+export const googleReviewSchema = z.object({ url: googleReviewUrlSchema, mapsUrl: mapsUrlSchema })
+export type GoogleReview = z.infer<typeof googleReviewSchema>
 
 export type RestaurantContact = {
   phone?: string
@@ -75,6 +81,7 @@ export type RestaurantContact = {
   /** Endereço em texto livre, gravado antes do CEP. Só leitura. */
   legacyAddress?: string
   mapsUrl?: string
+  googleReview?: GoogleReview
 }
 
 const storedTextSchema = z.string().trim().min(1).max(500)
@@ -104,6 +111,9 @@ export function parseContact(raw: unknown): RestaurantContact {
   const maps = mapsUrlSchema.safeParse(source.mapsUrl)
   if (maps.success) contact.mapsUrl = maps.data
 
+  const review = googleReviewSchema.safeParse(source.googleReview)
+  if (review.success) contact.googleReview = review.data
+
   return contact
 }
 
@@ -131,6 +141,13 @@ export function directionsUrl(contact: RestaurantContact): string | null {
   if (contact.mapsUrl) return contact.mapsUrl
   const text = displayAddress(contact)
   return text ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}` : null
+}
+
+// "Avaliar no Google" só aparece se o link de avaliação saiu do link do
+// Maps que está salvo agora.
+export function activeGoogleReviewUrl(contact: RestaurantContact): string | null {
+  const review = contact.googleReview
+  return review && contact.mapsUrl && review.mapsUrl === contact.mapsUrl ? review.url : null
 }
 
 // Não existe mais criação de restaurante pela plataforma. O restaurante nasce
@@ -174,6 +191,11 @@ export const setPublishedSchema = z.object({
 
 // Concluir ou pular o assistente de primeiros passos.
 export const completeOnboardingSchema = z.object({
+  restaurantId: uuidSchema,
+})
+
+// "Gerar agora", no Contato: refaz só o link de avaliação a partir do Maps salvo.
+export const generateGoogleReviewSchema = z.object({
   restaurantId: uuidSchema,
 })
 

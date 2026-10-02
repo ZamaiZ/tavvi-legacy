@@ -13,7 +13,3 @@ export async function savePushSubscriptionAction(subscription: unknown): Promise
 export async function deletePushSubscriptionAction(endpoint: unknown): Promise<ActionResult> {
   return runAction(() => dal.deletePushSubscription(endpoint))
 }
-
-export async function sendTestPushAction(): Promise<ActionResult<{ delivered: number }>> {
-  return runAction(() => dal.sendTestPush())
-}

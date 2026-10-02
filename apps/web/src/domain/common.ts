@@ -61,3 +61,12 @@ export function comparableText(value: string): string {
     .replace(/\s+/g, ' ')
     .toLowerCase()
 }
+
+// Carimbo de tempo como o PostgREST devolve (timestamptz): usado em
+// cursores de paginação, que voltam ao servidor e entram num filtro. A
+// forma fechada é o que impede o valor de carregar outra cláusula junto.
+export const timestampSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/, {
+    error: 'Data inválida',
+  })

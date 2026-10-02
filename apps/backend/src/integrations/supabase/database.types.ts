@@ -10,6 +10,12 @@ export type Database = {
         Update: { email?: string | null; expires_at?: string; redeemed_at?: string | null; redeemed_by?: string | null; revoked_at?: string | null; token_hash?: string }
         Relationships: []
       }
+      notifications: {
+        Row: { id: string; user_id: string; territory: string; restaurant_id: string | null; kind: string; title: string; body: string; url: string; data: Json; read_at: string | null; push_claimed_at: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; territory: string; restaurant_id?: string | null; kind: string; title: string; body: string; url: string; data?: Json; read_at?: string | null }
+        Update: { read_at?: string | null }
+        Relationships: []
+      }
       restaurants: {
         Row: { id: string; name: string; slug: string; segment: string | null; status: Database['public']['Enums']['restaurant_status']; deleted_at: string | null; created_at: string; updated_at: string; created_by: string | null; contact: Json; cover_path: string | null; currency: string; description: string | null; logo_path: string | null; onboarding_completed_at: string | null; theme: Json; timezone: string }
         Insert: { id?: string; name: string; slug: string; segment?: string | null; status?: Database['public']['Enums']['restaurant_status']; deleted_at?: string | null }
@@ -33,6 +39,12 @@ export type Database = {
       revoke_mobile_device_contract: { Args: { p_device_id: string; p_device_secret_hash: unknown; p_reason: 'user_disabled' | 'admin_removed' }; Returns: boolean }
       is_my_device_contract_active: { Args: { p_device_id: string }; Returns: boolean }
       revoke_all_my_devices: { Args: never; Returns: undefined }
+      save_mobile_push_token: { Args: { p_token: string; p_platform: string; p_territory?: string }; Returns: undefined }
+      delete_mobile_push_token: { Args: { p_token: string }; Returns: undefined }
+      send_test_notification: { Args: { p_territory: string; p_url: string }; Returns: undefined }
+      claim_notification_pushes: { Args: { p_key: string }; Returns: { notification_id: string; territory: string; kind: string; title: string; body: string; url: string; restaurant_id: string | null; data: Json; channel: string; endpoint: string | null; p256dh: string | null; auth: string | null; expo_token: string | null; platform: string | null }[] }
+      server_prune_push_subscriptions: { Args: { p_key: string; p_endpoints: string[] }; Returns: undefined }
+      server_prune_mobile_push_tokens: { Args: { p_key: string; p_tokens: string[] }; Returns: undefined }
     }
     Enums: { member_role: 'admin' | 'cashier' | 'attendant' | 'waiter'; restaurant_status: 'draft' | 'active' | 'suspended' }
     CompositeTypes: { [_ in never]: never }

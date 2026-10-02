@@ -32,7 +32,7 @@ export function FocalPicker({
         onClick={mark}
         disabled={disabled}
         aria-label="Marcar o ponto de enquadramento"
-        className="relative block aspect-[9/16] w-full overflow-hidden rounded-lg border border-border bg-muted outline-none transition-opacity disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="relative block aspect-[9/16] w-full overflow-hidden rounded-lg border border-border bg-muted outline-none transition-[opacity,box-shadow] disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

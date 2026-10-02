@@ -28,6 +28,7 @@ const externalRestaurantSections: Record<string, string> = {
   contato: 'contact',
   servico: 'service',
   ajustes: 'settings',
+  feedbacks: 'feedbacks',
 }
 
 const internalFirstSegments: Record<PrivateTerritory, Record<string, string>> = {

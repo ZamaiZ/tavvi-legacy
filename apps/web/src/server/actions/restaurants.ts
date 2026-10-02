@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import type { GoogleReviewOutcome } from '@/domain/google-review'
 import * as readDal from '@/server/dal/restaurant-read'
 import * as writeDal from '@/server/dal/restaurant-write'
 import {
@@ -12,9 +13,21 @@ import { runAction, type ActionResult } from './result'
 
 export async function updateRestaurantProfileAction(
   input: unknown,
-): Promise<ActionResult> {
+): Promise<ActionResult<GoogleReviewOutcome>> {
   return runAction(async () => {
-    revalidateRestaurant(await writeDal.updateRestaurantProfile(input))
+    const { target, googleReview, googleReviewUrl } = await writeDal.updateRestaurantProfile(input)
+    revalidateRestaurant(target)
+    return { googleReview, googleReviewUrl }
+  })
+}
+
+export async function generateGoogleReviewAction(
+  input: unknown,
+): Promise<ActionResult<GoogleReviewOutcome>> {
+  return runAction(async () => {
+    const { target, googleReview, googleReviewUrl } = await writeDal.generateGoogleReview(input)
+    revalidateRestaurant(target)
+    return { googleReview, googleReviewUrl }
   })
 }
 

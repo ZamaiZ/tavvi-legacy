@@ -13,6 +13,17 @@ export const RATE_LIMITS = {
   // Busca de CEP: digitar errado e corrigir algumas vezes é normal; trinta
   // por minuto ainda barra quem tentasse usar o painel como proxy do ViaCEP.
   'cep:lookup': { max: 30, windowSeconds: 60 },
+  // O navegador pede um token novo antes de cada hora de sessão e ao
+  // reconectar; trinta por minuto só barram um laço quebrado.
+  'realtime:token': { max: 30, windowSeconds: 60 },
+  // Resolver o link do Maps segue até 4 redirecionamentos do Google. Vinte
+  // por minuto cobrem corrigir o link algumas vezes, e barram usar o painel
+  // como proxy.
+  'maps:resolve': { max: 20, windowSeconds: 60 },
+  // Feedback anônimo, por IP (e restaurante, no início). O teto por
+  // restaurante no banco (0030) é a barreira que não depende do IP.
+  'feedback:start': { max: 5, windowSeconds: 600 },
+  'feedback:publish': { max: 10, windowSeconds: 600 },
 } as const
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS

@@ -8,7 +8,11 @@ import { NavigationProgress } from './navigation-progress'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
+import { usePathname, useRouter } from 'next/navigation'
+import { onNotificationInserted, onNotificationRemoved } from '@/features/notifications/effects'
+import { NotificationsContext, useNotificationsController } from '@/features/notifications/notifications-provider'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
+import { toExternalPath } from '@/lib/route-paths'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -48,6 +52,15 @@ export function useRestaurantShell() {
   return context
 }
 
+type ShellCountsValue = { unreadFeedback: number; adjustUnreadFeedback: (delta: number) => void }
+const ShellCountsContext = createContext<ShellCountsValue>({ unreadFeedback: 0, adjustUnreadFeedback: () => undefined })
+
+// Contador de feedbacks não lidos: vem do servidor e muda ao vivo
+// (notificação nova, abrir, marcar como não lido, excluir).
+export function useShellCounts() {
+  return useContext(ShellCountsContext)
+}
+
 export function ConsoleShell({
   children,
   config,
@@ -67,12 +80,41 @@ export function ConsoleShell({
   const email = config.userLabel
   const name = config.userName ?? null
   const description = config.userDescription ?? null
-  const counts = config.counts ?? { pendingInvites: 0, restaurants: 0 }
+  const counts = { pendingInvites: 0, restaurants: 0, unreadFeedback: 0, unreadNotifications: 0, ...config.counts }
+  // Quando o servidor manda um valor novo (navegação, router.refresh), ele
+  // volta a valer; entre uma coisa e outra, a tela ajusta sozinha.
+  const [unreadFeedback, setUnreadFeedback] = useState(counts.unreadFeedback)
+  const [serverUnreadFeedback, setServerUnreadFeedback] = useState(counts.unreadFeedback)
+  if (counts.unreadFeedback !== serverUnreadFeedback) {
+    setServerUnreadFeedback(counts.unreadFeedback)
+    setUnreadFeedback(counts.unreadFeedback)
+  }
+  const adjustUnreadFeedback = useCallback((delta: number) => {
+    setUnreadFeedback((value) => Math.max(0, value + delta))
+  }, [])
+  const shellCounts = useMemo(() => ({ unreadFeedback, adjustUnreadFeedback }), [unreadFeedback, adjustUnreadFeedback])
+
+  // Console = território admin; casca de restaurante = painel.
+  const router = useRouter()
+  const pathname = toExternalPath(usePathname())
+  const effectContext = {
+    territory: surface === 'console' ? ('admin' as const) : ('painel' as const),
+    pathname,
+    restaurantId: config.restaurant?.restaurantId ?? null,
+    refresh: () => router.refresh(),
+    adjustUnreadFeedback,
+  }
+  const notifications = useNotificationsController({
+    initialUnread: counts.unreadNotifications,
+    onInsert: (notification) => onNotificationInserted(notification, effectContext),
+    onDelete: (notification) => onNotificationRemoved(notification, effectContext),
+  })
   const widths = config.railWidths ?? { collapsed: 60, pinned: 232 }
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [accountSheetOpen, setAccountSheetOpen] = useState(false)
   const [inviteRequest, setInviteRequest] = useState<{ email?: string; inviteId?: string } | null>(null)
+  const [pendingPageHref, setPendingPageHref] = useState<string | null>(null)
   const accountButtonRef = useRef<HTMLButtonElement>(null)
   const accountTabRef = useRef<HTMLButtonElement>(null)
   const mode = useRailMode(initialRail)
@@ -90,7 +132,13 @@ export function ConsoleShell({
   }, [])
   const accountContext = useMemo(() => ({ open: accountSheetOpen, email, name, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email, name])
   const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email, name } : null), [config.restaurant, email, name])
-  const mobileTabs = (config.mobileTabs ?? []).map((tab) => (tab.key === 'invites' ? { ...tab, badge: counts.pendingInvites } : tab))
+  const mobileTabs = (config.mobileTabs ?? []).map((tab) => {
+    if (tab.key === 'invites') return { ...tab, badge: counts.pendingInvites }
+    if (tab.key === 'feedback') return { ...tab, badge: unreadFeedback }
+    // Ajustes do painel abriga a central: o badge é o das notificações.
+    if (tab.key === 'settings') return { ...tab, badge: notifications.unreadCount }
+    return tab
+  })
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const editable = event.target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable)
@@ -107,6 +155,9 @@ export function ConsoleShell({
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [mode])
+  useEffect(() => {
+    setPendingPageHref(null)
+  }, [pathname])
 
   // No celular a barra do navegador acompanha o fundo agrupado (console e
   // painel), inclusive quando o tema escolhido difere do tema do sistema.
@@ -116,6 +167,8 @@ export function ConsoleShell({
     <ConsoleInviteContext.Provider value={inviteContext}>
       <ConsoleAccountContext.Provider value={accountContext}>
         <RestaurantShellContext.Provider value={restaurantContext}>
+        <NotificationsContext.Provider value={notifications}>
+        <ShellCountsContext.Provider value={shellCounts}>
         <NavigationProgress>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
@@ -124,7 +177,7 @@ export function ConsoleShell({
               label: leaf.label,
               description: leaf.sub,
               icon: leaf.icon,
-              count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : undefined,
+              count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : undefined,
             }))}
             mode={mode}
             identity={config.sidebar}
@@ -136,12 +189,18 @@ export function ConsoleShell({
             onToggle={toggleRailMode}
             mobileChrome={surface === 'console' ? 'none' : 'header'}
             switcher={config.restaurant ? { restaurants: config.restaurant.restaurants, currentId: config.restaurant.restaurantId } : undefined}
+            accountBadge={notifications.unreadCount > 0}
+            pendingHref={surface === 'restaurant' ? pendingPageHref : null}
+            onNavigate={surface === 'restaurant' ? setPendingPageHref : undefined}
           />
-          <main className="tv-console-main">{children}</main>
+          <main className="tv-console-main" data-page-loading={surface === 'restaurant' && pendingPageHref ? 'true' : undefined}>
+            {children}
+            {surface === 'restaurant' && pendingPageHref ? <span className="tv-page-loading-mask" aria-hidden="true" /> : null}
+          </main>
           {mobileTabs.length > 0 ? (
             <MobileTabBar
               tabs={mobileTabs}
-              account={surface === 'console' ? { open: accountSheetOpen, buttonRef: accountTabRef, onOpen: () => setAccountSheetOpen(true) } : undefined}
+              account={surface === 'console' ? { open: accountSheetOpen, buttonRef: accountTabRef, onOpen: () => setAccountSheetOpen(true), badge: notifications.unreadCount } : undefined}
             />
           ) : null}
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
@@ -150,6 +209,8 @@ export function ConsoleShell({
           {surface === 'console' ? accountSheet : null}
         </div>
         </NavigationProgress>
+        </ShellCountsContext.Provider>
+        </NotificationsContext.Provider>
         </RestaurantShellContext.Provider>
       </ConsoleAccountContext.Provider>
     </ConsoleInviteContext.Provider>

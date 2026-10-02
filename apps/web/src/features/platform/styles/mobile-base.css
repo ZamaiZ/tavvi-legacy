@@ -45,7 +45,7 @@
     text-decoration: none;
   }
   :is(.admin-territory, .workspace-territory) .tv-tabbar-item.is-active { color: var(--tv-gold-text); }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-item:active { opacity: .6; }
+  :is(.admin-territory, .workspace-territory) .tv-tabbar-item:active { opacity: .6; transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) button.tv-tabbar-item { padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; }
   :is(.admin-territory, .workspace-territory) .tv-tabbar-icon { position: relative; width: 24px; height: 24px; }
   :is(.admin-territory, .workspace-territory) .tv-tabbar-icon > svg { width: 24px; height: 24px; stroke-width: 1.7; }
@@ -89,7 +89,7 @@
     text-decoration: none;
   }
   :is(.admin-territory, .workspace-territory) .tv-m-back svg { width: 24px; height: 24px; margin-left: -6px; stroke-width: 2.2; }
-  :is(.admin-territory, .workspace-territory) .tv-m-back:active { opacity: .5; }
+  :is(.admin-territory, .workspace-territory) .tv-m-back:active { opacity: .5; transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) .tv-m-navbar-title {
     position: absolute;
     left: 50%;
@@ -148,7 +148,7 @@
     font-size: 16px;
   }
   :is(.admin-territory, .workspace-territory) .tv-group-danger svg { width: 17px; height: 17px; }
-  :is(.admin-territory, .workspace-territory) .tv-group-danger:active { background: var(--tv-danger-soft); }
+  :is(.admin-territory, .workspace-territory) .tv-group-danger:active { background: var(--tv-danger-soft); transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) .tv-group-danger + .tv-group-danger::before {
     position: absolute;
     top: 0;
@@ -162,7 +162,8 @@
      console ("Instalar app"). Veio do panel-mobile.css. */
   :is(.admin-territory, .workspace-territory) .tv-mlink { position: relative; width: 100%; min-height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; font-size: 15px; text-align: left; text-decoration: none; }
   :is(.admin-territory, .workspace-territory) .tv-mlink:last-child { border-bottom: 0; }
-  :is(.admin-territory, .workspace-territory) .tv-mlink:active { background: var(--tv-active); }
+  :is(.admin-territory, .workspace-territory) .tv-mlink:active { background: var(--tv-active); transition-duration: 0s; }
+  :is(.admin-territory, .workspace-territory) .tv-mlink:not(:focus-visible) { outline-offset: 0; }
   :is(.admin-territory, .workspace-territory) .tv-mlink:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
   :is(.admin-territory, .workspace-territory) .tv-mlink:disabled { cursor: progress; opacity: .55; }
   :is(.admin-territory, .workspace-territory) .tv-mlink-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-neutral-soft); color: var(--tv-text); }
@@ -181,6 +182,7 @@
   :is(.admin-territory, .workspace-territory) .tv-mname-copy input::placeholder { color: var(--tv-text-3); }
   :is(.admin-territory, .workspace-territory) .tv-mname-save { min-height: 44px; padding: 0 2px; flex: 0 0 auto; display: inline-flex; align-items: center; border: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 16px; font-weight: 600; }
   :is(.admin-territory, .workspace-territory) .tv-mname-save:disabled { opacity: .45; }
+  :is(.admin-territory, .workspace-territory) .tv-mname-save:active:not(:disabled) { opacity: .5; transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) .tv-mname-save .tv-spinner { width: 17px; height: 17px; }
   :is(.admin-territory, .workspace-territory) .tv-m-pill {
     width: 100%;
@@ -200,7 +202,7 @@
   :is(.admin-territory, .workspace-territory) .tv-m-pill.is-secondary { background: var(--tv-surface); color: var(--tv-text); }
   :is(.admin-territory, .workspace-territory) .tv-m-pill.is-danger { background: var(--tv-danger-soft); color: var(--tv-danger); }
   :is(.admin-territory, .workspace-territory) .tv-m-pill:disabled { opacity: .4; }
-  :is(.admin-territory, .workspace-territory) .tv-m-pill:active:not(:disabled) { opacity: .75; }
+  :is(.admin-territory, .workspace-territory) .tv-m-pill:active:not(:disabled) { opacity: .75; transition-duration: 0s; }
 
   /* Sheet do iOS: cabeçalho, campos, validade e conclusão.
      height/padding/justify zerados em .tv-sheet-m-head: a regra desktop
@@ -211,6 +213,7 @@
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-nav h2 { margin: 0; overflow: hidden; color: var(--tv-text); font-size: 17px; font-weight: 600; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-cancel { justify-self: start; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--tv-gold-text); font-size: 17px; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-cancel:disabled { opacity: .5; }
+  :is(.admin-territory, .workspace-territory) .tv-sheet-m-cancel:active:not(:disabled) { opacity: .5; transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-body { min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 14px; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-lead { margin: 0 4px; color: var(--tv-text-2); font-size: 14px; line-height: 1.4; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-field { height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border-radius: 14px; background: var(--tv-surface); color: var(--tv-text-3); }
@@ -226,7 +229,7 @@
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper { display: flex; align-items: center; border-radius: 9px; background: var(--tv-neutral-soft); }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper button { width: 46px; height: 32px; display: grid; place-items: center; border: 0; background: transparent; color: var(--tv-text); touch-action: manipulation; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper button:disabled { opacity: .35; }
-  :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper button:active:not(:disabled) { opacity: .6; }
+  :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper button:active:not(:disabled) { opacity: .6; transition-duration: 0s; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper svg { width: 16px; height: 16px; }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-stepper i { width: 1px; height: 18px; background: var(--tv-line-2); }
   :is(.admin-territory, .workspace-territory) .tv-sheet-m-spacer { flex: 1; }

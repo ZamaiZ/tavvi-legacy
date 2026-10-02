@@ -1,9 +1,20 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { PublicRestaurantProvider } from '@/features/public-menu/components/public-restaurant-context'
 import { publicMediaUrl } from '@/lib/media-url'
 import { resolveTheme } from '@/lib/theme/resolve'
 import { currentTerritory } from '@/server/dal/auth'
 import { getPublicMenu } from '@/server/dal/menu-read'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const menu = await getPublicMenu(slug)
+  return menu ? { title: menu.restaurant.name } : { title: 'Cardápio não encontrado' }
+}
 
 export default async function RestaurantMenuLayout({
   children,

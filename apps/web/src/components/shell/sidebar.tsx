@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, useSyncExternalStore, type Ref } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LuBookOpen, LuChevronsUpDown, LuContact, LuMail, LuPalette, LuPanelLeft, LuPanelLeftOpen, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
+import { LuBookOpen, LuChevronsUpDown, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPanelLeft, LuPanelLeftOpen, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
 import { setCommandPaletteOpen } from './command-palette-store'
 import { navigationPathname, pickActiveHref } from './navigation'
 import { toExternalPath } from '@/lib/route-paths'
@@ -19,6 +19,7 @@ const icons = {
   palette: LuPalette,
   contact: LuContact,
   team: LuUsers,
+  feedback: LuMessageSquareText,
 } as const
 
 export type SidebarBrand =
@@ -94,6 +95,9 @@ export function Sidebar({
   onToggle,
   mobileChrome = 'full',
   switcher,
+  accountBadge = false,
+  pendingHref,
+  onNavigate,
 }: {
   items: SidebarEntry[]
   mode: RailMode
@@ -109,12 +113,18 @@ export function Sidebar({
   mobileChrome?: 'full' | 'header' | 'none'
   /** Com 2 ou mais restaurantes, o bloco da marca vira o seletor. */
   switcher?: { restaurants: RestaurantSwitchEntry[]; currentId: string }
+  /** Ponto no avatar quando há notificações não lidas. */
+  accountBadge?: boolean
+  pendingHref?: string | null
+  onNavigate?: (href: string) => void
 }) {
   const pathname = toExternalPath(usePathname())
   // As rotas com sidebar são dinâmicas (leem cookie e sessão), então a busca
   // já existe no render do servidor e não suspende.
   const step = useSearchParams().get('passo')
-  const activeHref = pickActiveHref(navigationPathname(pathname, step), items.map((item) => item.href))
+  const activeHref = pendingHref
+    ? pickActiveHref(navigationPathname(toExternalPath(pendingHref), null), items.map((item) => item.href))
+    : pickActiveHref(navigationPathname(pathname, step), items.map((item) => item.href))
   const modifier = useModifierKey()
   const expanded = mode === 'pinned'
   const initial = email?.trim().slice(0, 1).toUpperCase() || 'A'
@@ -134,6 +144,7 @@ export function Sidebar({
     return items.map((item) => {
       const Icon = icons[item.icon]
       const selected = item.href === activeHref
+      const loading = Boolean(pendingHref && selected)
       return (
         <Link
           key={item.href}
@@ -141,7 +152,12 @@ export function Sidebar({
           aria-current={selected ? 'page' : undefined}
           aria-label={mobile || !expanded ? item.label : undefined}
           title={!mobile && !expanded ? item.label : undefined}
-          className={`tv-sidebar-link${selected ? ' is-active' : ''}${mobile ? ' is-mobile' : ''}`}
+          className={`tv-sidebar-link${selected ? ' is-active' : ''}${loading ? ' is-loading' : ''}${mobile ? ' is-mobile' : ''}`}
+          onClick={(event) => {
+            if (item.href !== activeHref && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+              onNavigate?.(item.href)
+            }
+          }}
         >
           <Icon aria-hidden="true" />
           <span>{item.label}</span>
@@ -205,11 +221,15 @@ export function Sidebar({
             className="tv-sidebar-account"
             aria-haspopup="dialog"
             aria-expanded={accountOpen}
-            aria-label={expanded ? undefined : `Conta: ${email ?? 'sem e-mail'}`}
+            aria-label={expanded ? undefined : `Conta: ${email ?? 'sem e-mail'}${accountBadge ? ', notificações não lidas' : ''}`}
             title={expanded ? undefined : 'Conta'}
             onClick={onAccount}
           >
-            <span className="tv-sidebar-avatar" aria-hidden="true">{initial}</span>
+            <span className="tv-sidebar-avatar" aria-hidden="true">
+              {initial}
+              {accountBadge ? <span className="tv-sidebar-account-dot" /> : null}
+            </span>
+            {expanded && accountBadge ? <span className="sr-only">Há notificações não lidas.</span> : null}
             <span className="tv-sidebar-account-copy"><strong>{email ?? 'Conta'}</strong><small>{identity.accountDescription}</small></span>
             <LuChevronsUpDown aria-hidden="true" />
           </button>

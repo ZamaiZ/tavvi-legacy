@@ -34,6 +34,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_server_keys: {
+        Row: {
+          key_hash: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          key_hash: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          key_hash?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -430,6 +448,93 @@ export type Database = {
           },
         ]
       }
+      mobile_push_tokens: {
+        Row: {
+          created_at: string
+          platform: string
+          territory: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          platform: string
+          territory?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          platform?: string
+          territory?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          push_claimed_at: string | null
+          read_at: string | null
+          restaurant_id: string | null
+          territory: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          data?: Json
+          id?: string
+          kind: string
+          push_claimed_at?: string | null
+          read_at?: string | null
+          restaurant_id?: string | null
+          territory: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          push_claimed_at?: string | null
+          read_at?: string | null
+          restaurant_id?: string | null
+          territory?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           granted_at: string
@@ -486,51 +591,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      push_events: {
-        Row: {
-          actor_id: string
-          claimed_at: string | null
-          created_at: string
-          id: string
-          kind: string
-          member_role: Database["public"]["Enums"]["member_role"] | null
-          restaurant_id: string
-        }
-        Insert: {
-          actor_id: string
-          claimed_at?: string | null
-          created_at?: string
-          id?: string
-          kind: string
-          member_role?: Database["public"]["Enums"]["member_role"] | null
-          restaurant_id: string
-        }
-        Update: {
-          actor_id?: string
-          claimed_at?: string | null
-          created_at?: string
-          id?: string
-          kind?: string
-          member_role?: Database["public"]["Enums"]["member_role"] | null
-          restaurant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "push_events_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "push_events_restaurant_id_fkey"
-            columns: ["restaurant_id"]
-            isOneToOne: false
-            referencedRelation: "restaurants"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       push_subscriptions: {
         Row: {
@@ -593,6 +653,85 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      restaurant_feedback: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          published_at: string | null
+          read_at: string | null
+          restaurant_id: string
+          status: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          read_at?: string | null
+          restaurant_id: string
+          status?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          read_at?: string | null
+          restaurant_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_feedback_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_feedback_photos: {
+        Row: {
+          created_at: string
+          feedback_id: string
+          height: number
+          id: string
+          position: number
+          restaurant_id: string
+          storage_path: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          feedback_id: string
+          height: number
+          id?: string
+          position: number
+          restaurant_id: string
+          storage_path: string
+          width: number
+        }
+        Update: {
+          created_at?: string
+          feedback_id?: string
+          height?: number
+          id?: string
+          position?: number
+          restaurant_id?: string
+          storage_path?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_feedback_photos_feedback_id_restaurant_id_fkey"
+            columns: ["feedback_id", "restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_feedback"
+            referencedColumns: ["id", "restaurant_id"]
+          },
+        ]
       }
       restaurants: {
         Row: {
@@ -667,6 +806,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_feedback: {
+        Args: { p_body: string; p_key: string; p_photos: Json; p_slug: string }
+        Returns: {
+          feedback_id: string
+          photo_position: number | null
+          storage_path: string | null
+        }[]
+      }
+      check_app_server_key: { Args: { p_key: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
           p_bucket: string
@@ -676,24 +824,48 @@ export type Database = {
         }
         Returns: boolean
       }
-      claim_push_deliveries: {
-        Args: never
+      claim_notification_pushes: {
+        Args: { p_key: string }
         Returns: {
-          actor_email: string
-          auth: string
-          endpoint: string
-          event_id: string
+          auth: string | null
+          body: string
+          channel: string
+          data: Json
+          endpoint: string | null
+          expo_token: string | null
           kind: string
-          member_role: Database["public"]["Enums"]["member_role"]
-          p256dh: string
-          restaurant_id: string
-          restaurant_name: string
+          notification_id: string
+          p256dh: string | null
+          platform: string | null
+          restaurant_id: string | null
+          territory: string
+          title: string
+          url: string
         }[]
       }
+      delete_feedback: { Args: { p_feedback_id: string }; Returns: undefined }
+      delete_mobile_push_token: { Args: { p_token: string }; Returns: undefined }
       delete_push_subscription: {
         Args: { p_endpoint: string }
         Returns: undefined
       }
+      dispatch_notification: {
+        Args: {
+          p_audience: string
+          p_body: string
+          p_data?: Json
+          p_exclude_user?: string
+          p_kind: string
+          p_restaurant_id?: string
+          p_roles?: Database["public"]["Enums"]["member_role"][]
+          p_territory: string
+          p_title: string
+          p_url: string
+          p_user_ids?: string[]
+        }
+        Returns: number
+      }
+      feedback_photo_upload_allowed: { Args: { p_name: string }; Returns: boolean }
       is_category_visible: { Args: { cid: string }; Returns: boolean }
       is_member: { Args: { rid: string }; Returns: boolean }
       is_menu_item_public: { Args: { iid: string }; Returns: boolean }
@@ -734,6 +906,10 @@ export type Database = {
       }
       prune_push_subscriptions: {
         Args: { p_endpoints: string[] }
+        Returns: undefined
+      }
+      publish_feedback: {
+        Args: { p_feedback_id: string; p_key: string }
         Returns: undefined
       }
       record_audit: {
@@ -778,6 +954,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      save_mobile_push_token: {
+        Args: { p_platform: string; p_territory?: string; p_token: string }
+        Returns: undefined
+      }
+      send_test_notification: {
+        Args: { p_territory: string; p_url: string }
+        Returns: undefined
+      }
+      server_prune_mobile_push_tokens: {
+        Args: { p_key: string; p_tokens: string[] }
+        Returns: undefined
+      }
+      server_prune_push_subscriptions: {
+        Args: { p_endpoints: string[]; p_key: string }
+        Returns: undefined
+      }
+      set_app_server_key: { Args: { p_key: string }; Returns: undefined }
     }
     Enums: {
       media_kind: "image" | "video"

@@ -27,7 +27,9 @@ const contentSecurityPolicy = [
   "media-src 'self' blob: https:",
   "style-src 'self' 'unsafe-inline'",
   scriptSrc,
-  "connect-src 'self' https: ws:",
+  // wss: explícito: o canal de notificações (Supabase Realtime) é WebSocket
+  // seguro, e nem todo navegador aceita wss pela regra de ws:.
+  "connect-src 'self' https: ws: wss:",
 ].join('; ')
 
 const nextConfig: NextConfig = {

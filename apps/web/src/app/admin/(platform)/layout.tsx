@@ -9,6 +9,7 @@ import { PlatformInviteOverlay } from '@/features/platform/components/invites/pl
 import { ConsoleAccountSheet } from '@/features/platform/components/account/account-sheet'
 import { getCurrentUser, getPlatformAdminStatus } from '@/server/dal/auth'
 import { getCachedAdminRestaurants, getCachedPlatformInvites } from '@/server/dal/admin-console'
+import { countUnreadNotificationsSafe } from '@/server/dal/notifications'
 import { getMyDisplayName } from '@/server/dal/profile'
 import { inviteState } from '@/domain/invite'
 import { PwaProvider } from '@/components/pwa/pwa-provider'
@@ -37,10 +38,15 @@ export const metadata: Metadata = pwaMetadata('admin')
 async function PlatformShell({ user, children }: { user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; children: React.ReactNode }) {
   const cookieStore = await cookies()
   const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
-  const [invites, restaurants, displayName] = await Promise.all([getCachedPlatformInvites(), getCachedAdminRestaurants(), getMyDisplayName()])
+  const [invites, restaurants, displayName, unreadNotifications] = await Promise.all([
+    getCachedPlatformInvites(),
+    getCachedAdminRestaurants(),
+    getMyDisplayName(),
+    countUnreadNotificationsSafe(),
+  ])
   const config = getConsoleConfig(user, displayName)
   const pendingCount = invites.filter((invite) => inviteState(invite) === 'pending').length
-  const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
+  const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length, unreadNotifications } }
   return (
     <ConsoleShell surface="console" config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />} accountSheet={<ConsoleAccountSheet />}>
       {children}

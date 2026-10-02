@@ -37,8 +37,16 @@ function applyTheme(theme: Theme) {
     theme === 'dark' ||
     (theme === 'system' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches)
-  document.documentElement.classList.toggle('dark', isDark)
-  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
+  const root = document.documentElement
+  // Um frame inteiro sem transicao: o tema troca de uma vez, e nao metade
+  // em 150 ms e metade na hora. Dois quadros garantem que o primeiro ja
+  // pintou com o tema novo antes de as transicoes voltarem.
+  root.classList.add('tv-theme-switching')
+  root.classList.toggle('dark', isDark)
+  root.style.colorScheme = isDark ? 'dark' : 'light'
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => root.classList.remove('tv-theme-switching'))
+  })
 }
 
 function isEditableTarget(target: EventTarget | null) {

@@ -21,22 +21,22 @@
 .tv-hero-card-value span { color: var(--tv-hero-ink-2); font-size: 12.5px; }
 .tv-hero-card.is-compact .tv-hero-card-value span { font-size: 13px; }
 .tv-hero-card-actions { position: relative; margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; }
-.tv-hero-button { height: 28px; padding: 0 12px; display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity 150ms var(--tv-ease); }
-.tv-hero-button:hover { opacity: .88; }
+.tv-hero-button { height: 28px; padding: 0 12px; display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--tv-transition); }
+@media (hover: hover) { .tv-hero-button:hover { opacity: .88; } }
 .tv-hero-button:focus-visible { outline: 2px solid #17150F; outline-offset: 2px; }
 .tv-hero-button svg { width: 14px; height: 14px; }
 .tv-hero-button.is-light { background: #FFFFFF; color: #17150F; }
 .tv-hero-button.is-ink { background: #17150F; color: #F2EEE6; }
 .tv-stat-card { min-width: 0; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; border: 1px solid var(--tv-line); border-radius: 16px; background: var(--tv-surface); color: var(--tv-text); font: inherit; text-align: left; box-shadow: var(--tv-shadow); }
-button.tv-stat-card { cursor: pointer; transition: border-color 150ms var(--tv-ease); }
-button.tv-stat-card:hover { border-color: var(--tv-line-2); }
+button.tv-stat-card { cursor: pointer; transition: var(--tv-transition); }
+@media (hover: hover) { button.tv-stat-card:hover { border-color: var(--tv-line-2); } }
 button.tv-stat-card:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 .tv-stat-label { display: flex; align-items: center; gap: 7px; color: var(--tv-text-2); font-size: 12px; }
 .tv-stat-label svg { width: 14px; height: 14px; color: var(--tv-text-3); }
 .tv-stat-card > strong { font-size: 22px; line-height: 1.1; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 
 .tv-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
-.tv-search-field { width: 260px; max-width: 100%; height: 30px; padding: 0 10px; display: flex; align-items: center; gap: 7px; border: 1px solid var(--tv-line-2); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text-3); transition: border-color 150ms var(--tv-ease), box-shadow 150ms var(--tv-ease); }
+.tv-search-field { width: 260px; max-width: 100%; height: 30px; padding: 0 10px; display: flex; align-items: center; gap: 7px; border: 1px solid var(--tv-line-2); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text-3); transition: var(--tv-transition); }
 .tv-search-field.is-wide { width: 280px; }
 .tv-search-field svg { width: 14px; height: 14px; flex: 0 0 14px; }
 .tv-search-field input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 12.5px; }
@@ -44,9 +44,10 @@ button.tv-stat-card:focus-visible { outline: 2px solid var(--tv-gold); outline-o
 .tv-search-field:focus-within { border-color: var(--tv-gold); box-shadow: 0 0 0 3px var(--tv-gold-soft); }
 .tv-filter-strip { padding: 2px; display: flex; border-radius: 9px; background: var(--tv-neutral-soft); }
 .tv-filter-strip button { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; }
-.tv-filter-strip button small { color: var(--tv-text-3); font-size: 11px; }
+.tv-filter-strip button small { color: var(--tv-text-3); font-size: 11px; transition: var(--tv-transition); }
 .tv-filter-strip button.is-active { background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 2px rgba(22,20,15,.08), 0 0 0 .5px var(--tv-line-2); }
 .tv-filter-strip button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+@media (hover: hover) { .tv-filter-strip button:not(.is-active):hover { color: var(--tv-text); } }
 
 .tv-table-shell { overflow: hidden; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
 .tv-table-head, .tv-table-row { display: grid; align-items: center; gap: 12px; padding: 0 16px; }
@@ -54,12 +55,13 @@ button.tv-stat-card:focus-visible { outline: 2px solid var(--tv-gold); outline-o
 .tv-table-head > span { overflow: hidden; white-space: nowrap; }
 .tv-invite-columns { grid-template-columns: minmax(0, 2.4fr) 96px 84px 84px 76px; }
 .tv-restaurant-columns { grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1.1fr) 92px 16px; }
-.tv-table-row { position: relative; min-height: 52px; border-bottom: 1px solid var(--tv-line); color: var(--tv-text-2); transition: background-color 150ms var(--tv-ease); }
+.tv-table-row { position: relative; min-height: 52px; border-bottom: 1px solid var(--tv-line); color: var(--tv-text-2); transition: var(--tv-transition); }
 .tv-table-row.tv-restaurant-columns { min-height: 50px; }
 .tv-table-row:last-child { border-bottom: 0; }
-.tv-table-row:hover { background: var(--tv-hover); }
+@media (hover: hover) { .tv-table-row:hover { background: var(--tv-hover); } }
 .tv-table-row.is-selected { background: var(--tv-active); }
 .tv-row-hit { position: absolute; z-index: 1; inset: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.tv-row-hit { outline-offset: 0; }
 .tv-row-hit:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
 .tv-table-row > :not(.tv-row-hit) { position: relative; z-index: 2; min-width: 0; pointer-events: none; }
 .tv-table-row .tv-row-actions button { pointer-events: auto; }
@@ -73,9 +75,11 @@ button.tv-stat-card:focus-visible { outline: 2px solid var(--tv-gold); outline-o
 .tv-date-cell, .tv-text-cell { overflow: hidden; color: var(--tv-text-2); font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
 .tv-slug-cell { overflow: hidden; color: var(--tv-text-2); font-family: var(--tv-mono); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .tv-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
-.tv-row-actions button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; transition: background-color 150ms var(--tv-ease), color 150ms var(--tv-ease); }
-.tv-row-actions button:hover { background: var(--tv-active); color: var(--tv-text); }
-.tv-row-actions button.is-danger:hover { background: var(--tv-danger-soft); color: var(--tv-danger); }
+.tv-row-actions button { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--tv-text-3); cursor: pointer; transition: var(--tv-transition); }
+@media (hover: hover) {
+  .tv-row-actions button:hover { background: var(--tv-active); color: var(--tv-text); }
+  .tv-row-actions button.is-danger:hover { background: var(--tv-danger-soft); color: var(--tv-danger); }
+}
 .tv-row-actions button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
 .tv-row-actions svg { width: 14px; height: 14px; }
 .tv-row-end { display: flex; justify-content: flex-end; }
@@ -118,7 +122,10 @@ button.tv-stat-card:focus-visible { outline: 2px solid var(--tv-gold); outline-o
   .tv-table-shell { display: none; }
   .tv-mobile-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .tv-mobile-card { min-width: 0; min-height: 76px; padding: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--tv-line); border-radius: 22px; background: var(--tv-surface); color: var(--tv-text); font: inherit; text-align: left; cursor: pointer; }
-  .tv-mobile-card:active { transform: scale(.985); }
+  .tv-mobile-card { transition: var(--tv-transition), transform var(--tv-dur-state) var(--tv-ease); }
+  .tv-mobile-card:active { transform: scale(.985); transition-duration: 0s; }
+  /* Tablet com mouse: a tabela vira cartão, e o cartão precisa de hover. */
+  @media (hover: hover) { .tv-mobile-card:hover { border-color: var(--tv-line-2); } }
   .tv-mobile-card:focus-visible { outline: 2px solid var(--tv-focus); outline-offset: 3px; }
   .tv-mobile-card-copy { min-width: 0; flex: 1; }
   .tv-mobile-card-copy strong { display: block; overflow: hidden; font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }

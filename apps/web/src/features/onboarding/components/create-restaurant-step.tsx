@@ -109,7 +109,7 @@ export function CreateRestaurantStep({
         <label htmlFor="slug" className="text-small font-medium">
           Endereço do seu cardápio
         </label>
-        <div className="mt-1.5 flex items-center gap-0.5 rounded-md border border-input bg-transparent px-3 py-2 text-small focus-within:ring-2 focus-within:ring-ring">
+        <div className="mt-1.5 flex items-center gap-0.5 rounded-md border border-input bg-transparent px-3 py-2 text-small focus-within:ring-2 focus-within:ring-ring transition-shadow">
           <span className="shrink-0 text-muted-foreground">{rootDomain}/</span>
           <input
             id="slug"

@@ -16,8 +16,9 @@ function HelpText({ help }: { help: Help }) {
 }
 
 // "Instalar app": linha agrupada no celular (Ajustes do painel, Conta do
-// console) e item do popover de conta no desktop. Só aparece quando dá para
-// instalar e o app não está aberto instalado. Nada acontece sem um toque.
+// console) e no grupo de "Notificações" do popover de conta no desktop. Só
+// aparece quando dá para instalar e o app não está aberto instalado. Nada
+// acontece sem um toque.
 export function PwaInstallAction({ variant, className }: { variant: 'row' | 'popover'; className?: string }) {
   const { installAvailability, install } = usePwa()
   const [helpOpen, setHelpOpen] = useState(false)
@@ -43,15 +44,18 @@ export function PwaInstallAction({ variant, className }: { variant: 'row' | 'pop
     'aria-controls': help ? helpId : undefined,
   }
 
+  // No popover, entra no grupo de "Notificações", abaixo dela e separada por
+  // hairline — que só existe quando a linha existe.
   if (variant === 'popover') {
     return (
-      <div className="tv-account-section">
-        <button {...buttonProps} className="tv-account-action">
-          <LuDownload aria-hidden="true" />
-          <span>Instalar app</span>
+      <>
+        <span className="tv-account-hairline is-inset" aria-hidden="true" />
+        <button {...buttonProps} className="tv-account-row">
+          <span className="tv-account-tile is-neutral" aria-hidden="true"><LuDownload /></span>
+          <span className="tv-account-row-label">Instalar app</span>
         </button>
         {help ? <p id={helpId} className="tv-account-note" hidden={!helpOpen}><HelpText help={help} /></p> : null}
-      </div>
+      </>
     )
   }
 

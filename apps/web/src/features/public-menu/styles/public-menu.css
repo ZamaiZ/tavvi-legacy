@@ -90,6 +90,7 @@
 .tv-floating-preview-mode { flex: 0 0 auto; padding: 3px; display: flex; gap: 2px; border: 1px solid var(--border); border-radius: 11px; background: var(--muted); }
 .tv-floating-preview-mode button { min-height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--muted-foreground); font-size: 11px; }
 .tv-floating-preview-mode button[aria-pressed="true"] { background: var(--background); color: var(--foreground); font-weight: 650; box-shadow: 0 1px 3px color-mix(in srgb, var(--foreground) 12%, transparent); }
+@media (hover: hover) { .tv-floating-preview-mode button:not([aria-pressed="true"]):hover { color: var(--foreground); } }
 .tv-floating-preview-content { min-width: 0; }
 @media (max-width: 1023px) {
   .tv-bottom-sheet-dialog { inset: auto 0 0 !important; width: 100vw !important; max-width: none !important; max-height: 88dvh; overflow-y: auto; transform: none !important; border-radius: 28px 28px 0 0 !important; padding: 26px 20px calc(20px + env(safe-area-inset-bottom)) !important; }

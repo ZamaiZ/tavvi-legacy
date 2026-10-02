@@ -1,17 +1,20 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { LuLogOut, LuMonitorSmartphone } from 'react-icons/lu'
+import { LuBell, LuChevronLeft, LuChevronRight, LuLogOut, LuMonitorSmartphone } from 'react-icons/lu'
 import { AccountNameAction } from '@/components/shell/account-name-action'
 import { accountInitial, signOutEverywhereCopy, ThemeSegment, useAccountDialogKeys, useSignOut, useSignOutEverywhere } from '@/components/shell/account-panel'
 import { useConsoleAccount } from '@/components/shell/console-shell'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
 import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
+import { NotificationList } from '@/features/notifications/components/notification-list'
+import { UnreadBadge } from '@/features/notifications/components/unread-badge'
+import { useNotifications } from '@/features/notifications/notifications-provider'
 import { ConfirmDialog } from '../confirm-dialog'
 
-// Aba Conta do celular: sheet com Nome, Tema, Instalar app e Notificações
-// (quando der), Sair e Sair de todos os aparelhos, sem trocar de tela. O
-// desktop usa o popover da sidebar.
+// Aba Conta do celular: sheet com Nome, Tema, Instalar app, Notificações
+// (central e push do aparelho), Sair e Sair de todos os aparelhos, sem
+// trocar de tela. O desktop usa o popover da sidebar.
 export function ConsoleAccountSheet() {
   const { open, email, name, description, onClose } = useConsoleAccount()
   if (!open) return null
@@ -25,6 +28,9 @@ function AccountSheet({ email, name, description, onClose }: { email: string | n
   const everywhere = useSignOutEverywhere(() => setConfirm(null))
   const busy = pending || everywhere.pending
   useAccountDialogKeys(ref, onClose)
+  // A central é uma subtela da própria folha: "‹ Conta" volta.
+  const [view, setView] = useState<'account' | 'notifications'>('account')
+  const { unreadCount } = useNotifications()
 
   // O sheet só existe abaixo de 768 px; se a janela crescer, ele fecha.
   useEffect(() => {
@@ -39,23 +45,45 @@ function AccountSheet({ email, name, description, onClose }: { email: string | n
       <button type="button" className="tv-sheet-scrim" aria-label="Fechar conta" onClick={onClose} />
       <section ref={ref} role="dialog" aria-modal="true" aria-label="Conta" className="tv-account-sheet">
         <span className="tv-sheet-m-handle" aria-hidden="true" />
-        <div className="tv-account-sheet-profile">
-          <span className="tv-account-sheet-avatar" aria-hidden="true">{accountInitial(email)}</span>
-          <span className="tv-account-sheet-copy"><strong>{email ?? 'Conta'}</strong><small>{description}</small></span>
-        </div>
-        <AccountNameAction variant="row" name={name} className="is-spaced" disabled={busy} />
-        <h2 className="tv-group-label">Aparência</h2>
-        <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
-        <PwaInstallAction variant="row" className="is-spaced" />
-        <PwaNotificationsAction variant="row" className="is-spaced" />
-        <div className="tv-group is-spaced">
-          <button type="button" className="tv-group-danger" disabled={busy} onClick={() => setConfirm('signOut')}>
-            <LuLogOut aria-hidden="true" />{pending ? 'Saindo…' : 'Sair'}
-          </button>
-          <button type="button" className="tv-group-danger" disabled={busy} onClick={() => setConfirm('everywhere')}>
-            <LuMonitorSmartphone aria-hidden="true" />{everywhere.pending ? 'Saindo de todos…' : 'Sair de todos os aparelhos'}
-          </button>
-        </div>
+        {view === 'notifications' ? (
+          <>
+            <div className="tv-notif-sheet-nav">
+              <button type="button" className="tv-notif-sheet-back" onClick={() => setView('account')}>
+                <LuChevronLeft aria-hidden="true" />Conta
+              </button>
+              <h2>Notificações</h2>
+            </div>
+            <PwaNotificationsAction variant="row" label="Neste aparelho" className="is-spaced" />
+            <NotificationList onNavigate={onClose} />
+          </>
+        ) : (
+          <>
+            <div className="tv-account-sheet-profile">
+              <span className="tv-account-sheet-avatar" aria-hidden="true">{accountInitial(email)}</span>
+              <span className="tv-account-sheet-copy"><strong>{email ?? 'Conta'}</strong><small>{description}</small></span>
+            </div>
+            <AccountNameAction variant="row" name={name} className="is-spaced" disabled={busy} />
+            <h2 className="tv-group-label">Aparência</h2>
+            <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
+            <PwaInstallAction variant="row" className="is-spaced" />
+            <div className="tv-group is-spaced">
+              <button type="button" className="tv-mlink" onClick={() => setView('notifications')}>
+                <span className="tv-mlink-icon" aria-hidden="true"><LuBell /></span>
+                <span className="tv-mlink-copy"><span>Notificações</span></span>
+                <UnreadBadge count={unreadCount} className="is-row" />
+                <LuChevronRight aria-hidden="true" />
+              </button>
+            </div>
+            <div className="tv-group is-spaced">
+              <button type="button" className="tv-group-danger" disabled={busy} onClick={() => setConfirm('signOut')}>
+                <LuLogOut aria-hidden="true" />{pending ? 'Saindo…' : 'Sair'}
+              </button>
+              <button type="button" className="tv-group-danger" disabled={busy} onClick={() => setConfirm('everywhere')}>
+                <LuMonitorSmartphone aria-hidden="true" />{everywhere.pending ? 'Saindo de todos…' : 'Sair de todos os aparelhos'}
+              </button>
+            </div>
+          </>
+        )}
       </section>
       {confirm === 'signOut' ? (
         <ConfirmDialog

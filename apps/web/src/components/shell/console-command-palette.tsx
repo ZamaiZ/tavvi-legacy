@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
-import { LuBookOpen, LuContact, LuMail, LuPalette, LuPlus, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
+import { LuBookOpen, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPlus, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import { getActiveConsoleLeaf, type ConsoleIcon, type ConsoleLeaf } from './console-config'
 import { useProgressNavigate } from './navigation-progress'
@@ -16,6 +16,7 @@ const icons: Record<ConsoleIcon, IconType> = {
   palette: LuPalette,
   contact: LuContact,
   team: LuUsers,
+  feedback: LuMessageSquareText,
 }
 
 type PaletteRow =

@@ -39,8 +39,9 @@
   --tv-hero-ink: #1D170E;
   --tv-hero-ink-2: rgba(29,23,14,.68);
   --tv-hero-chip: rgba(255,255,255,.28);
+  --tv-hero-chip-hover: rgba(255,255,255,.42);
 
-  --tv-ok: #3C7A4E;       --tv-ok-soft: #E4EFE5;
+  --tv-ok: #3C7A4E;      --tv-ok-soft: #E4EFE5;
   --tv-warn: #94660F;     --tv-warn-soft: #F5EAD2;
   --tv-danger: #B2372C;   --tv-danger-soft: #F7E3DF;
   --tv-neutral-soft: rgba(22,20,15,.055);
@@ -49,6 +50,20 @@
   --tv-shadow: 0 1px 2px rgba(22,20,15,.04);
   --tv-pop: 0 18px 44px -12px rgba(22,20,15,.22), 0 2px 6px rgba(22,20,15,.06);
   --tv-ease: cubic-bezier(.2,.8,.2,1);
+
+  /* Material translúcido do popover de conta e da central de notificações
+     (handoff Notificacoes Premium). --tv-pop-lg é a sombra deles: o
+     --tv-pop segue igual nos outros popovers. --tv-mat-text-3 é o terciário
+     sobre o material: o --tv-text-3 ali dá 3,2–3,4:1; este passa de 4,5:1
+     sobre o material, os grupos e o hover. */
+  --tv-mat: rgba(255,255,255,.84);
+  --tv-group: rgba(22,20,15,.035);
+  --tv-switch-off: rgba(22,20,15,.14);
+  --tv-skel: rgba(22,20,15,.06);
+  --tv-skel-hi: rgba(22,20,15,.11);
+  --tv-pop-lg: 0 24px 60px -16px rgba(22,20,15,.28), 0 4px 12px rgba(22,20,15,.06);
+  --tv-mat-text-3: #736E66;
+  --tv-seg-on: #FFFFFF;
 
   --surface-1: var(--tv-bg);
   --surface-2: var(--tv-surface);
@@ -151,6 +166,7 @@
   --tv-hero-ink: #17120A;
   --tv-hero-ink-2: rgba(23,18,10,.7);
   --tv-hero-chip: rgba(255,255,255,.22);
+  --tv-hero-chip-hover: rgba(255,255,255,.32);
 
   --tv-ok: #86C595;     --tv-ok-soft: rgba(134,197,149,.12);
   --tv-warn: #E0B465;   --tv-warn-soft: rgba(224,180,101,.12);
@@ -160,6 +176,47 @@
   --tv-scrim: rgba(0,0,0,.55);
   --tv-shadow: none;
   --tv-pop: 0 24px 56px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,248,235,.06);
+
+  --tv-mat: rgba(30,28,25,.82);
+  --tv-group: rgba(255,248,235,.05);
+  --tv-switch-off: rgba(255,248,235,.16);
+  --tv-skel: rgba(255,248,235,.06);
+  --tv-skel-hi: rgba(255,248,235,.12);
+  --tv-pop-lg: var(--tv-pop);
+  --tv-mat-text-3: #948E83;
+  --tv-seg-on: rgba(255,248,235,.14);
+}
+
+/* Movimento (spec 2026-10-01-transicoes-interativas): uma curva e três
+   durações. `--tv-transition` é tudo que muda de estado num toque: cor,
+   fundo, borda, sombra, anel de foco e opacidade. Nunca transform nem
+   tamanho: o dnd-kit e o motion mexem nessas propriedades inline, e uma
+   transição CSS deixaria o item arrastado atrás do dedo.
+
+   `--tv-transition` é resolvida aqui na raiz: trocar `--tv-dur-state` num
+   elemento não muda nada. Para outra duração, use `transition-duration`
+   na própria regra (é o que fazem as listas e o press). */
+:root {
+  --tv-dur-1: 100ms;
+  --tv-dur-2: 150ms;
+  --tv-dur-3: 200ms;
+  --tv-dur-state: var(--tv-dur-2);
+  --tv-ring-color: var(--tv-gold);
+  --tv-transition:
+    color var(--tv-dur-state) var(--tv-ease),
+    background-color var(--tv-dur-state) var(--tv-ease),
+    border-color var(--tv-dur-state) var(--tv-ease),
+    box-shadow var(--tv-dur-state) var(--tv-ease),
+    outline-color var(--tv-dur-state) var(--tv-ease),
+    outline-offset var(--tv-dur-state) var(--tv-ease),
+    opacity var(--tv-dur-state) var(--tv-ease),
+    text-decoration-color var(--tv-dur-state) var(--tv-ease),
+    fill var(--tv-dur-state) var(--tv-ease),
+    stroke var(--tv-dur-state) var(--tv-ease);
+}
+/* No toque, a soltura é mais lenta, como a célula do iOS. */
+@media (hover: none) {
+  :root { --tv-dur-state: var(--tv-dur-3); }
 }
 
 
@@ -271,6 +328,11 @@
   --color-tv-warn-surface: var(--tv-warn-surface);
   --color-tv-ring: var(--tv-ring);
 }
+/* Os utilitários `transition-*` do Tailwind (e o shadcn) na curva Tavvi. */
+@theme {
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(.2,.8,.2,1);
+}
 /* O que a raiz tem de diferente dos territórios não é cor: o raio do shadcn
    e as famílias do cardápio público. As cores vêm da paleta Tavvi no topo. */
 :root {
@@ -310,6 +372,34 @@
     cursor: pointer;
   }
 
+  /* Transição de base: tudo que se toca muda de estado na mesma curva.
+     `:where()` zera a especificidade e a camada perde para qualquer regra
+     de tela, então quem precisa de outra coisa só declara. */
+  :where(a[href], button, summary, label, input, textarea, select, [role='button'], [role='link'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='switch'], [role='checkbox'], [role='radio'], [role='row'], [data-slot='context-menu-trigger']) {
+    transition: var(--tv-transition);
+  }
+
+  /* Anel de foco que assenta: em repouso é transparente e 2 px mais aberto;
+     no :focus-visible a cor e a posição animam. Fora do alto contraste,
+     onde o transparente viraria uma borda em todo botão. Campos de texto
+     ficam de fora: o foco deles é a borda do campo. */
+  @media (forced-colors: none) {
+    :where(a[href], button, summary, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='checkbox'], [role='radio']) {
+      outline: 2px solid transparent;
+      outline-offset: 4px;
+    }
+    /* O preflight dá `outline: auto` ao :-moz-focusring do Firefox, e o
+       `auto` não anima: fixar o estilo deixa o anel sólido lá também. */
+    :where(a[href], button, summary, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='checkbox'], [role='radio']):focus-visible {
+      outline-style: solid;
+      outline-width: 2px;
+    }
+  }
+  :where(a[href], button, summary, [role='button'], [role='link'], [role='tab'], [role='switch'], [role='checkbox'], [role='radio']):focus-visible {
+    outline-color: var(--tv-ring-color);
+    outline-offset: 2px;
+  }
+
   /* O marcador de território concentra a tipografia privada. A hierarquia
      vem de peso e escala, não da mistura de famílias. */
   .admin-territory {
@@ -344,14 +434,27 @@
   padding: 1.5rem 1.5rem 3rem;
 }
 
+/* Movimento reduzido: nenhuma transição em lugar nenhum (territórios,
+   portais no <body> e cardápio). As animações continuam presas aos
+   territórios: a 404 do cardápio troca as dela por um fade curto. */
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
   .admin-territory *,
   .tv-auth-scope *,
   .workspace-territory * {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
+
+/* Troca de tema: um frame sem transição (ThemeProvider). Sem isso, o que
+   tem transição muda de cor em 150 ms e o resto muda na hora. */
+.tv-theme-switching,
+.tv-theme-switching *,
+.tv-theme-switching *::before,
+.tv-theme-switching *::after { transition: none !important; }
 
