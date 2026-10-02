@@ -1,6 +1,7 @@
 export {
   deviceContractLoginSchema,
   deviceContractRegistrationSchema,
+  deviceIdSchema,
   loginInputSchema as signInSchema,
   refreshInputSchema as refreshSchema,
 } from '@tavvi/api-contracts'

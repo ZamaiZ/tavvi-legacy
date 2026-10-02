@@ -1,36 +1,64 @@
 import { BottomSheet, RNHostView } from '@expo/ui'
-import { LogOut } from 'lucide-react-native'
-import { Alert, Pressable, StyleSheet, View } from 'react-native'
+import { LogOut, MonitorSmartphone } from 'lucide-react-native'
+import { useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Circle, LinearGradient, Stop } from 'react-native-svg'
 import { AppText } from '@/components/primitives/app-text'
+import { ConfirmDialog } from '@/components/primitives/confirm-dialog'
 import { ThemeSelector } from '@/components/primitives/theme-selector'
+import { toast } from '@/components/primitives/toast'
 import { useAuth } from '@/features/auth/auth-context'
 import { brand, radii, useAppTheme } from '@/theme'
 
-// Aba Conta: sheet com Tema e Sair, aberto pelo toque na aba (ver
-// app/(app)/_layout.tsx). A biometria fica fora da interface por enquanto.
+// Aba Conta: sheet com Tema, Sair e Sair de todos os aparelhos, aberto pelo
+// toque na aba (ver app/(app)/_layout.tsx). O liga/desliga da biometria fica
+// fora da interface; desativar continua na tela de login.
 export function AccountSheet({ open, onOpenChange }: { open: boolean; onOpenChange(open: boolean): void }) {
   const { colors, resolved, preference, setPreference } = useAppTheme()
-  const { user, signOut } = useAuth()
+  const { user, signOut, signOutEverywhere } = useAuth()
+  const [confirm, setConfirm] = useState<'signOut' | 'everywhere' | null>(null)
+  const [endingAll, setEndingAll] = useState(false)
+  const [failure, setFailure] = useState<string | null>(null)
   const gradient = resolved === 'dark' ? brand.heroGradientDark : brand.heroGradient
   const ink = resolved === 'dark' ? '#17120A' : brand.heroInk
   const initial = user?.email?.trim().slice(0, 1).toLocaleUpperCase('pt-BR') || 'A'
 
+  // O sheet é nativo: a confirmação aparece com ele fechado e, se a pessoa
+  // cancelar, ele volta (mesmo padrão do "Descartar link?" do convite).
+  function ask(kind: 'signOut' | 'everywhere') {
+    onOpenChange(false)
+    setConfirm(kind)
+  }
+
+  function cancelConfirm() {
+    if (endingAll) return
+    setConfirm(null)
+    onOpenChange(true)
+  }
+
   function confirmSignOut() {
-    Alert.alert('Sair da conta?', 'Você precisará entrar novamente para acessar o console.', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Sair da conta',
-        style: 'destructive',
-        onPress: () => {
-          onOpenChange(false)
-          void signOut()
-        },
-      },
-    ])
+    setConfirm(null)
+    void signOut()
+  }
+
+  // Falhou: continua logado, com a causa (spec 2026-10-01). Deu certo: o app
+  // volta ao login e o toast confirma.
+  async function confirmSignOutEverywhere() {
+    setEndingAll(true)
+    try {
+      await signOutEverywhere()
+      setConfirm(null)
+      toast.show('Você saiu de todos os aparelhos.')
+    } catch (error) {
+      setConfirm(null)
+      setFailure(error instanceof Error && error.message ? error.message : 'Tente novamente.')
+    } finally {
+      setEndingAll(false)
+    }
   }
 
   return (
+    <>
     <BottomSheet isPresented={open} onDismiss={() => onOpenChange(false)} showDragIndicator={false} snapPoints={['half']} contentPadding={0} containerColor={colors.background}>
       <RNHostView>
         <View style={[styles.sheet, { backgroundColor: colors.background }]}>
@@ -60,15 +88,54 @@ export function AccountSheet({ open, onOpenChange }: { open: boolean; onOpenChan
           </View>
           <Pressable
             accessibilityRole="button"
-            onPress={confirmSignOut}
+            onPress={() => ask('signOut')}
             style={({ pressed }) => [styles.signOut, { backgroundColor: pressed ? colors.dangerSurface : colors.surface }]}
           >
             <LogOut size={18} color={colors.dangerText} />
             <AppText variant="bodyMedium" style={{ color: colors.dangerText }}>Sair</AppText>
           </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => ask('everywhere')}
+            style={({ pressed }) => [styles.signOutAll, { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <AppText variant="rowMeta" style={{ color: colors.dangerText }}>Sair de todos os aparelhos</AppText>
+          </Pressable>
         </View>
       </RNHostView>
     </BottomSheet>
+    <ConfirmDialog
+      visible={confirm === 'signOut'}
+      title="Sair da conta?"
+      description="Você precisará entrar novamente para acessar o console."
+      confirmLabel="Sair da conta"
+      destructive
+      icon={LogOut}
+      onCancel={cancelConfirm}
+      onConfirm={confirmSignOut}
+    />
+    <ConfirmDialog
+      visible={confirm === 'everywhere'}
+      title="Sair de todos os aparelhos?"
+      description="Isso encerra sua sessão em todos os aparelhos e desliga a digital em todos eles, inclusive neste."
+      confirmLabel="Sair de todos"
+      destructive
+      loading={endingAll}
+      icon={MonitorSmartphone}
+      onCancel={cancelConfirm}
+      onConfirm={() => void confirmSignOutEverywhere()}
+    />
+    <ConfirmDialog
+      visible={failure !== null}
+      title="Não foi possível sair de todos"
+      description={failure ?? ''}
+      confirmLabel="Entendi"
+      showCancel={false}
+      icon={MonitorSmartphone}
+      onCancel={() => setFailure(null)}
+      onConfirm={() => setFailure(null)}
+    />
+    </>
   )
 }
 
@@ -83,4 +150,5 @@ const styles = StyleSheet.create({
   groupLabel: { paddingLeft: 14 },
   card: { padding: 8, borderRadius: radii.card, borderCurve: 'continuous' },
   signOut: { minHeight: 48, paddingHorizontal: 16, borderRadius: radii.card, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  signOutAll: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
 })

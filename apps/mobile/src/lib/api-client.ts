@@ -68,15 +68,25 @@ export function publicApiRequest<T>(path: string, init?: RequestInit) {
   return request<T>(path, init)
 }
 
+// A resposta pode se perder depois de o Supabase já ter trocado o token.
+// Repetir na hora, dentro dos 10 s de tolerância do Supabase, devolve a
+// sessão nova em vez de queimar a família inteira de tokens.
+async function postRefresh(refreshToken: string) {
+  const init: RequestInit = { method: 'POST', body: JSON.stringify({ refreshToken }) }
+  try {
+    return await publicApiRequest<AuthSession>(API_ROUTES.auth.refresh, init)
+  } catch (error) {
+    if (error instanceof ApiError && error.code === 'NETWORK_ERROR') return publicApiRequest<AuthSession>(API_ROUTES.auth.refresh, init)
+    throw error
+  }
+}
+
 async function refreshSession(refreshToken: string) {
   const before = await sessionStore.get()
   if (before?.refreshToken !== refreshToken) {
     throw new ApiError('A sessão foi substituída.', 0, 'SESSION_SUPERSEDED')
   }
-  const session = await publicApiRequest<AuthSession>(API_ROUTES.auth.refresh, {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken }),
-  })
+  const session = await postRefresh(refreshToken)
   const stored = await sessionStore.replaceIfRefreshToken(refreshToken, session)
   if (!stored) {
     throw new ApiError('A sessão foi substituída.', 0, 'SESSION_SUPERSEDED')

@@ -8,8 +8,10 @@ export const API_ROUTES = {
     signup: `${apiRoot}/auth/signup`,
     refresh: `${apiRoot}/auth/refresh`,
     session: `${apiRoot}/auth/session`,
+    sessions: `${apiRoot}/auth/sessions`,
     deviceLogin: `${apiRoot}/auth/device-contract/login`,
     deviceContract: `${apiRoot}/auth/device-contract`,
+    deviceContractStatus: (deviceId: string) => withId(`${apiRoot}/auth/device-contract`, deviceId),
   },
   platform: {
     invitations: `${apiRoot}/platform/invitations`,

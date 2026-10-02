@@ -1,23 +1,24 @@
 import { createHash } from 'node:crypto'
-import type { Session } from '@supabase/supabase-js'
-import type { AuthSession, UserSummary } from '@tavvi/api-contracts'
-import { getServerEnv } from '../../config/env.js'
+import type { AuthError, User } from '@supabase/supabase-js'
+import type { AuthSession, DeviceContractRegistered, DeviceContractStatus } from '@tavvi/api-contracts'
 import { HttpError } from '../../http/errors.js'
 import { enforceRateLimit } from '../../http/security.js'
 import type { AdminContext } from '../../http/request-context.js'
-import { createAnonymousSupabaseClient, createUserSupabaseClient } from '../../integrations/supabase/client.js'
-import { decryptDeviceRefreshToken, encryptDeviceRefreshToken } from './device-contract-crypto.js'
+import { createAdminSupabaseClient } from '../../integrations/supabase/admin.js'
+import { createAnonymousSupabaseClient } from '../../integrations/supabase/client.js'
 import type { DeviceContractLoginInput, DeviceContractRegistrationInput } from './auth.schemas.js'
+import { isPlatformAdmin, revokeRemoteSession, toAuthSession } from './session-helpers.js'
 
-function toAuthSession(session: Session, user: UserSummary): AuthSession {
-  return {
-    accessToken: session.access_token,
-    refreshToken: session.refresh_token,
-    expiresAt: session.expires_at ?? Math.floor(Date.now() / 1000) + session.expires_in,
-    expiresIn: session.expires_in,
-    tokenType: 'bearer',
-    user,
-  }
+const UNAVAILABLE_MESSAGE = 'O serviço de autenticação está temporariamente indisponível. Tente novamente.'
+
+// Uma mensagem por motivo de revogação (spec, seção 5). O aparelho só chega
+// aqui provando o segredo, então dizer o motivo não entrega nada a ninguém.
+const revokedMessages: Record<string, string> = {
+  user_disabled: 'A digital foi desativada neste aparelho. Entre com e-mail e senha para ativar de novo.',
+  password_changed: 'A senha da conta mudou e a digital foi desligada. Entre com a nova senha para ativar de novo.',
+  signed_out_everywhere: 'Você saiu de todos os aparelhos e a digital foi desligada. Entre com e-mail e senha para ativar de novo.',
+  upgraded: 'A digital foi atualizada e precisa ser ativada de novo. Entre com e-mail e senha.',
+  admin_removed: 'Esta conta não administra mais a plataforma.',
 }
 
 function hashHex(value: string): string {
@@ -31,157 +32,144 @@ function bytea(value: string): string {
 async function enforceDeviceRateLimit(bucket: 'auth:device' | 'auth:device-unlink', input: DeviceContractLoginInput, ip: string | null) {
   const client = createAnonymousSupabaseClient()
   const proofHash = hashHex(`${input.deviceId}:${input.deviceSecret}`)
-  await enforceRateLimit(client, bucket, `ip:${ip ?? 'local-shared'}`)
-  await enforceRateLimit(client, bucket, `proof:${proofHash}`)
-}
-
-async function requireAdmin(accessToken: string) {
-  const result = await createUserSupabaseClient(accessToken).rpc('is_platform_admin')
-  if (result.error) throw new HttpError(500, 'AUTHORIZATION_CHECK_FAILED', 'Não foi possível verificar sua permissão.')
-  return result.data === true
-}
-
-function throwForAuthRefreshFailure(error: { name?: string; status?: number } | null, fallbackMessage: string): never {
-  if (error?.name === 'AuthRetryableFetchError' || error?.status === 429 || (error?.status ?? 0) >= 500) {
-    throw new HttpError(503, 'AUTH_PROVIDER_UNAVAILABLE', 'O serviço de autenticação está temporariamente indisponível. Tente novamente.')
-  }
-  throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', fallbackMessage)
-}
-
-async function revokeRemoteSession(accessToken: string) {
-  const env = getServerEnv()
   try {
-    await fetch(new URL('/auth/v1/logout?scope=local', env.supabaseUrl), {
-      method: 'POST',
-      headers: { apikey: env.supabaseAnonKey, Authorization: `Bearer ${accessToken}` },
-    })
-  } catch {}
-}
-
-export async function replaceDeviceRefreshToken(oldRefreshToken: string, newSession: AuthSession): Promise<void> {
-  const encrypted = encryptDeviceRefreshToken(newSession.refreshToken)
-  const client = createAnonymousSupabaseClient()
-  const replaced = await client.rpc('replace_mobile_device_refresh', {
-    p_old_refresh_token_hash: bytea(hashHex(oldRefreshToken)),
-    p_new_refresh_token_hash: bytea(hashHex(newSession.refreshToken)),
-    p_refresh_token_ciphertext: encrypted.ciphertext,
-    p_refresh_token_nonce: encrypted.nonce,
-    p_refresh_token_tag: encrypted.tag,
-  })
-  if (replaced.error) throw new HttpError(500, 'DEVICE_CONTRACT_SYNC_FAILED', 'Não foi possível atualizar o acesso biométrico deste aparelho.')
-}
-
-export async function registerDeviceContract(context: AdminContext, input: DeviceContractRegistrationInput): Promise<AuthSession> {
-  const anonymous = createAnonymousSupabaseClient()
-  const refreshed = await anonymous.auth.refreshSession({ refresh_token: input.refreshToken })
-  if (refreshed.error) throwForAuthRefreshFailure(refreshed.error, 'Sua sessão expirou. Entre novamente.')
-  if (!refreshed.data.session || !refreshed.data.user.email) {
-    if (refreshed.data.session) await revokeRemoteSession(refreshed.data.session.access_token)
-    throw new HttpError(401, 'UNAUTHORIZED', 'Sua sessão expirou. Entre novamente.')
-  }
-
-  const session = refreshed.data.session
-  if (refreshed.data.user.id !== context.user.id) {
-    await revokeRemoteSession(session.access_token)
-    throw new HttpError(401, 'UNAUTHORIZED', 'Não foi possível ativar a biometria nesta sessão.')
-  }
-  let allowed: boolean
-  try {
-    allowed = await requireAdmin(session.access_token)
+    await enforceRateLimit(client, bucket, `ip:${ip ?? 'local-shared'}`)
+    await enforceRateLimit(client, bucket, `proof:${proofHash}`)
   } catch (error) {
-    await revokeRemoteSession(session.access_token)
+    if (error instanceof HttpError && error.code === 'RATE_LIMITED') {
+      throw new HttpError(429, 'RATE_LIMITED', 'Muitas tentativas com a digital. Aguarde um minuto e tente de novo.')
+    }
     throw error
   }
-  if (!allowed) {
-    await revokeRemoteSession(session.access_token)
-    throw new HttpError(403, 'FORBIDDEN', 'Esta conta não administra a plataforma.')
-  }
+}
 
-  const mobileSession = toAuthSession(session, { id: refreshed.data.user.id, email: refreshed.data.user.email })
-  const encrypted = encryptDeviceRefreshToken(mobileSession.refreshToken)
-  const registered = await createUserSupabaseClient(mobileSession.accessToken).rpc('register_mobile_device_contract', {
+function deviceNotRegistered() {
+  return new HttpError(401, 'DEVICE_NOT_REGISTERED', 'Este aparelho não tem digital ativa. Entre com e-mail e senha para ativar.')
+}
+
+function deviceRevoked(reason: string | null) {
+  const message = reason ? revokedMessages[reason] : undefined
+  if (!message) console.error('[auth] device contract revoked with unknown reason', { reason })
+  return new HttpError(401, 'DEVICE_REVOKED', message ?? 'A digital deste aparelho foi desligada. Entre com e-mail e senha para ativar de novo.')
+}
+
+function accountNotFound() {
+  return new HttpError(401, 'ACCOUNT_NOT_FOUND', 'Esta conta não existe mais.')
+}
+
+function userBanned() {
+  return new HttpError(403, 'USER_BANNED', 'Esta conta está bloqueada.')
+}
+
+// 429 tem mensagem própria; o resto (rede, 5xx, código desconhecido) vai para
+// o log com o passo e o código, e a pessoa vê que o serviço está fora.
+function authProviderFailure(step: string, error: AuthError): HttpError {
+  if (error.status === 429) return new HttpError(429, 'RATE_LIMITED', 'Muitas tentativas com a digital. Aguarde um minuto e tente de novo.')
+  console.error('[auth] device login failed', { step, code: error.code, status: error.status, name: error.name })
+  return new HttpError(503, 'AUTH_PROVIDER_UNAVAILABLE', UNAVAILABLE_MESSAGE)
+}
+
+function isBanned(user: User): boolean {
+  return Boolean(user.banned_until && Date.parse(user.banned_until) > Date.now())
+}
+
+export async function registerDeviceContract(context: AdminContext, input: DeviceContractRegistrationInput): Promise<DeviceContractRegistered> {
+  const registered = await context.supabase.rpc('register_mobile_device_contract', {
     p_device_id: input.deviceId,
     p_device_secret_hash: bytea(hashHex(input.deviceSecret)),
-    p_refresh_token_hash: bytea(hashHex(mobileSession.refreshToken)),
-    p_refresh_token_ciphertext: encrypted.ciphertext,
-    p_refresh_token_nonce: encrypted.nonce,
-    p_refresh_token_tag: encrypted.tag,
   })
   if (registered.error) {
-    await revokeRemoteSession(mobileSession.accessToken)
-    throw new HttpError(500, 'DEVICE_CONTRACT_REGISTRATION_FAILED', 'Não foi possível ativar a biometria neste aparelho.')
+    console.error('[auth] device contract registration failed', { code: registered.error.code })
+    throw new HttpError(500, 'DEVICE_CONTRACT_REGISTRATION_FAILED', 'Não foi possível ativar a digital neste aparelho. Tente novamente.')
   }
-  return mobileSession
+  return { registered: true }
+}
+
+export async function getDeviceContractStatus(context: AdminContext, deviceId: string): Promise<DeviceContractStatus> {
+  const result = await context.supabase.rpc('is_my_device_contract_active', { p_device_id: deviceId })
+  if (result.error) {
+    console.error('[auth] device contract status failed', { code: result.error.code })
+    throw new HttpError(500, 'DEVICE_STATUS_FAILED', 'Não foi possível consultar a digital deste aparelho.')
+  }
+  return { active: result.data === true }
 }
 
 export async function signInWithDeviceContract(input: DeviceContractLoginInput, ip: string | null): Promise<AuthSession> {
   await enforceDeviceRateLimit('auth:device', input, ip)
-  const secretHash = hashHex(input.deviceSecret)
-  const lookup = await createAnonymousSupabaseClient().rpc('get_mobile_device_contract', {
-    p_device_id: input.deviceId,
-    p_device_secret_hash: bytea(secretHash),
-  })
-  if (lookup.error) throw new HttpError(500, 'DEVICE_LOGIN_FAILED', 'Não foi possível concluir esta operação.')
+  const admin = createAdminSupabaseClient()
+  const secretHash = bytea(hashHex(input.deviceSecret))
+
+  const lookup = await admin.rpc('get_mobile_device_contract', { p_device_id: input.deviceId, p_device_secret_hash: secretHash })
+  if (lookup.error) {
+    console.error('[auth] device contract lookup failed', { code: lookup.error.code })
+    throw new HttpError(500, 'DEVICE_LOGIN_FAILED', 'Não foi possível consultar a digital deste aparelho. Tente novamente.')
+  }
   const contract = lookup.data[0]
-  if (!contract) throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', 'Não foi possível entrar com a biometria. Entre com e-mail e senha.')
+  if (!contract) throw deviceNotRegistered()
+  if (contract.revoked_at) throw deviceRevoked(contract.revoked_reason)
 
-  let refreshToken: string
-  try {
-    refreshToken = decryptDeviceRefreshToken({
-      version: 1,
-      ciphertext: contract.refresh_token_ciphertext,
-      nonce: contract.refresh_token_nonce,
-      tag: contract.refresh_token_tag,
-    })
-  } catch {
-    throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', 'Não foi possível entrar com a biometria. Entre com e-mail e senha.')
+  const found = await admin.auth.admin.getUserById(contract.user_id)
+  if (found.error) {
+    if (found.error.status === 404 || found.error.code === 'user_not_found') throw accountNotFound()
+    throw authProviderFailure('get_user', found.error)
+  }
+  const user = found.data.user
+  if (isBanned(user)) throw userBanned()
+  if (!user.email) {
+    console.error('[auth] device login for user without email', { userId: user.id })
+    throw new HttpError(500, 'DEVICE_LOGIN_FAILED', 'Esta conta não tem e-mail cadastrado, então a digital não consegue abrir a sessão.')
   }
 
-  const refreshed = await createAnonymousSupabaseClient().auth.refreshSession({ refresh_token: refreshToken })
-  if (refreshed.error) throwForAuthRefreshFailure(refreshed.error, 'Não foi possível entrar com a biometria. Entre com e-mail e senha.')
-  if (!refreshed.data.session || !refreshed.data.user.email || refreshed.data.user.id !== contract.user_id) {
-    if (refreshed.data.session) await revokeRemoteSession(refreshed.data.session.access_token)
-    throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', 'Não foi possível entrar com a biometria. Entre com e-mail e senha.')
+  // Sessão nova a cada uso: generateLink só devolve o token (não manda e-mail)
+  // e verifyOtp troca o token por uma sessão. A verificação usa outra
+  // instância, com o IP do celular; esta continua service_role para as RPCs.
+  const link = await admin.auth.admin.generateLink({ type: 'magiclink', email: user.email })
+  if (link.error) throw authProviderFailure('generate_link', link.error)
+  const { hashed_token: tokenHash, verification_type: verificationType } = link.data.properties
+  if (verificationType !== 'magiclink' && verificationType !== 'signup') {
+    console.error('[auth] device login got an unexpected link type', { verificationType })
+    throw new HttpError(503, 'AUTH_PROVIDER_UNAVAILABLE', UNAVAILABLE_MESSAGE)
   }
+  const verified = await createAdminSupabaseClient({ forwardedFor: ip }).auth.verifyOtp({ token_hash: tokenHash, type: verificationType })
+  if (verified.error) {
+    if (verified.error.code === 'user_banned') throw userBanned()
+    throw authProviderFailure('verify_otp', verified.error)
+  }
+  const session = verified.data.session
+  if (!session || verified.data.user?.id !== contract.user_id) {
+    if (session) await revokeRemoteSession(session.access_token, 'local')
+    console.error('[auth] device login returned an unexpected session', { hasSession: Boolean(session) })
+    throw new HttpError(503, 'AUTH_PROVIDER_UNAVAILABLE', UNAVAILABLE_MESSAGE)
+  }
+
   let allowed: boolean
   try {
-    allowed = await requireAdmin(refreshed.data.session.access_token)
+    allowed = await isPlatformAdmin(session.access_token)
   } catch (error) {
-    await revokeRemoteSession(refreshed.data.session.access_token)
+    await revokeRemoteSession(session.access_token, 'local')
     throw error
   }
   if (!allowed) {
-    await revokeRemoteSession(refreshed.data.session.access_token)
-    throw new HttpError(403, 'FORBIDDEN', 'Esta conta não administra mais a plataforma.')
+    await revokeRemoteSession(session.access_token, 'local')
+    const revoked = await admin.rpc('revoke_mobile_device_contract', { p_device_id: input.deviceId, p_device_secret_hash: secretHash, p_reason: 'admin_removed' })
+    if (revoked.error) console.error('[auth] device contract admin revocation failed', { code: revoked.error.code })
+    throw new HttpError(403, 'ADMIN_ACCESS_REMOVED', 'Esta conta não administra mais a plataforma.')
   }
 
-  const mobileSession = toAuthSession(refreshed.data.session, { id: refreshed.data.user.id, email: refreshed.data.user.email })
-  const encrypted = encryptDeviceRefreshToken(mobileSession.refreshToken)
-  const replaced = await createAnonymousSupabaseClient().rpc('replace_mobile_device_refresh', {
-    p_old_refresh_token_hash: bytea(contract.refresh_token_hash),
-    p_new_refresh_token_hash: bytea(hashHex(mobileSession.refreshToken)),
-    p_refresh_token_ciphertext: encrypted.ciphertext,
-    p_refresh_token_nonce: encrypted.nonce,
-    p_refresh_token_tag: encrypted.tag,
-  })
-  if (replaced.error) {
-    await revokeRemoteSession(mobileSession.accessToken)
-    throw new HttpError(503, 'DEVICE_CONTRACT_SYNC_FAILED', 'Não foi possível concluir esta operação. Tente novamente ou entre com e-mail e senha.')
-  }
-  if (replaced.data !== true) {
-    await revokeRemoteSession(mobileSession.accessToken)
-    throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', 'Não foi possível entrar com a biometria. Entre com e-mail e senha.')
-  }
-  return mobileSession
+  return toAuthSession(session, { id: user.id, email: user.email })
 }
 
 export async function revokeDeviceContract(input: DeviceContractLoginInput, ip: string | null): Promise<{ revoked: true }> {
   await enforceDeviceRateLimit('auth:device-unlink', input, ip)
-  const revoked = await createAnonymousSupabaseClient().rpc('revoke_mobile_device_contract', {
+  const revoked = await createAdminSupabaseClient().rpc('revoke_mobile_device_contract', {
     p_device_id: input.deviceId,
     p_device_secret_hash: bytea(hashHex(input.deviceSecret)),
+    p_reason: 'user_disabled',
   })
-  if (revoked.error) throw new HttpError(500, 'DEVICE_REVOCATION_FAILED', 'Não foi possível desativar a biometria neste aparelho.')
-  if (revoked.data !== true) throw new HttpError(401, 'INVALID_DEVICE_CONTRACT', 'Não foi possível confirmar este aparelho.')
+  if (revoked.error) {
+    console.error('[auth] device contract revocation failed', { code: revoked.error.code })
+    throw new HttpError(500, 'DEVICE_REVOCATION_FAILED', 'Não foi possível desativar a digital neste aparelho. Tente novamente.')
+  }
+  if (revoked.data !== true) throw deviceNotRegistered()
   return { revoked: true }
 }

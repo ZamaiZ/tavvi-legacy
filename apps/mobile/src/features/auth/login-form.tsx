@@ -129,7 +129,7 @@ export function LoginForm({ palette, signIn, signInWithBiometrics, disableBiomet
             setFormError(null)
             setSuccessMessage(null)
             setBiometricBusy(true)
-            void disableBiometrics().then(() => setSuccessMessage('A biometria foi desativada neste aparelho.'))
+            void disableBiometrics().then((result) => { if (result === 'disabled') setSuccessMessage('A biometria foi desativada neste aparelho.') })
               .catch((error) => setFormError(error instanceof Error ? error.message : 'Não foi possível desativar a biometria.'))
               .finally(() => setBiometricBusy(false))
           }}

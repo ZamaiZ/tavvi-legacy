@@ -12,6 +12,11 @@ const biometricOptions: SecureStore.SecureStoreOptions = {
   authenticationPrompt: 'Confirme sua identidade para entrar na Tavvi',
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 }
+// No Android, gravar também pede a biometria; só o texto do pedido muda.
+const activationOptions: SecureStore.SecureStoreOptions = {
+  ...biometricOptions,
+  authenticationPrompt: 'Confirme sua identidade para ativar a digital',
+}
 const webMemory = new Map<string, string>()
 
 function read(key: string, options?: SecureStore.SecureStoreOptions) {
@@ -59,24 +64,20 @@ export const deviceContractStore = {
     return created.deviceId
   },
 
+  // null: sem segredo, ou chave invalidada pelo sistema (digital nova
+  // cadastrada no celular). Quem chama decide o que fazer. Cancelamento e
+  // bloqueio chegam como erro.
   async getSecret(): Promise<string | null> {
     const raw = await read(SECRET_KEY, biometricOptions)
-    if (raw === null) {
-      await this.markRegistered(false)
-      return null
-    }
+    if (raw === null) return null
     const parsed = secretSchema.safeParse(raw)
-    if (!parsed.success) {
-      await this.clearSecret().catch(() => undefined)
-      await this.markRegistered(false)
-      return null
-    }
-    return parsed.data
+    if (parsed.success) return parsed.data
+    await this.clearSecret().catch(() => undefined)
+    return null
   },
 
   async setSecret(secret: string): Promise<void> {
-    const value = secretSchema.parse(secret)
-    await write(SECRET_KEY, value, biometricOptions)
+    await write(SECRET_KEY, secretSchema.parse(secret), activationOptions)
   },
 
   async markRegistered(registered: boolean): Promise<void> {
@@ -86,5 +87,12 @@ export const deviceContractStore = {
 
   async clearSecret(): Promise<void> {
     await remove(SECRET_KEY, biometricOptions)
+  },
+
+  // Desliga a digital só neste aparelho. O deviceId fica, para a próxima
+  // ativação sobrescrever o mesmo registro no servidor.
+  async deactivate(): Promise<void> {
+    await this.clearSecret().catch(() => undefined)
+    await this.markRegistered(false)
   },
 }

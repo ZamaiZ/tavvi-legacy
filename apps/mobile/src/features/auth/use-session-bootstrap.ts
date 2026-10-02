@@ -4,6 +4,7 @@ import { API_ROUTES, type SessionSnapshot } from '@tavvi/api-contracts'
 import { apiRequest, publicEnvReady, registerSessionInvalidator } from '@/lib/api-client'
 import { sessionStore } from '@/lib/session-store'
 import type { AuthStateSetters, AuthStatus } from './auth-types'
+import { deviceContractStore } from './device-contract-store'
 
 type UseSessionBootstrapInput = AuthStateSetters & {
   status: AuthStatus
@@ -53,9 +54,14 @@ export function useSessionBootstrap({ status, setStatus, setUser, setMessage, cl
 
     void initialize()
     const unregister = registerSessionInvalidator(async (reason) => {
+      if (reason === 'forbidden') {
+        await clearSession('forbidden', 'Seu acesso administrativo foi removido.')
+        return
+      }
+      const metadata = await deviceContractStore.getMetadata().catch(() => null)
       await clearSession(
-        reason === 'forbidden' ? 'forbidden' : 'signed-out',
-        reason === 'forbidden' ? 'Seu acesso administrativo foi removido.' : 'Sua sessão expirou. Entre novamente.',
+        'signed-out',
+        metadata?.registered ? 'Sua sessão expirou. Entre com a digital ou com e-mail e senha.' : 'Sua sessão expirou. Entre novamente.',
       )
     })
     return () => { active = false; unregister() }

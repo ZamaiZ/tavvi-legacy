@@ -763,6 +763,7 @@ export type Database = {
         Args: { p_name: string }
         Returns: string
       }
+      revoke_all_my_devices: { Args: never; Returns: undefined }
       save_menu_item: {
         Args: { p_payload: Json }
         Returns: Json

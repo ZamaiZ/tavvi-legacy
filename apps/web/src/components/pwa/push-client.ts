@@ -72,20 +72,36 @@ export async function subscribePush(
   })
 }
 
+async function currentSubscription(): Promise<PushSubscription | null | undefined> {
+  if (!('serviceWorker' in navigator)) return null
+  const registration = await withTimeout(navigator.serviceWorker.getRegistration('/'), 2000)
+  if (!registration || !('pushManager' in registration)) return null
+  return withTimeout(registration.pushManager.getSubscription(), 2000)
+}
+
 // Sair da conta: este aparelho para de receber os avisos dela, e a próxima
 // conta não os herda. Nunca segura a saída por mais de alguns segundos e
 // nunca falha.
 export async function forgetPushOnThisDevice(): Promise<void> {
   writePushChoice('off')
   try {
-    if (!('serviceWorker' in navigator)) return
-    const registration = await withTimeout(navigator.serviceWorker.getRegistration('/'), 2000)
-    if (!registration || !('pushManager' in registration)) return
-    const subscription = await withTimeout(registration.pushManager.getSubscription(), 2000)
+    const subscription = await currentSubscription()
     if (!subscription) return
     // Apagar no servidor ainda precisa da sessão: vem antes do signOut.
     await withTimeout(deletePushSubscriptionAction(subscription.endpoint), 3000)
     await subscription.unsubscribe()
+  } catch {
+    // A saída continua.
+  }
+}
+
+// Depois de "Sair de todos os aparelhos": o servidor já apagou as inscrições
+// da conta; falta só desligar a deste navegador.
+export async function unsubscribePushLocally(): Promise<void> {
+  writePushChoice('off')
+  try {
+    const subscription = await currentSubscription()
+    await subscription?.unsubscribe()
   } catch {
     // A saída continua.
   }

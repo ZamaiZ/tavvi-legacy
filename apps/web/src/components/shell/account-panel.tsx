@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useTransition, type RefObject } from 'react'
 import { useTheme, type Theme } from '@/components/theme/theme-provider'
-import { forgetPushOnThisDevice } from '@/components/pwa/push-client'
-import { signOutAction } from '@/server/actions/auth'
+import { forgetPushOnThisDevice, unsubscribePushLocally } from '@/components/pwa/push-client'
+import { toast } from '@/components/ui/toast'
+import { signOutAction, signOutEverywhereAction } from '@/server/actions/auth'
 
 const themeOptions: { value: Theme; label: string }[] = [
   { value: 'system', label: 'Sistema' },
@@ -43,6 +44,33 @@ export function useSignOut() {
   return { pending, signOut }
 }
 
+export const signOutEverywhereCopy = {
+  title: 'Sair de todos os aparelhos?',
+  description: 'Isso encerra sua sessão em todos os aparelhos e desliga a digital em todos eles, inclusive neste.',
+  confirmLabel: 'Sair de todos',
+  pendingLabel: 'Saindo…',
+}
+
+// "Sair de todos os aparelhos" (só no console): o servidor desliga a digital
+// do app em todos os celulares, apaga as inscrições de push da conta e
+// encerra todas as sessões. Se falhar, a pessoa continua logada e vê a causa.
+export function useSignOutEverywhere(onFailure?: () => void) {
+  const [pending, startTransition] = useTransition()
+  function signOutEverywhere() {
+    startTransition(async () => {
+      const result = await signOutEverywhereAction()
+      if (!result.ok) {
+        toast.add({ title: result.error, type: 'error' })
+        onFailure?.()
+        return
+      }
+      await unsubscribePushLocally()
+      window.location.replace('/entrar')
+    })
+  }
+  return { pending, signOutEverywhere }
+}
+
 // Teclado dos diálogos de conta: foco no tema atual ao abrir, Esc fecha
 // (exceto com uma confirmação aberta por cima) e Tab fica dentro do diálogo,
 // passando também pelo campo "Nome".
@@ -53,7 +81,7 @@ export function useAccountDialogKeys(ref: RefObject<HTMLElement | null>, onClose
     ref.current?.querySelector<HTMLElement>('button[aria-pressed="true"]')?.focus()
     function keydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        if (!document.querySelector('.tv-confirm-scrim')) onCloseRef.current()
+        if (!document.querySelector('.tv-confirm-scrim, .tv-pconfirm-scrim')) onCloseRef.current()
         return
       }
       if (event.key !== 'Tab' || !ref.current) return

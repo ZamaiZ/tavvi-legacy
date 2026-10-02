@@ -22,15 +22,17 @@ export const loginInputSchema = z.object({
 export const signupInputSchema = loginInputSchema
 export const refreshInputSchema = z.object({ refreshToken: z.string().min(1).max(4096) })
 
+export const deviceIdSchema = z.string().uuid()
+
 const deviceProofSchema = z.object({
-  deviceId: z.string().uuid(),
+  deviceId: deviceIdSchema,
   deviceSecret: z.string().regex(/^[a-f0-9]{64}$/),
 })
 
-export const deviceContractRegistrationSchema = deviceProofSchema.extend({
-  refreshToken: z.string().min(1).max(4096),
-})
+export const deviceContractRegistrationSchema = deviceProofSchema
 export const deviceContractLoginSchema = deviceProofSchema
+export const deviceContractRegisteredSchema = z.object({ registered: z.literal(true) })
+export const deviceContractStatusSchema = z.object({ active: z.boolean() })
 export const signedOutSchema = z.object({ signedOut: z.literal(true) })
 
 export type UserSummary = z.infer<typeof userSummarySchema>
@@ -41,4 +43,6 @@ export type SignupInput = z.infer<typeof signupInputSchema>
 export type RefreshInput = z.infer<typeof refreshInputSchema>
 export type DeviceContractRegistrationInput = z.infer<typeof deviceContractRegistrationSchema>
 export type DeviceContractLoginInput = z.infer<typeof deviceContractLoginSchema>
+export type DeviceContractRegistered = z.infer<typeof deviceContractRegisteredSchema>
+export type DeviceContractStatus = z.infer<typeof deviceContractStatusSchema>
 export type SignedOut = z.infer<typeof signedOutSchema>

@@ -145,7 +145,7 @@ export function ConsoleShell({
             />
           ) : null}
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
-          {accountOpen ? <AccountPopover email={email} name={name} description={description} onClose={closeAccount} /> : null}
+          {accountOpen ? <AccountPopover email={email} name={name} description={description} signOutEverywhere={surface === 'console'} onClose={closeAccount} /> : null}
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>

@@ -135,6 +135,7 @@
   :is(.admin-territory, .workspace-territory) .tv-group-error { margin: 6px 16px 0; color: var(--tv-danger); font-size: 13px; }
   :is(.admin-territory, .workspace-territory) .tv-group-empty { margin: 0; padding: 16px; color: var(--tv-text-2); font-size: 14px; }
   :is(.admin-territory, .workspace-territory) .tv-group-danger {
+    position: relative;
     width: 100%;
     min-height: 48px;
     display: flex;
@@ -148,6 +149,15 @@
   }
   :is(.admin-territory, .workspace-territory) .tv-group-danger svg { width: 17px; height: 17px; }
   :is(.admin-territory, .workspace-territory) .tv-group-danger:active { background: var(--tv-danger-soft); }
+  :is(.admin-territory, .workspace-territory) .tv-group-danger + .tv-group-danger::before {
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 0;
+    height: .5px;
+    background: var(--tv-line-2);
+    content: '';
+  }
   /* Linha com ícone dentro de um grupo: Ajustes do painel e Conta do
      console ("Instalar app"). Veio do panel-mobile.css. */
   :is(.admin-territory, .workspace-territory) .tv-mlink { position: relative; width: 100%; min-height: 50px; padding: 0 14px; display: flex; align-items: center; gap: 12px; border: 0; border-bottom: .5px solid var(--tv-line-2); background: transparent; color: var(--tv-text); font: inherit; font-size: 15px; text-align: left; text-decoration: none; }

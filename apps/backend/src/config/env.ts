@@ -7,10 +7,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535).default(3002),
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
-  DEVICE_CONTRACT_ENCRYPTION_KEY: z.string().refine((value) => {
-    const decoded = Buffer.from(value, 'base64')
-    return decoded.length === 32 && decoded.toString('base64') === value
-  }, 'Must be canonical base64 encoding of exactly 32 bytes.'),
+  SUPABASE_SECRET_KEY: z.string().startsWith('sb_secret_', 'Use uma secret key do Supabase (sb_secret_…).'),
   PANEL_PUBLIC_URL: z.string().url(),
   TRUSTED_PROXIES: z.string().optional().default(''),
   CORS_ORIGINS: z.string().optional().default(''),
@@ -25,7 +22,7 @@ export type ServerEnv = {
   nodeEnv: 'development' | 'production' | 'test'
   supabaseUrl: string
   supabaseAnonKey: string
-  deviceContractEncryptionKey: Buffer
+  supabaseSecretKey: string
   panelPublicUrl: string
   trustedProxies: string[]
   corsOrigins: string[]
@@ -42,7 +39,7 @@ export function getServerEnv(): ServerEnv {
     nodeEnv: parsed.data.NODE_ENV,
     supabaseUrl: parsed.data.SUPABASE_URL.replace(/\/$/, ''),
     supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
-    deviceContractEncryptionKey: Buffer.from(parsed.data.DEVICE_CONTRACT_ENCRYPTION_KEY, 'base64'),
+    supabaseSecretKey: parsed.data.SUPABASE_SECRET_KEY,
     panelPublicUrl: parsed.data.PANEL_PUBLIC_URL.replace(/\/$/, ''),
     trustedProxies: list(parsed.data.TRUSTED_PROXIES),
     corsOrigins: list(parsed.data.CORS_ORIGINS),

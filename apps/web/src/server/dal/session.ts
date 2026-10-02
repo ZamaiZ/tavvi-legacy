@@ -113,7 +113,34 @@ export async function signUp(input: unknown): Promise<{ confirmEmail: boolean }>
   return { confirmEmail: !result.session }
 }
 
+// Só este navegador. O padrão do supabase-js é 'global' e derrubava o app do
+// celular e a digital junto (spec 2026-10-01-biometria-persistente).
 export async function signOut(): Promise<void> {
   const supabase = await createUserClient(await currentTerritory())
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
+}
+
+// "Sair de todos os aparelhos": desliga as digitais e as inscrições de push
+// (precisa da sessão), depois encerra todas as sessões da conta. O logout
+// global vai por auth.admin.signOut com o token do próprio usuário porque
+// auth.signOut apaga os cookies mesmo quando o Supabase falha; assim, numa
+// falha, este navegador continua logado e "tente novamente" funciona.
+export async function signOutEverywhere(): Promise<void> {
+  const supabase = await createUserClient(await currentTerritory())
+  const { data } = await supabase.auth.getSession()
+  const accessToken = data.session?.access_token
+  if (!accessToken) throw new UserFacingError('Sua sessão expirou. Entre novamente.')
+
+  const revoked = await supabase.rpc('revoke_all_my_devices')
+  if (revoked.error) {
+    console.error('[auth] revoke_all_my_devices failed', { code: revoked.error.code })
+    throw new UserFacingError('Não foi possível desligar a digital dos aparelhos. Nada foi encerrado; tente novamente.')
+  }
+  const { error } = await supabase.auth.admin.signOut(accessToken, 'global')
+  if (error) {
+    console.error('[auth] global signOut failed', { code: error.code, status: error.status })
+    throw new UserFacingError('A digital foi desligada em todos os aparelhos, mas não foi possível encerrar as sessões abertas. Tente novamente.')
+  }
+  // A sessão já não existe no Supabase; o logout local só limpa os cookies.
+  await supabase.auth.signOut({ scope: 'local' })
 }

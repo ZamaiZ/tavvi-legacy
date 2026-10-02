@@ -13,10 +13,14 @@ function subscribe() {
   return () => {}
 }
 
+// No console (`admin.`) não há `.workspace-territory`: o alerta vai para
+// `.admin-territory`, que tem os mesmos tokens e a fonte do console. Sem
+// território nenhum o Base UI esperaria para sempre por um container `null`
+// e o alerta nunca abriria.
 export function useTerritoryContainer() {
   return useSyncExternalStore(
     subscribe,
-    () => document.querySelector<HTMLElement>('.workspace-territory'),
+    () => document.querySelector<HTMLElement>('.workspace-territory') ?? document.querySelector<HTMLElement>('.admin-territory'),
     () => null,
   )
 }

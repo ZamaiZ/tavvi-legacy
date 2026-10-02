@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { UserSummary } from '@tavvi/api-contracts'
+import type { AvailableBiometric } from './biometric-support'
 
 export type AuthStatus = 'initializing' | 'authenticated' | 'signed-out' | 'forbidden'
 
@@ -9,11 +10,15 @@ export type AuthContextValue = {
   message: string | null
   dismissMessage(): void
   hasDeviceContract: boolean
+  /** Oferta de ativar a digital depois do login com senha; null = sem oferta. */
+  biometricOffer: AvailableBiometric | null
   signIn(input: { email: string; password: string }): Promise<void>
   signInWithBiometrics(): Promise<void>
-  enableBiometrics(): Promise<void>
-  disableBiometrics(): Promise<void>
+  acceptBiometricOffer(): Promise<'enabled' | 'cancelled'>
+  dismissBiometricOffer(): void
+  disableBiometrics(): Promise<'disabled' | 'cancelled'>
   signOut(): Promise<void>
+  signOutEverywhere(): Promise<void>
   returnToForm(): void
 }
 

@@ -1,9 +1,9 @@
 import type { RequestHandler } from 'express'
 import { ok } from '../../http/responses.js'
 import { requireAdminContext } from '../../http/request-context.js'
-import { deviceContractLoginSchema, deviceContractRegistrationSchema, refreshSchema, signInSchema } from './auth.schemas.js'
-import { getSession, refreshSession, signIn, signOut } from './auth.service.js'
-import { registerDeviceContract, revokeDeviceContract, signInWithDeviceContract } from './device-contract.service.js'
+import { deviceContractLoginSchema, deviceContractRegistrationSchema, deviceIdSchema, refreshSchema, signInSchema } from './auth.schemas.js'
+import { getSession, refreshSession, signIn, signOut, signOutEverywhere } from './auth.service.js'
+import { getDeviceContractStatus, registerDeviceContract, revokeDeviceContract, signInWithDeviceContract } from './device-contract.service.js'
 
 export const signInController: RequestHandler = async (request, response, next) => {
   try {
@@ -30,10 +30,22 @@ export const signOutController: RequestHandler = async (request, response, next)
   catch (error) { next(error) }
 }
 
+export const signOutEverywhereController: RequestHandler = async (request, response, next) => {
+  try { ok(response, await signOutEverywhere(requireAdminContext(request))) }
+  catch (error) { next(error) }
+}
+
 export const registerDeviceContractController: RequestHandler = async (request, response, next) => {
   try {
     const input = deviceContractRegistrationSchema.parse(request.body)
     ok(response, await registerDeviceContract(requireAdminContext(request), input))
+  } catch (error) { next(error) }
+}
+
+export const deviceContractStatusController: RequestHandler = async (request, response, next) => {
+  try {
+    const deviceId = deviceIdSchema.parse(request.params.deviceId)
+    ok(response, await getDeviceContractStatus(requireAdminContext(request), deviceId))
   } catch (error) { next(error) }
 }
 

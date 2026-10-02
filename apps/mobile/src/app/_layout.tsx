@@ -1,9 +1,8 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
-import { Fingerprint } from 'lucide-react-native'
-import { ConfirmDialog } from '@/components/primitives/confirm-dialog'
 import { useAuth } from '@/features/auth/auth-context'
+import { BiometricOfferDialog } from '@/features/auth/biometric-offer-dialog'
 import { AppProviders } from '@/providers/app-providers'
 import { useAppTheme } from '@/theme'
 import '@/global.css'
@@ -11,7 +10,7 @@ import '@/global.css'
 void SplashScreen.preventAutoHideAsync()
 
 function RootNavigator() {
-  const { status, message, dismissMessage } = useAuth()
+  const { status } = useAuth()
   const { resolved, hydrated } = useAppTheme()
 
   useEffect(() => {
@@ -28,16 +27,7 @@ function RootNavigator() {
           <Stack.Screen name="(app)" />
         </Stack>
       </NavigationThemeProvider>
-      <ConfirmDialog
-        visible={status === 'authenticated' && message !== null}
-        title="Biometria não ativada"
-        description={message ?? ''}
-        confirmLabel="Entendi"
-        showCancel={false}
-        icon={Fingerprint}
-        onCancel={dismissMessage}
-        onConfirm={dismissMessage}
-      />
+      <BiometricOfferDialog />
     </>
   )
 }

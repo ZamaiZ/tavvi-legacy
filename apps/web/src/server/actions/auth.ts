@@ -81,3 +81,7 @@ export async function signOutAction(): Promise<void> {
   // /entrar com location.replace.
   await dal.signOut()
 }
+
+export async function signOutEverywhereAction(): Promise<ActionResult> {
+  return runAction(() => dal.signOutEverywhere())
+}
