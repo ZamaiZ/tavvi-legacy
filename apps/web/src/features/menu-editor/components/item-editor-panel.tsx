@@ -143,7 +143,7 @@ function ItemEditorBody({
                 className="tv-pinput"
                 value={values.name}
                 maxLength={120}
-                placeholder="Pão de alho"
+                placeholder="Nome do prato"
                 autoFocus={creating}
                 aria-invalid={errors.name ? true : undefined}
                 onChange={(event) => draft.update('name', event.target.value)}
