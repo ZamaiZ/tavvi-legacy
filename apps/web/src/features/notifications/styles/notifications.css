@@ -42,6 +42,7 @@
    base), com o mesmo material dele — fundo, blur e sombra estão junto do
    popover, em console-shell.css. O cabeçalho fica fixo e o resto rola. */
 .tv-notif-panel { position: absolute; left: calc(100% + 8px); bottom: 0; width: 392px; max-height: min(580px, 70vh); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; color: var(--tv-text); }
+.tv-notif-panel { transform-origin: left bottom; animation: tv-pop-in 200ms var(--tv-ease) backwards; }
 .tv-notif.is-panel { min-height: 0; flex: 1 1 auto; gap: 0; }
 .tv-notif-header { padding: 16px 16px 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .tv-notif-heading { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -53,6 +54,30 @@
 .is-panel .tv-notif-markall[aria-busy="true"] { cursor: progress; }
 .is-panel .tv-notif-markall svg, .is-panel .tv-notif-markall .tv-spinner { width: 13px; height: 13px; color: var(--tv-gold-text); }
 .tv-notif-scroll { min-height: 0; flex: 1; padding: 0 8px 8px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; overscroll-behavior: contain; }
+
+.is-panel .tv-notif-scroll { padding: 0 12px 12px; }
+.is-panel .tv-notif-group-label { padding: 0 4px 6px; }
+.is-panel .tv-notif-list { gap: 0; }
+.tv-notif-entry { list-style: none; }
+.tv-notif-card { margin-bottom: 6px; overflow: hidden; border-radius: 12px; background: var(--tv-group); transition: background-color 900ms ease; }
+.tv-notif-card.is-fresh { background: var(--tv-fresh); transition-duration: 0s; }
+.is-panel .tv-notif-item { padding: 12px; border-radius: 0; }
+@media (hover: hover) { .is-panel .tv-notif-item:hover { background: var(--tv-hover); } }
+.is-panel .tv-notif-item:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+.tv-notif-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0,1fr); border-top: .5px solid var(--tv-line-2); }
+.tv-notif-action { height: 40px; padding: 0 10px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 0; background: transparent; color: var(--tv-gold-text); font: inherit; font-size: 13.5px; font-weight: 450; letter-spacing: -.005em; white-space: nowrap; cursor: pointer; transition: var(--tv-transition); }
+.tv-notif-action + .tv-notif-action { border-left: .5px solid var(--tv-line-2); }
+.tv-notif-action.is-primary { font-weight: 650; }
+.tv-notif-action.is-destructive { color: var(--tv-danger); }
+@media (hover: hover) { .tv-notif-action:hover:not([aria-disabled="true"]) { background: var(--tv-hover); } }
+.tv-notif-action:active:not([aria-disabled="true"]) { background: var(--tv-active); transition-duration: 0s; }
+.tv-notif-action[data-state="done"] { background: var(--tv-active); cursor: default; }
+.tv-notif-action[data-state="dim"] { opacity: .35; cursor: default; }
+.tv-notif-action svg { width: 13px; height: 13px; animation: tv-fade-up 220ms var(--tv-ease) both; }
+.tv-notif-action:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
+.tv-notif-action[aria-busy="true"] { cursor: progress; }
+.tv-notif-action .tv-spinner { width: 13px; height: 13px; }
+.tv-notif-empty-delayed { animation: tv-fade-up 300ms var(--tv-ease) both; }
 
 /* "Neste aparelho": push deste navegador num interruptor e, no mesmo grupo,
    o teste. As colunas de 28px alinham o ícone do teste com o tile. */
@@ -85,7 +110,7 @@ button.tv-notif-device-row { cursor: pointer; }
 /* Lista agrupada por dia (Hoje, Anteriores), com a hora na linha do título. */
 .tv-notif-group { display: flex; flex-direction: column; gap: 2px; }
 .tv-notif-group-label { margin: 0; padding: 0 12px 4px; color: var(--tv-text-3); font-size: 12px; font-weight: 600; }
-.is-panel .tv-notif-item { padding: 10px 12px; gap: 12px; border-radius: 12px; }
+.is-panel .tv-notif-item { padding: 12px; gap: 12px; border-radius: 0; }
 .is-panel .tv-notif-icon { width: 34px; height: 34px; flex-basis: 34px; border-radius: 9px; }
 .is-panel .tv-notif-icon svg { width: 16px; height: 16px; }
 .is-panel .tv-notif-copy .tv-notif-line { min-width: 0; display: flex; align-items: baseline; gap: 10px; overflow: visible; color: inherit; font-size: inherit; }
@@ -104,9 +129,12 @@ button.tv-notif-device-row { cursor: pointer; }
    tv-shimmer: esse nome já é do .tv-skeleton (platform.css). */
 .tv-skel { display: block; border-radius: 5px; background: linear-gradient(90deg, var(--tv-skel) 0%, var(--tv-skel-hi) 50%, var(--tv-skel) 100%); background-size: 200% 100%; animation: tv-skel-shimmer 1.4s ease-in-out infinite; }
 @keyframes tv-skel-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
-.tv-notif-skeleton { display: flex; flex-direction: column; gap: 2px; }
-.tv-notif-skeleton-label { width: 44px; height: 10px; margin: 2px 12px 8px; }
-.tv-notif-skeleton-row { padding: 10px 12px; display: flex; gap: 12px; }
+.tv-notif-skeleton { display: flex; flex-direction: column; gap: 6px; }
+.tv-notif-skeleton-label { width: 44px; height: 10px; margin: 2px 4px 4px; }
+.tv-notif-skeleton-row { padding: 0; display: flex; flex-direction: column; gap: 0; overflow: hidden; border-radius: 12px; background: var(--tv-group); }
+.tv-notif-skeleton-main { padding: 12px; display: flex; gap: 12px; }
+.tv-notif-skeleton-bar { height: 38px; display: grid; grid-template-columns: 1fr 1fr; place-items: center; border-top: .5px solid var(--tv-line-2); }
+.tv-notif-skeleton-bar .tv-skel { width: 56px; height: 9px; }
 .tv-notif-skeleton-tile { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 9px; }
 .tv-notif-skeleton-copy { min-width: 0; flex: 1; padding-top: 3px; display: flex; flex-direction: column; gap: 7px; }
 .tv-notif-skeleton-line { display: flex; justify-content: space-between; gap: 12px; }
@@ -117,6 +145,7 @@ button.tv-notif-device-row { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .tv-skel { animation: none; background: var(--tv-skel); }
   .tv-notif-switch, .tv-notif-switch-knob, .tv-notif-chevron { transition: none; }
+  .tv-notif-card { transition: background-color 900ms ease !important; }
 }
 
 /* Celular: folha do painel (MobileSheet) e subtela Conta do console. */

@@ -9,6 +9,7 @@ export default function AdminTemplate({ children }: { children: React.ReactNode 
   const pathname = usePathname()
   useEffect(() => {
     window.scrollTo({ top: 0 })
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('.tv-console-main h1, .tv-account-page h1')?.focus())
   }, [pathname])
   return <>{children}</>
 }

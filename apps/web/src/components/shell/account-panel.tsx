@@ -73,7 +73,7 @@ export function useSignOutEverywhere(onFailure?: () => void) {
 
 // Teclado dos diálogos de conta: foco no tema atual ao abrir, Esc fecha
 // (exceto com uma confirmação aberta por cima) e Tab fica dentro do diálogo,
-// passando também pelo campo "Nome".
+// passando também pelos links da conta.
 export function useAccountDialogKeys(ref: RefObject<HTMLElement | null>, onClose: () => void) {
   const onCloseRef = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose })
@@ -85,7 +85,7 @@ export function useAccountDialogKeys(ref: RefObject<HTMLElement | null>, onClose
         return
       }
       if (event.key !== 'Tab' || !ref.current) return
-      const items = ref.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)')
+      const items = ref.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href]')
       if (!items.length) return
       const first = items[0]
       const last = items[items.length - 1]

@@ -5,6 +5,23 @@ export const NOTIFICATION_KINDS = ['feedback_received', 'team_member_joined', 'r
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number]
 
 export type NotificationTerritory = 'admin' | 'painel'
+export type NotificationAction = {
+  id: string
+  label: string
+  doneLabel?: string
+  style?: 'default' | 'primary' | 'destructive'
+  kind: 'navigate' | 'mutation'
+  url?: string
+}
+
+const notificationActionSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  doneLabel: z.string().optional(),
+  style: z.enum(['default', 'primary', 'destructive']).optional(),
+  kind: z.enum(['navigate', 'mutation']),
+  url: z.string().optional(),
+})
 
 export type NotificationDTO = {
   id: string
@@ -17,6 +34,7 @@ export type NotificationDTO = {
   data: Record<string, unknown>
   readAt: string | null
   createdAt: string
+  actions?: NotificationAction[]
 }
 
 export type NotificationPage = { items: NotificationDTO[]; hasMore: boolean }
@@ -68,6 +86,12 @@ export function notificationFromRow(value: unknown): NotificationDTO | null {
     data: row.data && typeof row.data === 'object' && !Array.isArray(row.data) ? (row.data as Record<string, unknown>) : {},
     readAt: typeof row.read_at === 'string' ? row.read_at : null,
     createdAt: row.created_at,
+    actions: Array.isArray(row.actions)
+      ? row.actions.flatMap((action) => {
+          const parsed = notificationActionSchema.safeParse(action)
+          return parsed.success ? [parsed.data] : []
+        }).slice(0, 2)
+      : undefined,
   }
 }
 

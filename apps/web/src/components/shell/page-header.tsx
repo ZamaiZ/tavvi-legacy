@@ -21,7 +21,7 @@ export function PageHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-[22px] font-semibold leading-[1.45] tracking-[-0.022em]">
+        <h1 tabIndex={-1} className="text-[22px] font-semibold leading-[1.45] tracking-[-0.022em]">
           {title}
         </h1>
         {description ? (

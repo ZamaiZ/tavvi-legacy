@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getRestaurantNavigation } from '@/components/shell/navigation'
+import { ActiveRestaurantCookie } from './active-restaurant-cookie'
 import type { NavGroup } from '@/components/shell/navigation.types'
 import { ConsoleShell } from '@/components/shell/console-shell'
 import { getRestaurantConsoleConfig } from '@/components/shell/console-config'
@@ -56,6 +57,7 @@ export async function RestaurantShell({ restaurantId, children }: { restaurantId
 
   return (
     <ConsoleShell config={config} initialRail={initialRail}>
+      <ActiveRestaurantCookie restaurantId={restaurantId} />
       {children}
     </ConsoleShell>
   )

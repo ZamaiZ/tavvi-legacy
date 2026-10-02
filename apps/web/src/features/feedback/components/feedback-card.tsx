@@ -1,6 +1,6 @@
 'use client'
 
-import { LuMail, LuMailOpen, LuPanelRightOpen, LuTrash2 } from 'react-icons/lu'
+import { LuChevronRight, LuImages, LuMail, LuMailOpen, LuPanelRightOpen, LuTrash2 } from 'react-icons/lu'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu'
 import type { FeedbackDTO } from '@/domain/feedback'
 import { fullDateTime, relativeTime } from '@/lib/relative-time'
@@ -26,26 +26,37 @@ export function FeedbackCard({
       <ContextMenuTrigger
         render={<button type="button" className={`tv-fb-card${unread ? ' is-unread' : ''}`} onClick={onOpen} />}
       >
-        <span className="tv-fb-card-head">
-          {unread ? <span className="tv-fb-dot" aria-hidden="true" /> : null}
-          <time dateTime={feedback.publishedAt} title={fullDateTime(feedback.publishedAt)} suppressHydrationWarning>
-            {relativeTime(feedback.publishedAt)}
-          </time>
-          {unread ? <span className="sr-only">Não lido.</span> : null}
-        </span>
-        <span className="tv-fb-card-text">{feedback.body}</span>
-        {feedback.photos.length > 0 ? (
-          <span className="tv-fb-card-photos">
-            {feedback.photos.map((photo) =>
-              photo.url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={photo.id} src={photo.url} alt="" loading="lazy" onError={onImageError} />
-              ) : (
-                <span key={photo.id} className="tv-fb-photo-missing" />
-              ),
-            )}
+        <span className="tv-fb-card-copy">
+          <span className="tv-fb-card-head">
+            {unread ? <span className="tv-fb-dot" aria-hidden="true" /> : null}
+            <time dateTime={feedback.publishedAt} title={fullDateTime(feedback.publishedAt)} suppressHydrationWarning>
+              {relativeTime(feedback.publishedAt)}
+            </time>
+            {unread ? <span className="tv-fb-unread-label">Não lido</span> : <span className="sr-only">Lido.</span>}
           </span>
-        ) : null}
+          <span className="tv-fb-card-text">{feedback.body}</span>
+          {feedback.photos.length > 0 ? (
+            <span className="tv-fb-card-photo-count">
+              <LuImages aria-hidden="true" />
+              {feedback.photos.length} {feedback.photos.length === 1 ? 'foto' : 'fotos'}
+            </span>
+          ) : null}
+        </span>
+        <span className="tv-fb-card-aside">
+          {feedback.photos.length > 0 ? (
+            <span className="tv-fb-card-photos" role="img" aria-label={`${feedback.photos.length} fotos anexadas`}>
+              {feedback.photos.map((photo) =>
+                photo.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={photo.id} src={photo.url} alt="" loading="lazy" onError={onImageError} />
+                ) : (
+                  <span key={photo.id} className="tv-fb-photo-missing" />
+                ),
+              )}
+            </span>
+          ) : null}
+          <LuChevronRight className="tv-fb-card-chevron" aria-hidden="true" />
+        </span>
       </ContextMenuTrigger>
       <ContextMenuContent aria-label="Ações do feedback">
         <ContextMenuItem onClick={onOpen}>

@@ -7,6 +7,25 @@ import { getMenuForOwner } from '@/server/dal/menu-read'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 import { env } from '@/server/env'
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const parsed = uuidSchema.safeParse(id)
+  if (!parsed.success) return { title: 'Painel · Tavvi' }
+
+  const workspace = await getRestaurantWorkspace(parsed.data)
+  return {
+    title: {
+      absolute: workspace
+        ? `Cardápio · ${workspace.restaurant.name} · Tavvi`
+        : 'Painel · Tavvi',
+    },
+  }
+}
+
 export default async function Page({
   params,
 }: {

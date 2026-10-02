@@ -88,6 +88,7 @@ export function Sidebar({
   mode,
   identity,
   email,
+  name,
   accountOpen = false,
   accountButtonRef,
   onSearch,
@@ -103,6 +104,7 @@ export function Sidebar({
   mode: RailMode
   identity: SidebarIdentity
   email: string | null
+  name?: string | null
   accountOpen?: boolean
   accountButtonRef?: Ref<HTMLButtonElement>
   onSearch?: () => void
@@ -230,7 +232,7 @@ export function Sidebar({
               {accountBadge ? <span className="tv-sidebar-account-dot" /> : null}
             </span>
             {expanded && accountBadge ? <span className="sr-only">Há notificações não lidas.</span> : null}
-            <span className="tv-sidebar-account-copy"><strong>{email ?? 'Conta'}</strong><small>{identity.accountDescription}</small></span>
+            <span className="tv-sidebar-account-copy"><strong>{name?.trim() || email || 'Conta'}</strong><small>{identity.accountDescription}</small></span>
             <LuChevronsUpDown aria-hidden="true" />
           </button>
         </div>

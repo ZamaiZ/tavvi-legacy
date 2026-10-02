@@ -10,5 +10,3 @@ export const displayNameSchema = z
   .refine((value) => !/[<>]/.test(value), {
     error: 'Não são permitidos os caracteres < e >',
   })
-
-export const updateDisplayNameSchema = z.object({ displayName: displayNameSchema })

@@ -10,6 +10,7 @@ import { Sidebar, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { TavviShellConfig } from './navigation.types'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
+import { toExternalPath } from '@/lib/route-paths'
 
 export function TavviShell({
   config,
@@ -71,6 +72,7 @@ export function TavviShell({
         mode={mode}
         identity={sidebar}
         email={config.userLabel}
+        name={config.userName}
         accountOpen={accountOpen}
         accountButtonRef={accountButtonRef}
         onAccount={() => setAccountOpen((open) => !open)}
@@ -78,7 +80,12 @@ export function TavviShell({
       />
       <main className={cn('tv-console-main', className)}>{children}</main>
       <CommandPalette config={config} />
-      {accountOpen ? <AccountPopover email={config.userLabel} name={config.userName ?? null} description={null} onClose={closeAccount} /> : null}
+      {accountOpen ? <AccountPopover
+        email={config.userLabel} name={config.userName ?? null} description={null}
+        profileHref={toExternalPath('/admin/workspace/profile')}
+        settingsHref={toExternalPath('/admin/workspace/settings')}
+        onClose={closeAccount} onNavigate={() => setAccountOpen(false)}
+      /> : null}
     </div>
     </NavigationProgress>
   )

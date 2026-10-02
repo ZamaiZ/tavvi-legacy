@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 }
 
 // Instalável como "Tavvi Console": meta tags do iOS aqui, manifesto pelo
-// PwaProvider. Vale também no login, que este layout envolve.
+// PwaProvider. Vale para as rotas internas do console.
 export const metadata: Metadata = pwaMetadata('admin')
 
 // A casca do console com os dados dela (contagens, nome). Vive dentro do

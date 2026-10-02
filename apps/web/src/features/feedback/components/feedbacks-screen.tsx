@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LuCheckCheck, LuMessageSquareText, LuTrash2 } from 'react-icons/lu'
+import { LuArrowDownWideNarrow, LuCheckCheck, LuMessageSquareText, LuTrash2 } from 'react-icons/lu'
 import { useShellCounts } from '@/components/shell/console-shell'
 import { PageHeader } from '@/components/shell/page-header'
 import { SpinnerRing } from '@/components/ui/spinner'
@@ -187,16 +187,22 @@ export function FeedbacksScreen({
         <h1 className="tv-mp-title">Feedbacks</h1>
       </div>
 
-      <div className="tv-fb-chips" role="group" aria-label="Filtrar feedbacks">
-        <button type="button" className="tv-fb-chip" aria-pressed={filter === 'all'} disabled={busy} onClick={() => void changeFilter('all')}>
-          Todos
-        </button>
-        <button type="button" className="tv-fb-chip" aria-pressed={filter === 'unread'} disabled={busy} onClick={() => void changeFilter('unread')}>
-          Não lidos ({unreadFeedback > 99 ? '99+' : unreadFeedback})
-        </button>
-        {loading === 'filter' ? (
-          <span className="tv-fb-loading" role="status"><SpinnerRing decorative />Carregando…</span>
-        ) : null}
+      <div className="tv-fb-toolbar">
+        <div className="tv-fb-chips" role="group" aria-label="Filtrar feedbacks">
+          <button type="button" className="tv-fb-chip" aria-pressed={filter === 'all'} disabled={busy} onClick={() => void changeFilter('all')}>
+            Todos
+          </button>
+          <button type="button" className="tv-fb-chip" aria-pressed={filter === 'unread'} disabled={busy} onClick={() => void changeFilter('unread')}>
+            Não lidos <span className="tv-fb-chip-count">{unreadFeedback > 99 ? '99+' : unreadFeedback}</span>
+          </button>
+          {loading === 'filter' ? (
+            <span className="tv-fb-loading" role="status"><SpinnerRing decorative />Carregando…</span>
+          ) : null}
+        </div>
+        <span className="tv-fb-sort">
+          <LuArrowDownWideNarrow aria-hidden="true" />
+          <span>Mais recentes</span>
+        </span>
       </div>
 
       {items.length === 0 && loading !== 'filter' ? (

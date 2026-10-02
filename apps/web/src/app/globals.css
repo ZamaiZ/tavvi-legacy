@@ -18,6 +18,6 @@
 @import "../features/platform/styles/console-mobile.css";
 @import "../features/workspace/styles/panel-mobile.css";
 @import "../features/notifications/styles/notifications.css";
+@import "../features/account/styles/account.css";
 @import "../features/feedback/styles/feedback.css";
 @import "../features/not-found/styles/not-found.css";
-

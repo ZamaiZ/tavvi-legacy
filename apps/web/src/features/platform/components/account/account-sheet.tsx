@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { LuBell, LuChevronLeft, LuChevronRight, LuLogOut, LuMonitorSmartphone } from 'react-icons/lu'
-import { AccountNameAction } from '@/components/shell/account-name-action'
 import { accountInitial, signOutEverywhereCopy, ThemeSegment, useAccountDialogKeys, useSignOut, useSignOutEverywhere } from '@/components/shell/account-panel'
 import { useConsoleAccount } from '@/components/shell/console-shell'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
@@ -60,9 +59,8 @@ function AccountSheet({ email, name, description, onClose }: { email: string | n
           <>
             <div className="tv-account-sheet-profile">
               <span className="tv-account-sheet-avatar" aria-hidden="true">{accountInitial(email)}</span>
-              <span className="tv-account-sheet-copy"><strong>{email ?? 'Conta'}</strong><small>{description}</small></span>
+              <span className="tv-account-sheet-copy"><strong>{name?.trim() || email || 'Conta'}</strong>{name?.trim() && email ? <small>{email}</small> : null}<small>{description}</small></span>
             </div>
-            <AccountNameAction variant="row" name={name} className="is-spaced" disabled={busy} />
             <h2 className="tv-group-label">Aparência</h2>
             <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
             <PwaInstallAction variant="row" className="is-spaced" />

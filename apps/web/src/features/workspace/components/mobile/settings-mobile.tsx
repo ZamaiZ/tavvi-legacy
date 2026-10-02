@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LuArrowLeftRight, LuBell, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette } from 'react-icons/lu'
-import { AccountNameAction } from '@/components/shell/account-name-action'
 import { useSignOut } from '@/components/shell/account-panel'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
 import { NotificationCenterSheet } from '@/features/notifications/components/notification-center-sheet'
@@ -21,7 +20,7 @@ import { THEME_LABELS, ThemeSheet } from './theme-sheet'
 // sidebar e o popover de conta fazem esse papel, e a rota volta ao Cardápio.
 export function SettingsMobile() {
   const router = useRouter()
-  const { restaurantId, canEdit, restaurants, email, name } = useRestaurantShell()
+  const { restaurantId, canEdit, restaurants, email } = useRestaurantShell()
   const { theme } = useTheme()
   const { pending, signOut } = useSignOut()
   const [themeOpen, setThemeOpen] = useState(false)
@@ -64,7 +63,6 @@ export function SettingsMobile() {
         </div>
       ) : null}
 
-      <AccountNameAction variant="row" name={name} />
 
       <div className="tv-group">
         {restaurants.length > 1 ? (

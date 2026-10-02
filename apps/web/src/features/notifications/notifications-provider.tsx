@@ -20,6 +20,8 @@ export type NotificationsValue = {
   markingAll: boolean
   loadMore: () => Promise<void>
   markAsRead: (id: string) => Promise<void>
+  dismiss: (id: string) => void
+  freshIds: ReadonlySet<string>
   markAllAsRead: () => Promise<void>
 }
 
@@ -55,7 +57,10 @@ export function useNotificationsController({
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [markingAll, setMarkingAll] = useState(false)
+  const [freshIds, setFreshIds] = useState<Set<string>>(() => new Set())
+  const receivedInsertIds = useRef(new Set<string>())
   const itemsRef = useRef<NotificationDTO[]>([])
+  const freshTimers = useRef(new Map<string, number>())
   const handlersRef = useRef({ onInsert, onDelete })
   const resyncTimer = useRef<number | null>(null)
 
@@ -69,6 +74,7 @@ export function useNotificationsController({
     if (count.ok) setUnreadCount(count.data)
     else console.error('[notificações] contagem', count.error)
     if (page.ok) {
+      itemsRef.current = page.data.items
       setItems(page.data.items)
       setHasMore(page.data.hasMore)
     } else {
@@ -100,8 +106,19 @@ export function useNotificationsController({
         const { record, old } = readBroadcast(message)
         if (event === 'INSERT') {
           if (!record || record.readAt) return
+          const alreadyLoaded = receivedInsertIds.current.has(record.id) || itemsRef.current.some((item) => item.id === record.id)
+          if (alreadyLoaded) return
+          receivedInsertIds.current.add(record.id)
+          itemsRef.current = [record, ...itemsRef.current]
           setUnreadCount((count) => count + 1)
-          setItems((current) => (current.some((item) => item.id === record.id) ? current : [record, ...current]))
+          setItems((current) => current.some((item) => item.id === record.id) ? current : [record, ...current])
+          setFreshIds((current) => new Set(current).add(record.id))
+          const oldTimer = freshTimers.current.get(record.id)
+          if (oldTimer !== undefined) window.clearTimeout(oldTimer)
+          freshTimers.current.set(record.id, window.setTimeout(() => {
+            freshTimers.current.delete(record.id)
+            setFreshIds((current) => { const next = new Set(current); next.delete(record.id); return next })
+          }, 1600))
           toast.add({ title: record.title, description: record.body, type: 'info' })
           handlersRef.current.onInsert(record)
           return
@@ -129,6 +146,8 @@ export function useNotificationsController({
       dispose?.()
       document.removeEventListener('visibilitychange', onVisibility)
       if (resyncTimer.current !== null) window.clearTimeout(resyncTimer.current)
+      for (const timer of freshTimers.current.values()) window.clearTimeout(timer)
+      freshTimers.current.clear()
     }
   }, [refresh, scheduleResync])
 
@@ -144,7 +163,9 @@ export function useNotificationsController({
     }
     setItems((current) => {
       const seen = new Set(current.map((item) => item.id))
-      return [...current, ...page.data.items.filter((item) => !seen.has(item.id))]
+      const next = [...current, ...page.data.items.filter((item) => !seen.has(item.id))]
+      itemsRef.current = next
+      return next
     })
     setHasMore(page.data.hasMore)
   }, [])
@@ -154,6 +175,7 @@ export function useNotificationsController({
   const markAsRead = useCallback(
     async (id: string) => {
       const existed = itemsRef.current.some((item) => item.id === id)
+      itemsRef.current = itemsRef.current.filter((item) => item.id !== id)
       setItems((current) => current.filter((item) => item.id !== id))
       if (existed) setUnreadCount((count) => Math.max(0, count - 1))
       const result = await markNotificationReadAction(id)
@@ -167,19 +189,28 @@ export function useNotificationsController({
 
   const markAllAsRead = useCallback(async () => {
     setMarkingAll(true)
+    itemsRef.current = []
+    setItems([])
+    setUnreadCount(0)
+    setHasMore(false)
     const result = await markAllNotificationsReadAction()
     setMarkingAll(false)
     if (!result.ok) {
       toast.add({ title: result.error, type: 'error' })
+      void refresh()
       return
     }
-    setItems([])
-    setUnreadCount(0)
-    setHasMore(false)
+  }, [refresh])
+
+  const dismiss = useCallback((id: string) => {
+    const existed = itemsRef.current.some((item) => item.id === id)
+    itemsRef.current = itemsRef.current.filter((item) => item.id !== id)
+    setItems((current) => current.filter((item) => item.id !== id))
+    if (existed) setUnreadCount((count) => Math.max(0, count - 1))
   }, [])
 
   return useMemo(
-    () => ({ unreadCount, items, hasMore, loading, loadingMore, markingAll, loadMore, markAsRead, markAllAsRead }),
-    [unreadCount, items, hasMore, loading, loadingMore, markingAll, loadMore, markAsRead, markAllAsRead],
+    () => ({ unreadCount, items, hasMore, loading, loadingMore, markingAll, loadMore, markAsRead, markAllAsRead, dismiss, freshIds }),
+    [unreadCount, items, hasMore, loading, loadingMore, markingAll, loadMore, markAsRead, markAllAsRead, dismiss, freshIds],
   )
 }

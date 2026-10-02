@@ -112,7 +112,6 @@
   .tv-account-popover::before, .tv-notif-panel { background: var(--tv-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 /* "Sair de todos os aparelhos" abre o alerta do README §6.5 (scrim 80) por cima do popover. */
-.tv-account-popover.is-under-confirm { z-index: 79; }
 .tv-account-head { min-width: 0; padding: 10px 10px 8px; display: flex; align-items: center; gap: 12px; }
 .tv-account-avatar { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 50%; background: var(--tv-hero-gradient); color: var(--tv-hero-ink); font-size: 17px; font-weight: 600; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08); }
 .tv-account-user { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
@@ -132,17 +131,6 @@
 .tv-account-label { flex: 0 0 auto; color: var(--tv-text-2); font-size: 13px; }
 /* "Nome": a linha é o próprio campo; "Salvar" só com mudança. Sem borda no
    campo, o anel de foco vai na linha. */
-.tv-account-name { min-width: 0; height: 40px; padding: 0 6px 0 12px; display: flex; align-items: center; gap: 10px; border-radius: 12px 12px 0 0; transition: var(--tv-transition); }
-@media (forced-colors: none) { .tv-account-name { outline: 2px solid transparent; outline-offset: 0; } }
-.tv-account-name:has(input:focus-visible) { outline: 2px solid var(--tv-gold); outline-offset: -2px; }
-.tv-account-name input { min-width: 0; flex: 1; height: 28px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 13px; text-align: right; }
-.tv-account-name input::placeholder { color: var(--tv-text-3); }
-.tv-account-name input:disabled { opacity: .6; }
-.tv-account-name-save { height: 26px; padding: 0 10px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
-.tv-account-name-save:disabled { cursor: default; opacity: .5; }
-.tv-account-name-save[aria-busy="true"] { cursor: progress; opacity: .7; }
-.tv-account-name-save .tv-spinner { width: 12px; height: 12px; }
-@media (hover: hover) { .tv-account-name-save:hover:not(:disabled):not([aria-busy="true"]) { opacity: .9; } }
 .tv-account-theme { min-width: 0; padding: 8px 8px 8px 12px; display: flex; align-items: center; gap: 10px; }
 .tv-theme-segment { min-width: 0; flex: 1; padding: 2px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 8px; background: var(--tv-neutral-soft); }
 .tv-theme-segment button { height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
@@ -150,7 +138,11 @@
 @media (hover: hover) { .tv-theme-segment button:not([aria-pressed="true"]):hover { color: var(--tv-text); } }
 
 /* Linhas de ação ("Notificações", "Instalar app"): ícone em tile. */
-.tv-account-row { width: 100%; height: 40px; padding: 0 10px 0 7px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 12px; background: transparent; color: var(--tv-text); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+.tv-account-row { width: 100%; height: 40px; padding: 0 10px 0 7px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 12px; background: transparent; color: var(--tv-text); text-decoration: none; font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+.tv-account-group > .tv-account-row:not(:only-child):first-child { border-radius: 12px 12px 0 0; }
+.tv-account-group > .tv-account-row:not(:only-child):last-child { border-radius: 0 0 12px 12px; }
+.tv-account-group > .tv-account-hairline + .tv-account-row { border-radius: 0 0 12px 12px; }
+.tv-account-group > .tv-account-row:not(:first-child):not(:last-child) { border-radius: 0; }
 @media (hover: hover) { .tv-account-row:hover { background: var(--tv-hover); } }
 .tv-account-row[aria-expanded="true"] { background: var(--tv-active); }
 .tv-account-tile { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 7px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
@@ -161,11 +153,11 @@
 .tv-account-chevron { width: 13px; height: 13px; flex: 0 0 13px; color: var(--tv-text-3); }
 .tv-account-note { margin: 0; padding: 0 12px 10px 43px; color: var(--tv-text-3); font-size: 11.5px; line-height: 1.45; }
 
-.tv-signout-button { height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--tv-danger); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
+.tv-signout-button { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--tv-danger); font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; }
 @media (hover: hover) { .tv-signout-button:hover { background: var(--tv-danger-soft); } }
 .tv-signout-button:disabled { cursor: progress; opacity: .6; }
 .tv-signout-button svg, .tv-signout-button .tv-spinner { width: 15px; height: 15px; flex: 0 0 15px; }
-.tv-theme-segment button:focus-visible, .tv-account-row:focus-visible, .tv-account-name-save:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
+.tv-theme-segment button:focus-visible, .tv-account-row:focus-visible, .tv-signout-button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 1px; }
 
 /* Popover "Seus restaurantes". */
 .tv-switch-popover { position: fixed; z-index: 91; top: 52px; left: 10px; width: 272px; padding: 6px; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); transform-origin: left top; animation: tv-pop-in 150ms var(--tv-ease) both; }

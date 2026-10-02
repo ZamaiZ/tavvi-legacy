@@ -22,8 +22,7 @@ const PENDING_LABEL: Record<string, string> = {
   off: 'Desativando…',
 }
 
-// Push deste aparelho: fica no topo da central de notificações ("Neste
-// aparelho"): no desktop, como interruptor dentro do grupo da central
+// Push deste aparelho: no desktop, como interruptor na página Configurações
 // (`group`); no celular, como linha da folha de Ajustes do painel e da
 // subtela Conta do console (`row`). A permissão do navegador só é pedida
 // num toque, nunca sozinha. Sem suporte, não renderiza nada — nem o rótulo.

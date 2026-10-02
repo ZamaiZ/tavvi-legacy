@@ -22,6 +22,16 @@ export const registerDeviceSchema = z.object({
   platform: pushPlatformSchema,
 })
 
+export const notificationActionSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  doneLabel: z.string().optional(),
+  style: z.enum(['default', 'primary', 'destructive']).optional(),
+  kind: z.enum(['navigate', 'mutation']),
+  url: z.string().optional(),
+})
+export type NotificationAction = z.infer<typeof notificationActionSchema>
+
 export type NotificationKind = z.infer<typeof notificationKindSchema>
 export type NotificationCursor = z.infer<typeof notificationCursorSchema>
 export type PushPlatform = z.infer<typeof pushPlatformSchema>
@@ -36,6 +46,7 @@ export type AppNotification = {
   url: string
   restaurantId: string | null
   createdAt: string
+  actions?: NotificationAction[]
 }
 
 export type NotificationPage = { items: AppNotification[]; hasMore: boolean }

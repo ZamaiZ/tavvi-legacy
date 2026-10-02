@@ -6,7 +6,13 @@ import { memberRoleSchema, type MemberRole } from '@/domain/invite'
 import { territoryFromHost, type Territory } from '@/server/territory'
 import { createUserClient } from './_client'
 
-export type AuthUser = { id: string; email: string | null }
+export type AuthUser = {
+  id: string
+  email: string | null
+  createdAt: string | null
+  lastSignInAt: string | null
+  updatedAt: string | null
+}
 
 // Erro PREVISTO, com mensagem escrita por nós, segura para chegar na tela.
 // Diferente do genérico do runAction, que existe para não vazar nome de
@@ -50,16 +56,21 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) return null
 
-  return { id: data.user.id, email: data.user.email ?? null }
+  return {
+    id: data.user.id,
+    email: data.user.email ?? null,
+    createdAt: data.user.created_at ?? null,
+    lastSignInAt: data.user.last_sign_in_at ?? null,
+    updatedAt: data.user.updated_at ?? null,
+  }
 })
 
 export async function requireUser(): Promise<AuthUser> {
   const user = await getCurrentUser()
   if (!user) {
-    // Caminho EXTERNO, sem o prefixo do territorio. Dentro de admin. ou
-    // painel., /entrar ja e reescrito pelo proxy para /admin/entrar ou
-    // /painel/entrar. Redirecionar para /admin/entrar faria o navegador
-    // pedir /admin/admin/entrar, que nao existe.
+    // Caminho externo compartilhado pelos territórios privados. A rota real
+    // `/entrar` escolhe a tela pelo host; redirecionar para um caminho interno
+    // faria o proxy prefixá-lo de novo.
     redirect('/entrar')
   }
   return user

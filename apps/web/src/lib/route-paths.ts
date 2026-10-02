@@ -5,6 +5,7 @@
 // `(site)/[slug]`, sem consulta ao banco, e a 404 raiz escolhe a variante
 // pelo host.
 export const NOT_FOUND_PATH = '/_404'
+export const ACTIVE_PANEL_RESTAURANT_COOKIE = 'tv_panel_restaurant'
 
 export type PrivateTerritory = 'admin' | 'painel'
 
@@ -12,11 +13,15 @@ const externalFirstSegments: Record<PrivateTerritory, Record<string, string>> = 
   admin: {
     entrar: 'sign-in',
     convites: 'invitations',
+    perfil: 'profile',
+    configuracoes: 'settings',
     restaurantes: 'restaurants',
   },
   painel: {
     entrar: 'sign-in',
     convite: 'invite',
+    perfil: 'profile',
+    configuracoes: 'settings',
     restaurantes: 'restaurants',
   },
 }
@@ -66,6 +71,11 @@ export function toExternalPath(internalPath: string): string {
   const territory: PrivateTerritory = isWithin(internalPath, '/admin/workspace') ? 'painel' : 'admin'
   const root = territory === 'painel' ? '/admin/workspace' : '/admin'
   if (!isWithin(internalPath, root)) return internalPath || '/'
+
+  if (territory === 'painel') {
+    const accountMatch = /^\/admin\/workspace\/restaurants\/[^/]+\/account\/(profile|settings)$/.exec(internalPath)
+    if (accountMatch) return accountMatch[1] === 'profile' ? '/perfil' : '/configuracoes'
+  }
 
   const segments = internalPath.slice(root.length).split('/').filter(Boolean)
   if (segments.length === 0) return '/'

@@ -58,6 +58,7 @@
      sobre o material, os grupos e o hover. */
   --tv-mat: rgba(255,255,255,.84);
   --tv-group: rgba(22,20,15,.035);
+  --tv-fresh: rgba(179,139,77,.14);
   --tv-switch-off: rgba(22,20,15,.14);
   --tv-skel: rgba(22,20,15,.06);
   --tv-skel-hi: rgba(22,20,15,.11);
@@ -179,6 +180,7 @@
 
   --tv-mat: rgba(30,28,25,.82);
   --tv-group: rgba(255,248,235,.05);
+  --tv-fresh: rgba(208,172,110,.14);
   --tv-switch-off: rgba(255,248,235,.16);
   --tv-skel: rgba(255,248,235,.06);
   --tv-skel-hi: rgba(255,248,235,.12);

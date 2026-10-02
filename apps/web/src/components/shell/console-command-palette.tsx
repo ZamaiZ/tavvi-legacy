@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
-import { LuBookOpen, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPlus, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
+import { LuBookOpen, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPlus, LuSearch, LuStore, LuUsers, LuCircleUserRound, LuSettings } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import { getActiveConsoleLeaf, type ConsoleIcon, type ConsoleLeaf } from './console-config'
 import { useProgressNavigate } from './navigation-progress'
@@ -40,12 +40,17 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
   const activeLeaf = getActiveConsoleLeaf(toExternalPath(pathname), leaves)
   const rows = useMemo<PaletteRow[]>(() => {
     const pages: PaletteRow[] = leaves.map((leaf) => ({ key: leaf.key, label: leaf.label, sub: leaf.sub, kind: 'Página', icon: icons[leaf.icon], href: leaf.href }))
+    const territoryRoot = pathname.startsWith('/admin/workspace') ? '/admin/workspace' : '/admin'
+    pages.push(
+      { key: 'account-profile', label: 'Perfil', sub: 'conta, senha, digital', kind: 'Página', icon: LuCircleUserRound, href: toExternalPath(`${territoryRoot}/profile`) },
+      { key: 'account-settings', label: 'Configurações', sub: 'tema, aparência, notificações', kind: 'Página', icon: LuSettings, href: toExternalPath(`${territoryRoot}/settings`) },
+    )
     const actions: PaletteRow[] = onNewInvite
       ? [{ key: 'new-invite', label: 'Novo convite', sub: 'Criar um acesso de administrador', kind: 'Ação', icon: LuPlus, action: onNewInvite }]
       : []
     const term = query.trim().toLocaleLowerCase('pt-BR')
     return [...pages, ...actions].filter((row) => !term || `${row.label} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(term))
-  }, [leaves, onNewInvite, query])
+  }, [leaves, onNewInvite, pathname, query])
 
   function run(row: PaletteRow) {
     onClose()

@@ -42,7 +42,7 @@ export type RestaurantShellInfo = {
 
 export type ConsoleConfig = {
   userLabel: string | null
-  /** Nome da conta (profiles.display_name), editável nas telas de conta. */
+  /** Nome da conta (profiles.display_name), somente para leitura. */
   userName?: string | null
   items: ConsoleNode[]
   leaves: ConsoleLeaf[]

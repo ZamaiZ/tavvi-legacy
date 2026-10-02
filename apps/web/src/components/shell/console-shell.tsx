@@ -12,7 +12,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { onNotificationInserted, onNotificationRemoved } from '@/features/notifications/effects'
 import { NotificationsContext, useNotificationsController } from '@/features/notifications/notifications-provider'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
-import { toExternalPath } from '@/lib/route-paths'
+import { ACTIVE_PANEL_RESTAURANT_COOKIE, toExternalPath } from '@/lib/route-paths'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -126,6 +126,16 @@ export function ConsoleShell({
     setAccountOpen(false)
     accountButtonRef.current?.focus()
   }, [])
+  const navigateFromAccount = useCallback((href?: string) => {
+    setAccountOpen(false)
+    if (href) {
+      if (surface === 'restaurant' && config.restaurant) {
+        const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+        document.cookie = `${ACTIVE_PANEL_RESTAURANT_COOKIE}=${config.restaurant.restaurantId}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`
+      }
+      setPendingPageHref(href)
+    }
+  }, [config.restaurant, surface])
   const closeAccountSheet = useCallback(() => {
     setAccountSheetOpen(false)
     accountTabRef.current?.focus()
@@ -182,6 +192,7 @@ export function ConsoleShell({
             mode={mode}
             identity={config.sidebar}
             email={email}
+            name={name}
             accountOpen={accountOpen}
             accountButtonRef={accountButtonRef}
             onSearch={() => setPaletteOpen(true)}
@@ -190,12 +201,12 @@ export function ConsoleShell({
             mobileChrome={surface === 'console' ? 'none' : 'header'}
             switcher={config.restaurant ? { restaurants: config.restaurant.restaurants, currentId: config.restaurant.restaurantId } : undefined}
             accountBadge={notifications.unreadCount > 0}
-            pendingHref={surface === 'restaurant' ? pendingPageHref : null}
-            onNavigate={surface === 'restaurant' ? setPendingPageHref : undefined}
+            pendingHref={pendingPageHref}
+            onNavigate={setPendingPageHref}
           />
-          <main className="tv-console-main" data-page-loading={surface === 'restaurant' && pendingPageHref ? 'true' : undefined}>
+          <main className="tv-console-main" data-page-loading={pendingPageHref ? 'true' : undefined}>
             {children}
-            {surface === 'restaurant' && pendingPageHref ? <span className="tv-page-loading-mask" aria-hidden="true" /> : null}
+            {pendingPageHref ? <span className="tv-page-loading-mask" aria-hidden="true" /> : null}
           </main>
           {mobileTabs.length > 0 ? (
             <MobileTabBar
@@ -204,7 +215,12 @@ export function ConsoleShell({
             />
           ) : null}
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
-          {accountOpen ? <AccountPopover email={email} name={name} description={description} signOutEverywhere={surface === 'console'} onClose={closeAccount} /> : null}
+          {accountOpen ? <AccountPopover
+            email={email} name={name} description={description}
+            profileHref={toExternalPath(surface === 'console' ? '/admin/profile' : '/admin/workspace/profile')}
+            settingsHref={toExternalPath(surface === 'console' ? '/admin/settings' : '/admin/workspace/settings')}
+            onClose={closeAccount} onNavigate={navigateFromAccount}
+          /> : null}
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>

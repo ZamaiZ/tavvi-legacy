@@ -1,9 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState, type PropsWithChildren } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react'
 import { API_ROUTES, type SignedOut, type UserSummary } from '@tavvi/api-contracts'
 import { ApiError, apiRequest, publicApiRequest } from '@/lib/api-client'
 import { queryClient } from '@/lib/query-client'
 import { sessionStore } from '@/lib/session-store'
-import { syncThisDevice, unregisterBeforeSignOut } from '@/features/notifications/push'
+import { removeLegacyMobilePushToken } from './remove-legacy-mobile-push-token'
 import type { AuthContextValue, AuthStatus } from './auth-types'
 import type { AvailableBiometric } from './biometric-support'
 import { deviceContractStore } from './device-contract-store'
@@ -50,11 +50,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return enableBiometrics()
   }, [enableBiometrics])
 
-  // "Sair": avisa o servidor sem esperar a resposta (offline, sai só
-  // localmente). A digital continua. Antes, tira o push deste aparelho da
-  // conta (no máximo 3 s, nunca impede sair).
+  useEffect(() => {
+    if (status === 'authenticated') void removeLegacyMobilePushToken()
+  }, [status])
+
+  // Sign out clears the local session and notifies the API without blocking.
   const signOut = useCallback(async () => {
-    await unregisterBeforeSignOut()
+    await removeLegacyMobilePushToken()
     const session = await sessionStore.get().catch(() => null)
     if (session) {
       void publicApiRequest<SignedOut>(API_ROUTES.auth.session, {
@@ -66,17 +68,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await refreshDeviceContractStatus().catch(() => undefined)
   }, [clearSession, refreshDeviceContractStatus])
 
-  // "Sair de todos os aparelhos": este aparelho só é limpo depois que o
-  // servidor confirmou. Se as digitais caíram mas as sessões não, a digital
-  // local sai e a pessoa continua logada, com a causa na tela.
-  // O push sai antes, enquanto a sessão ainda vale; se a saída falhar, a
-  // pessoa segue logada e o aparelho volta a receber.
+  // Sign out everywhere clears this session only after the API confirms.
   const signOutEverywhere = useCallback(async () => {
-    await unregisterBeforeSignOut()
+    await removeLegacyMobilePushToken()
     try {
       await apiRequest<SignedOut>(API_ROUTES.auth.sessions, { method: 'DELETE' })
     } catch (error) {
-      void syncThisDevice({ force: true }).catch(() => undefined)
       if (error instanceof ApiError && error.code === 'SIGN_OUT_EVERYWHERE_INCOMPLETE') {
         await deviceContractStore.deactivate().catch(() => undefined)
         setHasDeviceContract(false)

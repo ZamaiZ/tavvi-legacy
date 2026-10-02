@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { plainTextSchema, slugSchema, uuidSchema } from '@/domain/common'
 import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPickerDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
 import type { MemberRole } from '@/domain/invite'
@@ -79,7 +80,7 @@ export async function listRestaurantsForAdmin(): Promise<RestaurantAdminDTO[]> {
   return ((data ?? []) as AdminRow[]).map(toAdminDTO)
 }
 
-export async function listMyRestaurants(): Promise<RestaurantPickerDTO[]> {
+export const listMyRestaurants = cache(async (): Promise<RestaurantPickerDTO[]> => {
   const user = await requireUser()
 
   const supabase = await db()
@@ -115,7 +116,7 @@ export async function listMyRestaurants(): Promise<RestaurantPickerDTO[]> {
       role: membership?.role ?? null,
     }
   })
-}
+})
 
 export async function getRestaurantForMember(
   restaurantId: unknown,

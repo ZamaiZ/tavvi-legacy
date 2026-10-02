@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createProxyClient } from '@/server/dal/_client'
 import { territoryFromHost } from '@/server/territory'
-import { NOT_FOUND_PATH, toInternalPath, type PrivateTerritory } from '@/lib/route-paths'
+import { ACTIVE_PANEL_RESTAURANT_COOKIE, NOT_FOUND_PATH, toInternalPath, type PrivateTerritory } from '@/lib/route-paths'
 
 // Rotas alcancaveis sem sessao, dentro de cada territorio privado.
 const PUBLIC_PATHS: Record<PrivateTerritory, readonly string[]> = {
@@ -9,8 +9,23 @@ const PUBLIC_PATHS: Record<PrivateTerritory, readonly string[]> = {
   painel: ['/entrar', '/convite'],
 }
 
+const RESTAURANT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function isUnder(path: string, prefix: string): boolean {
   return path === prefix || path.startsWith(`${prefix}/`)
+}
+
+function restaurantIdFromReferer(request: NextRequest): string | null {
+  const value = request.headers.get('referer')
+  if (!value) return null
+
+  try {
+    const referer = new URL(value)
+    if (referer.host !== request.nextUrl.host) return null
+    return /^\/restaurantes\/([0-9a-f-]{36})(?:\/|$)/i.exec(referer.pathname)?.[1] ?? null
+  } catch {
+    return null
+  }
 }
 
 // Caminho de outro territorio vira a 404 personalizada deste host, e nao
@@ -42,13 +57,33 @@ export async function proxy(request: NextRequest) {
     return rewriteToNotFound(request)
   }
 
+  const accountSection = territory === 'painel'
+    ? path === '/perfil' ? 'profile' : path === '/configuracoes' ? 'settings' : null
+    : null
+  const refererRestaurantId = territory === 'painel' ? restaurantIdFromReferer(request) : null
+  const cookieRestaurantId = request.cookies.get(ACTIVE_PANEL_RESTAURANT_COOKIE)?.value
+  const validRefererRestaurantId = refererRestaurantId && RESTAURANT_ID_PATTERN.test(refererRestaurantId)
+    ? refererRestaurantId
+    : null
+  const validCookieRestaurantId = cookieRestaurantId && RESTAURANT_ID_PATTERN.test(cookieRestaurantId)
+    ? cookieRestaurantId
+    : null
+  const validSelectedRestaurantId = validRefererRestaurantId ?? validCookieRestaurantId
+
   // NextResponse.rewrite precisa receber um URL absoluto. Passar o NextURL
   // clonado aqui gera `x-middleware-rewrite: /admin/...` no dev server; o
   // Next mantém a rota externa (`/entrar`) e responde com `_not-found`.
   // Construir a partir da URL da requisição preserva host, query e protocolo.
   const rewritten = new URL(request.url)
-  rewritten.pathname = toInternalPath(territory, path)
-  const response = NextResponse.rewrite(rewritten)
+  rewritten.pathname = accountSection && validSelectedRestaurantId
+    ? `/admin/workspace/restaurants/${validSelectedRestaurantId}/account/${accountSection}`
+    : toInternalPath(territory, path)
+  // `/entrar` is also a real top-level route. Keeping this recovery path
+  // external avoids the dev router resolving it through the public `[slug]`
+  // route after the private-territory rewrite.
+  const response = path === '/entrar'
+    ? NextResponse.next()
+    : NextResponse.rewrite(rewritten)
 
   // getUser() revalida o token contra o servidor de auth e grava a sessao
   // renovada em `response` pelo setAll. Isto e gerencia de sessao, nao
@@ -60,10 +95,8 @@ export async function proxy(request: NextRequest) {
 
   if (!data.user && !isPublic) {
     const login = request.nextUrl.clone()
-    // Caminho EXTERNO, sem o prefixo do territorio. O navegador vai pedir
-    // admin.dominio/entrar, que o proxy reescreve para /admin/entrar.
-    // Usar `/${territory}/entrar` aqui faria o navegador pedir
-    // /admin/entrar, que seria reescrito para /admin/admin/entrar.
+    // Caminho externo de recuperação. `/entrar` é uma rota real e compartilhada
+    // entre os territórios privados; os outros caminhos seguem pela reescrita.
     login.pathname = '/entrar'
     login.searchParams.set('next', path)
 
@@ -71,6 +104,14 @@ export async function proxy(request: NextRequest) {
     // Os cookies renovados precisam sobreviver ao redirecionamento. Montar
     // uma resposta nova sem copiar os cookies descarta a sessao renovada, e
     // o sintoma e deslogar de forma intermitente e dificil de rastrear.
+    for (const cookie of response.cookies.getAll()) {
+      redirect.cookies.set(cookie)
+    }
+    return redirect
+  }
+
+  if (accountSection && !validSelectedRestaurantId) {
+    const redirect = NextResponse.redirect(new URL('/restaurantes', request.url))
     for (const cookie of response.cookies.getAll()) {
       redirect.cookies.set(cookie)
     }
