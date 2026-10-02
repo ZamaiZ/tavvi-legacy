@@ -1,7 +1,8 @@
 'use client'
 
-import { useId, useState, type FormEvent } from 'react'
+import { useId, useState, useTransition, type FormEvent } from 'react'
 import { LuUserRound } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { updateDisplayNameAction } from '@/server/actions/profile'
 
@@ -14,32 +15,36 @@ export function AccountNameAction({
   name,
   variant,
   className,
+  disabled = false,
 }: {
   name: string | null
   variant: 'row' | 'popover'
   className?: string
+  /** Outra ação da tela está rodando (sair da conta). */
+  disabled?: boolean
 }) {
   const inputId = useId()
   const [saved, setSaved] = useState(name ?? '')
   const [value, setValue] = useState(name ?? '')
-  const [pending, setPending] = useState(false)
+  const [pending, startTransition] = useTransition()
   const trimmed = value.trim()
   const dirty = trimmed !== saved
   const valid = trimmed.length >= 2 && trimmed.length <= 80
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!dirty || !valid || pending) return
-    setPending(true)
-    const result = await updateDisplayNameAction({ displayName: trimmed })
-    setPending(false)
-    if (!result.ok) {
-      toast.add({ title: result.error, type: 'error' })
-      return
-    }
-    setSaved(result.data.displayName)
-    setValue(result.data.displayName)
-    toast.add({ title: 'Nome salvo', type: 'success' })
+    if (!dirty || !valid || pending || disabled) return
+    // Dentro de transição: é o contrato do Next 16.3.5 para action vinda de evento.
+    startTransition(async () => {
+      const result = await updateDisplayNameAction({ displayName: trimmed })
+      if (!result.ok) {
+        toast.add({ title: result.error, type: 'error' })
+        return
+      }
+      setSaved(result.data.displayName)
+      setValue(result.data.displayName)
+      toast.add({ title: 'Nome salvo', type: 'success' })
+    })
   }
 
   const input = (
@@ -53,16 +58,17 @@ export function AccountNameAction({
       autoComplete="name"
       enterKeyHint="done"
       placeholder="Seu nome"
+      disabled={pending || disabled}
     />
   )
   const save = dirty ? (
     <button
       type="submit"
       className={variant === 'row' ? 'tv-mname-save' : 'tv-account-name-save'}
-      disabled={!valid || pending}
+      disabled={!valid || pending || disabled}
       aria-busy={pending || undefined}
     >
-      {pending ? <span className="tv-spinner" aria-label="Salvando" /> : 'Salvar'}
+      {pending ? <><SpinnerRing decorative />Salvando…</> : 'Salvar'}
     </button>
   ) : null
 

@@ -11,55 +11,26 @@ export default async function Page({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const menu = await getPublicMenu(slug)
 
-  // Restaurante inexistente, em rascunho, suspenso ou removido caem todos
-  // aqui. A resposta é a mesma para não revelar que o restaurante existe.
+  // A mesma chamada do layout de `[slug]`: o cache() devolve o resultado já
+  // buscado, sem segunda consulta. O notFound() fica porque layout e página
+  // renderizam em paralelo, e a página não deve depender do layout para
+  // responder 404.
+  const menu = await getPublicMenu(slug)
   if (!menu) notFound()
 
   const theme = resolveTheme(menu.restaurant.theme)
 
+  // `overflow-hidden` e sem rolagem no documento: quem rola são os dois
+  // roladores aninhados do feed. As variáveis do tema chegam pelo <style>
+  // do layout de `[slug]`.
   return (
-    <>
-      {/* As variáveis das duas faces entram por folha de estilo embutida, e
-          não por `style` no elemento, porque `style` não consegue expressar
-          media query. A face escura só vale quando o aparelho do cliente
-          pede escuro — e quem decide isso é o celular na mesa, não nós.
-
-          O seletor é `[data-menu="<preset>"]`, e não uma classe, porque a
-          folha de detalhes renderiza em portal, fora desta árvore: carregando
-          o mesmo `data-menu`, ela é alcançada por esta regra onde quer que o
-          portal a coloque, com a face escura junto. */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: [
-            `[data-menu="${theme.presetId}"]{${toCss(theme.styleLight)}}`,
-            `@media (prefers-color-scheme: dark){`,
-            `[data-menu="${theme.presetId}"]{${toCss(theme.styleDark)}}`,
-            `}`,
-          ].join(''),
-        }}
-      />
-
-      {/* `overflow-hidden` e sem rolagem no documento: quem rola são os dois
-          roladores aninhados do feed. */}
-      <div
-        data-menu={theme.presetId}
-        data-density={theme.density}
-        className={`menu relative overflow-hidden ${ALL_THEME_FONT_VARIABLES}`}
-      >
-        <MenuFeed menu={menu} presetId={theme.presetId} />
-      </div>
-    </>
+    <div
+      data-menu={theme.presetId}
+      data-density={theme.density}
+      className={`menu relative overflow-hidden ${ALL_THEME_FONT_VARIABLES}`}
+    >
+      <MenuFeed menu={menu} presetId={theme.presetId} />
+    </div>
   )
-}
-
-// Os valores são cores em hexadecimal, comprimentos e nomes de variável de
-// fonte — todos vindos dos presets no código ou já validados pelo
-// `themeSchema` e pelo `isBaseInRange` antes de chegarem aqui. Nada vindo
-// direto do cliente entra nesta string.
-function toCss(vars: Record<string, string>): string {
-  return Object.entries(vars)
-    .map(([nome, valor]) => `${nome}:${valor}`)
-    .join(';')
 }

@@ -1,6 +1,6 @@
 import type { OwnerMenuItemDTO } from '@/domain/menu'
 import { publicMediaUrl } from '@/lib/media-url'
-import { formatCents, lowestPriceCents } from '@/lib/money'
+import { formatCents, priceSummary } from '@/lib/money'
 
 type ItemMedia = OwnerMenuItemDTO['media'][number]
 
@@ -19,7 +19,12 @@ export function focalPosition(media: Pick<ItemMedia, 'focalX' | 'focalY'>): stri
 }
 
 export function priceLabel(item: Pick<OwnerMenuItemDTO, 'variants' | 'basePriceCents'>): string {
-  return `${item.variants.length > 0 ? 'A partir de ' : ''}${formatCents(lowestPriceCents(item))}`
+  const { cents, from } = priceSummary(item)
+  return `${from ? 'A partir de ' : ''}${formatCents(cents)}`
+}
+
+export function variantCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'variação' : 'variações'}`
 }
 
 function count(value: number, one: string, many: string) {

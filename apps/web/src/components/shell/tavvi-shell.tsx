@@ -5,6 +5,7 @@ import { cn } from 'cn'
 import { AccountPopover } from './account-popover'
 import { CommandPalette } from './command-palette'
 import { flattenNavItems } from './navigation'
+import { NavigationProgress } from './navigation-progress'
 import { Sidebar, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { TavviShellConfig } from './navigation.types'
@@ -63,6 +64,7 @@ export function TavviShell({
   }, [])
 
   return (
+    <NavigationProgress>
     <div className="tv-console-root" style={{ '--tv-sidebar-width': `${sidebarWidth}px` } as CSSProperties}>
       <Sidebar
         items={entries}
@@ -78,5 +80,6 @@ export function TavviShell({
       <CommandPalette config={config} />
       {accountOpen ? <AccountPopover email={config.userLabel} name={config.userName ?? null} description={null} onClose={closeAccount} /> : null}
     </div>
+    </NavigationProgress>
   )
 }

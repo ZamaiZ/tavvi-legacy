@@ -10,6 +10,9 @@ export const RATE_LIMITS = {
   mutation: { max: 60, windowSeconds: 60 },
   'push:subscribe': { max: 20, windowSeconds: 60 },
   'push:test': { max: 5, windowSeconds: 60 },
+  // Busca de CEP: digitar errado e corrigir algumas vezes é normal; trinta
+  // por minuto ainda barra quem tentasse usar o painel como proxy do ViaCEP.
+  'cep:lookup': { max: 30, windowSeconds: 60 },
 } as const
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS

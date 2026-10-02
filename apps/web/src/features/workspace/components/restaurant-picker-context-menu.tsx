@@ -1,10 +1,11 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useTransition, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LuCopy, LuExternalLink, LuPanelRightOpen } from 'react-icons/lu'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
+import { LinkPendingHint } from '@/components/ui/link-pending'
 import type { RestaurantPickerDTO } from '@/domain/restaurant'
 import { copyText } from '@/lib/copy-text'
 import { publicMenuUrl } from '@/lib/public-menu-url'
@@ -22,11 +23,13 @@ export function RestaurantPickerContextMenu({
 }) {
   const router = useRouter()
   const href = `/restaurantes/${restaurant.id}`
+  // "Abrir" pelo menu também mostra o spinner no cartão.
+  const [opening, startOpening] = useTransition()
   return (
     <ContextMenu>
-      <ContextMenuTrigger render={<Link href={href} className="tv-picker-card" />}>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger render={<Link href={href} className="tv-picker-card" />}>{children}<LinkPendingHint forced={opening} className="tv-picker-pending" /></ContextMenuTrigger>
       <ContextMenuContent aria-label={`Ações de ${restaurant.name}`}>
-        <ContextMenuItem onClick={() => router.push(href)}><LuPanelRightOpen aria-hidden="true" /><span>Abrir</span></ContextMenuItem>
+        <ContextMenuItem onClick={() => startOpening(() => router.push(href))}><LuPanelRightOpen aria-hidden="true" /><span>Abrir</span></ContextMenuItem>
         <ContextMenuItem
           disabled={restaurant.status !== 'active'}
           onClick={() => window.open(publicMenuUrl(domain, restaurant.slug), '_blank', 'noopener,noreferrer')}

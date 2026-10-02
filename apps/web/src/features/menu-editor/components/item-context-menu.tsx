@@ -38,7 +38,7 @@ export function ItemContextMenu({ item, categories, actions, onMove, disabled, r
       <ContextMenuTrigger render={render}>{children}</ContextMenuTrigger>
       <ContextMenuContent aria-label={`Ações do item ${item.name}`}>
         {model.primary.map((entry) => (
-          <ContextMenuItem key={entry.key} onClick={() => runItemMenuEntry(entry.key, actions)}>
+          <ContextMenuItem key={entry.key} disabled={actions.pending} onClick={() => runItemMenuEntry(entry.key, actions)}>
             <entry.icon aria-hidden="true" /><span>{entry.label}</span>
           </ContextMenuItem>
         ))}
@@ -49,7 +49,7 @@ export function ItemContextMenu({ item, categories, actions, onMove, disabled, r
               <ContextMenuSubTrigger><LuCornerDownRight aria-hidden="true" /><span>Mover para</span></ContextMenuSubTrigger>
               <ContextMenuSubContent aria-label="Mover para">
                 {model.moveTargets.map((target) => (
-                  <ContextMenuItem key={target.id} className="is-target" onClick={() => move(target.id)}>
+                  <ContextMenuItem key={target.id} className="is-target" disabled={actions.pending} onClick={() => move(target.id)}>
                     <LuCornerDownRight aria-hidden="true" /><span>{target.name}</span>
                   </ContextMenuItem>
                 ))}
@@ -58,7 +58,7 @@ export function ItemContextMenu({ item, categories, actions, onMove, disabled, r
           </>
         ) : null}
         <ContextMenuSeparator />
-        <ContextMenuItem variant="destructive" onClick={() => runItemMenuEntry(model.remove.key, actions)}>
+        <ContextMenuItem variant="destructive" disabled={actions.pending} onClick={() => runItemMenuEntry(model.remove.key, actions)}>
           <model.remove.icon aria-hidden="true" /><span>{model.remove.label}</span>
         </ContextMenuItem>
       </ContextMenuContent>
@@ -74,7 +74,7 @@ export function StandaloneItemContextMenu({ restaurantId, ...props }: ItemContex
   return (
     <>
       <ItemContextMenu {...props} actions={actions} />
-      {props.disabled ? null : <ItemDialogs item={props.item} categories={props.categories} actions={actions} />}
+      {props.disabled ? null : <ItemDialogs restaurantId={restaurantId} item={props.item} categories={props.categories} actions={actions} />}
     </>
   )
 }

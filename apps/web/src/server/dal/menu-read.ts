@@ -1,6 +1,8 @@
 import 'server-only'
+import { cache } from 'react'
 import { slugSchema, uuidSchema } from '@/domain/common'
 import type { MenuCategoryDTO, OwnerMenuCategoryDTO, OwnerMenuItemDTO, PublicMenuDTO } from '@/domain/menu'
+import { parseContact } from '@/domain/restaurant'
 import { createUserClient } from './_client'
 import { currentTerritory, requireMember } from './auth'
 
@@ -52,7 +54,12 @@ type RawCategory = {
   menu_items: RawItem[] | null
 }
 
-export async function getPublicMenu(
+// cache() do React: o layout de `(site)/[slug]` e a página pedem o mesmo
+// cardápio na mesma requisição, e só a primeira chamada vai ao banco. Não é
+// cache entre requisições: cada visita continua lendo o estado atual.
+export const getPublicMenu = cache(loadPublicMenu)
+
+async function loadPublicMenu(
   slug: unknown,
 ): Promise<PublicMenuDTO | null> {
   const parsed = slugSchema.safeParse(slug)
@@ -147,7 +154,7 @@ export async function getPublicMenu(
       description: data.description as string | null,
       logoPath: data.logo_path as string | null,
       coverPath: data.cover_path as string | null,
-      contact: (data.contact ?? {}) as Record<string, string>,
+      contact: parseContact(data.contact),
       theme: data.theme,
     },
     categories: comItens,

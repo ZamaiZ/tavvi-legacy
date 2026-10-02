@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/navigation'
 import { RiComputerLine, RiMoonLine, RiSearchLine, RiSunLine } from 'react-icons/ri'
 import { cn } from 'cn'
+import { useProgressNavigate } from './navigation-progress'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -109,7 +109,7 @@ export function CommandPaletteTrigger({
 
 export function CommandPalette({ config }: { config: TavviShellConfig }) {
   const open = useCommandPaletteOpen()
-  const router = useRouter()
+  const progressNavigate = useProgressNavigate()
   const { setTheme } = useTheme()
   const items = flattenNavItems(config.items)
 
@@ -127,7 +127,7 @@ export function CommandPalette({ config }: { config: TavviShellConfig }) {
 
   function navigate(href: string) {
     setCommandPaletteOpen(false)
-    router.push(href)
+    progressNavigate(href)
   }
 
   function chooseTheme(theme: Theme) {

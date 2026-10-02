@@ -1,9 +1,7 @@
 import { AuthShell } from '@/features/auth/components/auth-shell'
-import { SignInForm } from '@/features/auth/components/sign-in-form'
-import { SignUpForm } from '@/features/auth/components/sign-up-form'
+import { InviteAuthTabs } from '@/features/auth/components/invite-auth-tabs'
 import { CreateRestaurantStep } from '@/features/onboarding/components/create-restaurant-step'
 import { AcceptInviteButton } from '@/features/workspace/components/accept-invite-button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MEMBER_ROLE_LABELS } from '@/domain/invite'
 import { getCurrentUser } from '@/server/dal/auth'
 import { previewInvite } from '@/server/dal/invites'
@@ -52,27 +50,7 @@ export default async function Page({
             : `Você foi convidado a fazer parte da equipe, como ${MEMBER_ROLE_LABELS[invite.role].toLowerCase()}. Entre ou crie sua conta para aceitar.`
         }
       >
-        <Tabs defaultValue="criar">
-          <TabsList className="w-full">
-            <TabsTrigger value="criar" className="flex-1">
-              Criar conta
-            </TabsTrigger>
-            <TabsTrigger value="entrar" className="flex-1">
-              Já tenho conta
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="criar" className="pt-6">
-            <SignUpForm />
-          </TabsContent>
-
-          <TabsContent value="entrar" className="pt-6">
-            {/* O destino é esta mesma página: depois de entrar, a pessoa
-                precisa voltar aqui para concluir. O token vive no caminho,
-                então atravessa a autenticação sem se perder. */}
-            <SignInForm next={`/convite/${token}`} />
-          </TabsContent>
-        </Tabs>
+        <InviteAuthTabs next={`/convite/${token}`} />
       </AuthShell>
     )
   }

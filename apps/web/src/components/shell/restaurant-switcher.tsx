@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { LuCheck, LuStore } from 'react-icons/lu'
+import { LinkPendingHint } from '@/components/ui/link-pending'
 import type { RestaurantSwitchEntry } from './console-config'
 import { RestaurantMark } from './restaurant-mark'
 
@@ -52,11 +53,14 @@ export function RestaurantSwitcher({
             href={`/restaurantes/${entry.id}`}
             aria-current={entry.id === currentId ? 'true' : undefined}
             className="tv-switch-row"
-            onClick={onClose}
+            // O popover fica aberto mostrando o spinner até a casca do outro
+            // restaurante montar; ela o substitui (a casca é por restaurante).
+            onClick={entry.id === currentId ? onClose : undefined}
           >
             <RestaurantMark entry={entry} className="tv-switch-mark" />
             <span className="tv-switch-copy"><strong>{entry.name}</strong><small>{entry.roleLabel}</small></span>
             {entry.id === currentId ? <LuCheck aria-hidden="true" /> : null}
+            {entry.id === currentId ? null : <LinkPendingHint className="tv-switch-pending" />}
           </Link>
         ))}
         <hr className="tv-switch-divider" />

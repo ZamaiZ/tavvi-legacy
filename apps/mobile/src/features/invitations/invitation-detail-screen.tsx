@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { z } from 'zod'
 import type { InviteState } from './queries'
 import { useInvitation, useRevokeInvitation } from './queries'
 import { getInviteState } from './invitation-state'
@@ -17,6 +18,8 @@ import { TonalButton } from '@/components/primitives/tonal-button'
 import { RevokeDialog } from './revoke-dialog'
 import { CreateInvitationSheet } from './create-invitation-sheet'
 import { formatDate } from '@/lib/format'
+import { isNotFoundError } from '@/lib/api-client'
+import { NotFoundScreen } from '@/features/not-found/not-found-screen'
 import { layout, useAppTheme } from '@/theme'
 
 const labels: Record<InviteState, { status: string; tone: 'accent' | 'success' | 'warning' | 'neutral'; meta: (date: string) => string }> = {
@@ -26,8 +29,13 @@ const labels: Record<InviteState, { status: string; tone: 'accent' | 'success' |
   expired: { status: 'Vencido', tone: 'warning', meta: (date) => `Venceu em ${date}` },
 }
 
+// As listas do app só abrem ids UUID. Qualquer outra coisa veio de um link
+// digitado ou antigo: é 404 sem nem chamar a API.
+const idSchema = z.string().uuid()
+
 export function InvitationDetailScreen({ id }: { id: string }) {
-  const insets = useSafeAreaInsets(); const { colors } = useAppTheme(); const query = useInvitation(id); const revoke = useRevokeInvitation()
+  const validId = idSchema.safeParse(id).success
+  const insets = useSafeAreaInsets(); const { colors } = useAppTheme(); const query = useInvitation(validId ? id : ''); const revoke = useRevokeInvitation()
   const [dialog, setDialog] = useState(false); const [sheet, setSheet] = useState(false); const [now, setNow] = useState(Date.now())
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(timer) }, [])
   const state = useMemo(() => query.data ? getInviteState(query.data, now) : null, [now, query.data])
@@ -45,6 +53,11 @@ export function InvitationDetailScreen({ id }: { id: string }) {
     if (!invite) return
     revoke.mutate(invite.id, { onSuccess: () => { setDialog(false); void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); toast.show('Convite revogado') } })
   }
+  // Depois de todos os hooks. Convite inexistente é a 404 do console, e não
+  // "verifique sua conexão". Erro de rede e 5xx seguem no cartão com
+  // "Tentar novamente".
+  if (!validId || isNotFoundError(query.error)) return <NotFoundScreen />
+
   const body = query.isLoading ? <DetailSkeleton kind="invitation" />
     : query.isError || !invite || !state ? <StateCard error title="Não foi possível carregar" message="Verifique sua conexão e tente novamente." retry actionLabel="Tentar novamente" actionIcon={RotateCcw} onAction={() => void query.refetch()} />
       : <View style={styles.sections}>

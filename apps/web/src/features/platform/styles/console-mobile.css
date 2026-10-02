@@ -85,7 +85,7 @@
   [data-surface="console"] .tv-confirm-dialog > div > button + button { border-left: .5px solid var(--tv-line-2); font-weight: 600; }
   [data-surface="console"] .tv-confirm-dialog.is-destructive > div > button + button { color: var(--tv-danger); }
   [data-surface="console"] .tv-confirm-dialog > div > button:active { background: var(--tv-active); }
-  [data-surface="console"] .tv-confirm-dialog .tv-spinner { margin: auto; }
+  [data-surface="console"] .tv-confirm-dialog .tv-spinner:not(.tv-confirm-spinner) { margin: auto; }
 }
 
 /* Conta no celular: sheet aberto pela aba Conta (Tema e Sair). */

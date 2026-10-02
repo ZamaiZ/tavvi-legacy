@@ -15,10 +15,11 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { LuLayoutGrid } from 'react-icons/lu'
 import { Combobox } from '@/components/ui/combobox'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
 import { PanelEmptyState } from '@/features/workspace/components/panel-empty-state'
-import { panelAnnouncements, PANEL_DRAG_INSTRUCTIONS, usePanelSensors } from '../../lib/dnd'
+import { LIFT_DROP_ANIMATION, panelAnnouncements, PANEL_DRAG_INSTRUCTIONS, usePanelSensors } from '../../lib/dnd'
 import { priceLabel } from '../../lib/item-display'
 import { moveItemToCategory, saveItemOrder } from '../../lib/menu-order'
 import { StandaloneItemContextMenu } from '../item-context-menu'
@@ -53,6 +54,7 @@ export function BoardMode({ restaurantId, categories, canEdit }: { restaurantId:
   const [columns, setColumns] = useState<Columns>(serverColumns)
   const [syncedFrom, setSyncedFrom] = useState(serverColumns)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [savingColumn, setSavingColumn] = useState<string | null>(null)
   const snapshot = useRef<Columns>(serverColumns)
   const itemsById = useMemo(() => new Map(categories.flatMap((category) => category.items.map((item) => [item.id, item] as const))), [categories])
   const namesById = useMemo(() => new Map(categories.map((category) => [category.id, category.name] as const)), [categories])
@@ -94,10 +96,12 @@ export function BoardMode({ restaurantId, categories, canEdit }: { restaurantId:
     const previous = snapshot.current
     if (!item || !from) return
     if (from === to && previous[to]?.join() === next[to].join()) return
+    setSavingColumn(to)
     startTransition(async () => {
       const result = from === to
         ? await saveItemOrder(restaurantId, next[to])
         : await moveItemToCategory({ restaurantId, item, categoryId: to, sourceIds: next[from], targetIds: next[to] })
+      setSavingColumn(null)
       if (result.ok) {
         toast.add({ title: from === to ? 'Ordem atualizada' : `Item movido para ${namesById.get(to)}`, type: 'success' })
       } else {
@@ -183,11 +187,11 @@ export function BoardMode({ restaurantId, categories, canEdit }: { restaurantId:
       onDragCancel={onDragCancel}
       accessibility={{ announcements: panelAnnouncements(describe, place), screenReaderInstructions: PANEL_DRAG_INSTRUCTIONS }}
     >
-      <section ref={boardRef} className="tv-board" aria-label="Quadro por categoria">
+      <section ref={boardRef} className="tv-board" aria-label="Quadro por categoria" aria-busy={pending || undefined}>
         {categories.map((category) => {
           const ids = columns[category.id] ?? []
           return (
-            <BoardColumn key={category.id} id={category.id} name={category.name} count={ids.length}>
+            <BoardColumn key={category.id} id={category.id} name={category.name} count={ids.length} saving={savingColumn === category.id}>
               <SortableContext id={category.id} items={ids} strategy={verticalListSortingStrategy}>
                 {ids.map((id) => {
                   const item = itemsById.get(id)
@@ -203,9 +207,9 @@ export function BoardMode({ restaurantId, categories, canEdit }: { restaurantId:
           )
         })}
       </section>
-      <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }}>
+      <DragOverlay className="tv-drag-overlay" dropAnimation={LIFT_DROP_ANIMATION}>
         {activeItem ? (
-          <article className="tv-bcard is-overlay">
+          <article className="tv-bcard is-overlay tv-lift is-row">
             <BoardCardContent item={activeItem} columnId={columnOf(columns, activeItem.id) ?? activeItem.categoryId} categories={categories} disabled />
           </article>
         ) : null}
@@ -214,11 +218,11 @@ export function BoardMode({ restaurantId, categories, canEdit }: { restaurantId:
   )
 }
 
-function BoardColumn({ id, name, count, children }: { id: string; name: string; count: number; children: ReactNode }) {
+function BoardColumn({ id, name, count, saving, children }: { id: string; name: string; count: number; saving: boolean; children: ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${COLUMN}${id}` })
   return (
     <div className={`tv-bcol${isOver ? ' is-over' : ''}`}>
-      <header><strong>{name}</strong><span>{count}</span></header>
+      <header><strong>{name}</strong><span>{saving ? <SpinnerRing label="Salvando a ordem" className="tv-row-spinner" /> : count}</span></header>
       <div ref={setNodeRef} className="tv-bcol-list">{children}</div>
     </div>
   )

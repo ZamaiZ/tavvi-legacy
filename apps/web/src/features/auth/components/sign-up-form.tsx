@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { signUpAction } from '@/server/actions/auth'
 
-export function SignUpForm() {
+export function SignUpForm({ onPendingChange }: { onPendingChange?: (pending: boolean) => void } = {}) {
   const router = useRouter()
   const [state, formAction, pending] = useActionState(signUpAction, undefined)
 
@@ -27,8 +27,14 @@ export function SignUpForm() {
     if (state?.ok && !state.data.confirmEmail) router.refresh()
   }, [state, router])
 
+  // As abas "Criar conta / Já tenho conta" travam junto (InviteAuthTabs).
+  useEffect(() => {
+    onPendingChange?.(pending)
+  }, [pending, onPendingChange])
+
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-6" aria-busy={pending || undefined}>
+      <fieldset disabled={pending} className="contents">
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="signup-name">Nome</FieldLabel>
@@ -64,6 +70,7 @@ export function SignUpForm() {
           <FieldDescription>Ao menos 8 caracteres.</FieldDescription>
         </Field>
       </FieldGroup>
+      </fieldset>
 
       {/* `Alert` porque esta é tela de entrada, não diálogo: aqui o erro
           precisa ter forma reconhecível. Ver o comentário em
@@ -87,7 +94,7 @@ export function SignUpForm() {
       ) : null}
 
       <Button type="submit" className="h-11 w-full" disabled={pending}>
-        {pending ? <Spinner className="size-4" /> : null}
+        {pending ? <Spinner className="size-4" aria-hidden="true" /> : null}
         {pending ? 'Criando conta…' : 'Criar conta'}
       </Button>
     </form>

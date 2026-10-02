@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { MenuItemDTO } from '@/domain/menu'
-import { formatCents } from '@/lib/money'
+import { formatCents, priceSummary } from '@/lib/money'
 import { MenuMedia } from './menu-media'
 
 // Uma coluna do feed: o rolador vertical das mídias, e um rodapé que NÃO se
@@ -35,10 +35,7 @@ export function MenuDish({
   // Com variações, o preço base some — regra da Fase 2, que continua. O
   // rodapé mostra a menor, e a lista inteira vai na folha: mostrar os dois
   // faria o cliente somar coisas que não se somam.
-  const lowestVariantPrice =
-    item.variants.length > 0
-      ? Math.min(...item.variants.map((v) => v.priceCents))
-      : null
+  const price = priceSummary(item)
 
   function handleScroll(event: React.UIEvent<HTMLDivElement>) {
     const targetElement = event.currentTarget
@@ -148,19 +145,15 @@ export function MenuDish({
             </h2>
 
             <span className="menu-accent shrink-0 text-[1.0625rem] font-semibold">
-              {lowestVariantPrice === null ? (
-                formatCents(item.basePriceCents)
-              ) : (
-                <>
-                  <span
-                    className="mr-1 text-[0.75rem] font-normal"
-                    style={{ color: 'var(--m-muted)' }}
-                  >
-                    a partir de
-                  </span>
-                  {formatCents(lowestVariantPrice)}
-                </>
-              )}
+              {price.from ? (
+                <span
+                  className="mr-1 text-[0.75rem] font-normal"
+                  style={{ color: 'var(--m-muted)' }}
+                >
+                  a partir de
+                </span>
+              ) : null}
+              {formatCents(price.cents)}
             </span>
           </div>
 

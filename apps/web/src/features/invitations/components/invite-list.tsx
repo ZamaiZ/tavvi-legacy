@@ -92,6 +92,7 @@ export function InviteList({ invites }: { invites: InviteDTO[] }) {
         title="Revogar convite?"
         description="O link deixará de funcionar imediatamente."
         confirmLabel="Revogar"
+        pendingLabel="Revogando…"
         pending={pending}
         onConfirm={revoke}
       />

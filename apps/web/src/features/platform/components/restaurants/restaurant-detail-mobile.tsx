@@ -4,6 +4,7 @@ import { LuCheck, LuLink, LuTrash2 } from 'react-icons/lu'
 import type { RestaurantDetailDTO, RestaurantResponsibleDTO } from '@/domain/restaurant'
 import { MEMBER_ROLE_LABELS } from '@/domain/invite'
 import { formatLong } from '@/lib/format-date'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { badgeLabel } from '../tv-badge'
 import { restaurantInitials, restaurantStatusOptions, type RestaurantDetailState } from './use-restaurant-detail'
 
@@ -52,24 +53,24 @@ export function RestaurantDetailMobile({ restaurant, members, detail }: {
 
       <h3 className="tv-group-label">Endereço público</h3>
       <div className="tv-group">
-        <label className="tv-rd-slug"><span className="tv-mono">{detail.domain}/</span><input aria-label="Endereço público" value={detail.slug} autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={(event) => detail.setSlug(event.target.value)} /></label>
+        <label className="tv-rd-slug"><span className="tv-mono">{detail.domain}/</span><input aria-label="Endereço público" value={detail.slug} autoCapitalize="none" autoCorrect="off" spellCheck={false} disabled={detail.pending} onChange={(event) => detail.setSlug(event.target.value)} /></label>
       </div>
       <p className="tv-group-note">O cardápio fica em {detail.domain}/{detail.slug}. As plaquinhas continuam funcionando depois da troca, porque elas apontam para um código próprio e não para o endereço. Links compartilhados diretamente é que deixam de funcionar.</p>
       {detail.slugError ? <p role="alert" className="tv-group-error">{detail.slugError}</p> : null}
-      <button type="button" className="tv-m-pill is-primary tv-rd-save" disabled={!detail.canSaveSlug || detail.pending} onClick={detail.saveSlug}>{detail.pending ? 'Alterando…' : 'Alterar endereço'}</button>
+      <button type="button" className="tv-m-pill is-primary tv-rd-save" disabled={!detail.canSaveSlug || detail.pending} onClick={detail.saveSlug}>{detail.savingSlug ? 'Alterando…' : 'Alterar endereço'}</button>
 
       <h3 className="tv-group-label">Situação</h3>
       <div role="radiogroup" aria-label="Situação do restaurante" className="tv-group">
         {restaurantStatusOptions.map((option) => (
           <button type="button" key={option.value} role="radio" aria-checked={restaurant.status === option.value} disabled={detail.pending} className="tv-rd-status" onClick={() => detail.setStatus(option.value)}>
             <span><strong>{option.label}</strong><small>{option.hint}</small></span>
-            {restaurant.status === option.value ? <LuCheck aria-hidden="true" /> : null}
+            {detail.statusTarget === option.value ? <SpinnerRing label="Alterando a situação" className="tv-row-spinner" /> : restaurant.status === option.value ? <LuCheck aria-hidden="true" /> : null}
           </button>
         ))}
       </div>
 
       <div className="tv-group is-spaced">
-        <button type="button" className="tv-group-danger" onClick={() => detail.setConfirm('remove')}><LuTrash2 aria-hidden="true" />Remover restaurante</button>
+        <button type="button" className="tv-group-danger" disabled={detail.pending} onClick={() => detail.setConfirm('remove')}><LuTrash2 aria-hidden="true" />Remover restaurante</button>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { AlertDialog } from '@base-ui/react/alert-dialog'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { useTerritoryContainer } from './use-territory-container'
 
 // Confirmação destrutiva da Equipe, no padrão do README §6.5: 320 px, ícone
@@ -14,6 +15,7 @@ export function TeamConfirmDialog({
   title,
   description,
   confirmLabel,
+  pendingLabel,
   pending = false,
   onConfirm,
 }: {
@@ -23,6 +25,8 @@ export function TeamConfirmDialog({
   title: string
   description: string
   confirmLabel: string
+  /** Texto do botão durante a ação ("Removendo…"). */
+  pendingLabel?: string
   pending?: boolean
   onConfirm: () => void
 }) {
@@ -59,14 +63,8 @@ export function TeamConfirmDialog({
               aria-busy={pending}
               onClick={onConfirm}
             >
-              {pending ? (
-                <>
-                  <span className="tv-spinner" aria-hidden="true" />
-                  <span className="sr-only">{confirmLabel}</span>
-                </>
-              ) : (
-                confirmLabel
-              )}
+              {pending ? <SpinnerRing decorative /> : null}
+              {pending ? (pendingLabel ?? confirmLabel) : confirmLabel}
             </button>
           </div>
         </AlertDialog.Popup>

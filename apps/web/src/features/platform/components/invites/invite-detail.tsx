@@ -36,7 +36,7 @@ export function InviteDetail({ invite }: { invite: PlatformInviteDTO }) {
     startTransition(async () => {
       const result = await revokeInviteAction(invite.id)
       setConfirm(false)
-      toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: 'Não foi possível revogar o convite.', type: 'error' })
+      toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: result.error, type: 'error' })
     })
   }
   return <div className="tv-detail-stack">
@@ -61,10 +61,10 @@ export function InviteDetail({ invite }: { invite: PlatformInviteDTO }) {
     </section>
     <div className="tv-detail-actions">
       {state === 'pending' ? <>
-        <button type="button" className="tv-detail-primary" onClick={() => openInvite(invite.email ?? undefined, invite.id)}><LuRotateCcw aria-hidden="true" />Gerar novo link</button>
-        <button type="button" className="tv-detail-revoke" onClick={() => setConfirm(true)}><LuBan aria-hidden="true" />Revogar convite</button>
-      </> : <button type="button" className="tv-detail-secondary" onClick={() => openInvite(invite.email ?? undefined)}><LuRotateCcw aria-hidden="true" />Gerar novo convite</button>}
+        <button type="button" className="tv-detail-primary" disabled={pending} onClick={() => openInvite(invite.email ?? undefined, invite.id)}><LuRotateCcw aria-hidden="true" />Gerar novo link</button>
+        <button type="button" className="tv-detail-revoke" disabled={pending} onClick={() => setConfirm(true)}><LuBan aria-hidden="true" />Revogar convite</button>
+      </> : <button type="button" className="tv-detail-secondary" disabled={pending} onClick={() => openInvite(invite.email ?? undefined)}><LuRotateCcw aria-hidden="true" />Gerar novo convite</button>}
     </div>
-    {confirm && <ConfirmDialog title="Revogar convite?" description="O link deixará de funcionar imediatamente." confirmLabel="Revogar" icon={<LuBan />} destructive pending={pending} onCancel={() => setConfirm(false)} onConfirm={revoke} />}
+    {confirm && <ConfirmDialog title="Revogar convite?" description="O link deixará de funcionar imediatamente." confirmLabel="Revogar" pendingLabel="Revogando…" icon={<LuBan />} destructive pending={pending} onCancel={() => setConfirm(false)} onConfirm={revoke} />}
   </div>
 }

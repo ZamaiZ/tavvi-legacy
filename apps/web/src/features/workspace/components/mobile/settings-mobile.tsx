@@ -98,6 +98,8 @@ export function SettingsMobile() {
         title="Sair da conta?"
         description="Você precisará entrar novamente para acessar o painel."
         confirmLabel="Sair"
+        pendingLabel="Saindo…"
+        pending={pending}
         destructive
         onConfirm={signOut}
       />

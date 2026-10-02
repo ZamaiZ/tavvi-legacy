@@ -49,3 +49,15 @@ export function safeNextPath(value: unknown, fallback: string): string {
   const parsed = internalPathSchema.safeParse(value)
   return parsed.success ? parsed.data : fallback
 }
+
+// Chave de comparação de nomes digitados: sem caixa, sem acento e sem
+// espaço sobrando. "Entradas", "entradas " e "Éntradas" são o mesmo nome
+// para quem lê o cardápio, e o lote precisa recusá-los como repetidos.
+export function comparableText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+}

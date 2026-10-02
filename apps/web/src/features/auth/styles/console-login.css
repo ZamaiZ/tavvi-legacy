@@ -105,3 +105,9 @@
   .tv-cl-input:-webkit-autofill:hover,
   .tv-cl-input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 40px #232120 inset; -webkit-text-fill-color: #F2EEE6; caret-color: #F2EEE6; transition: background-color 9999s ease-out 0s; }
 }
+
+/* Esqueleto do formulário de entrada. */
+.tv-cl-skeleton { display: block; height: 46px; border-radius: 12px; }
+.tv-cl-skeleton.is-title { width: 60%; height: 30px; margin-bottom: 8px; border-radius: 10px; }
+.tv-cl-skeleton.is-label { width: 30%; height: 12px; border-radius: 6px; }
+.tv-cl-skeleton.is-cta { margin-top: 8px; height: 50px; border-radius: 999px; }

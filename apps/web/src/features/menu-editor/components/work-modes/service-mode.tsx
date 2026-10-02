@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from 'react'
 import { LuEyeOff, LuUtensils } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
 import { PanelEmptyState } from '@/features/workspace/components/panel-empty-state'
@@ -86,7 +87,11 @@ function ServiceTile({ restaurantId, item, categories, canEdit }: { restaurantId
       <span className="tv-service-state"><span aria-hidden="true" />{available ? 'Disponível' : 'Esgotado'}</span>
       <strong>{item.name}</strong>
       <small>{priceLabel(item)}</small>
-      {pending ? <span className="sr-only" role="status">Salvando disponibilidade…</span> : null}
+      {pending ? (
+        <span className="tv-service-saving" role="status">
+          <SpinnerRing decorative />Salvando…
+        </span>
+      ) : null}
     </StandaloneItemContextMenu>
   )
 }

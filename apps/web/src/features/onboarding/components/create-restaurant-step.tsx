@@ -92,6 +92,7 @@ export function CreateRestaurantStep({
       className="space-y-6"
       aria-busy={enviando ? 'true' : undefined}
     >
+      <fieldset disabled={enviando} className="space-y-6">
       <IconField
         id="nome"
         label="Nome do restaurante"
@@ -142,6 +143,7 @@ export function CreateRestaurantStep({
           {aviso[disponibilidade].texto}
         </p>
       </div>
+      </fieldset>
 
       {error ? (
         <p role="alert" className="text-small text-destructive">
@@ -154,8 +156,8 @@ export function CreateRestaurantStep({
         className="w-full"
         disabled={enviando || disponibilidade !== 'livre' || name.trim().length < 2}
       >
-        {enviando ? <Spinner className="size-4" /> : null}
-        Criar restaurante
+        {enviando ? <Spinner className="size-4" aria-hidden="true" /> : null}
+        {enviando ? 'Criando restaurante…' : 'Criar restaurante'}
       </Button>
 
       {/* O endereço congela depois daqui. Dizer isto agora, e não descobrir

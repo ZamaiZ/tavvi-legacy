@@ -48,6 +48,10 @@ export function InviteList({ invites, query, filter, selectedId }: {
   const { openInvite } = useConsoleActions()
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // Filtrar pelos atalhos do topo: em transição, como a busca da Toolbar,
+  // e a mesma barra fina avisa que a lista está atualizando.
+  const [filtering, startFilter] = useTransition()
+  const filterTo = (next: InviteFilter) => startFilter(() => updateFilter(router, search, next))
   const [openId, selectInvite] = useLocalSelection('convite', selectedId)
   const openRecord = openId ? invites.find((invite) => invite.id === openId) ?? null : null
   const counts = useMemo(() => Object.fromEntries(filters.map((key) => [key, key === 'all' ? invites.length : invites.filter((invite) => inviteState(invite) === key).length])) as Partial<Record<InviteFilter, number>>, [invites])
@@ -61,7 +65,7 @@ export function InviteList({ invites, query, filter, selectedId }: {
     startTransition(async () => {
       const result = await revokeInviteAction(id)
       setConfirmId(null)
-      toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: 'Não foi possível revogar o convite.', type: 'error' })
+      toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: result.error, type: 'error' })
       router.refresh()
     })
   }
@@ -95,21 +99,21 @@ export function InviteList({ invites, query, filter, selectedId }: {
         detail: `${pendingCount === 1 ? 'pendente' : 'pendentes'} de ${invites.length} ${invites.length === 1 ? 'convite emitido' : 'convites emitidos'}`,
         actions: <>
           <NewInviteButton onClick={() => openInvite()} />
-          <button type="button" className="tv-hero-button is-ink" onClick={() => updateFilter(router, search, 'pending')}>Ver pendentes</button>
+          <button type="button" className="tv-hero-button is-ink" onClick={() => filterTo('pending')}>Ver pendentes</button>
         </>,
       }}
       stats={[
-        { label: 'Resgatados', value: counts.redeemed ?? 0, icon: <LuCircleCheck aria-hidden="true" />, onClick: () => updateFilter(router, search, 'redeemed') },
-        { label: 'Vencidos', value: counts.expired ?? 0, icon: <LuClock3 aria-hidden="true" />, onClick: () => updateFilter(router, search, 'expired') },
-        { label: 'Revogados', value: counts.revoked ?? 0, icon: <LuBan aria-hidden="true" />, onClick: () => updateFilter(router, search, 'revoked') },
+        { label: 'Resgatados', value: counts.redeemed ?? 0, icon: <LuCircleCheck aria-hidden="true" />, onClick: () => filterTo('redeemed') },
+        { label: 'Vencidos', value: counts.expired ?? 0, icon: <LuClock3 aria-hidden="true" />, onClick: () => filterTo('expired') },
+        { label: 'Revogados', value: counts.revoked ?? 0, icon: <LuBan aria-hidden="true" />, onClick: () => filterTo('revoked') },
       ]}
     />
-    <Toolbar kind="invites" query={query} filter={filter} counts={counts} />
+    <Toolbar kind="invites" query={query} filter={filter} counts={counts} busy={filtering} />
     {invites.length === 0 ? <StateCard icon={<LuMail />} title="Nenhum convite ainda" description="Emita o primeiro. Quem receber cria a conta, cria o restaurante e já entra como administrador dele." /> : filtered.length === 0 ? <>
       <div className="tv-no-results tv-d-only" aria-live="polite">{query ? `Nenhum convite encontrado para “${query}”.` : 'Nenhum convite nesta situação.'}</div>
       <div className="tv-m-empty tv-m-only" aria-live="polite"><strong>Nada encontrado</strong><span>Ajuste a busca ou o filtro para ver outros resultados.</span></div>
     </> : <>
-      <div role="table" aria-label="Convites" className="tv-table-shell">
+      <div role="table" aria-label="Convites" className="tv-table-shell" aria-busy={filtering || undefined}>
         <div role="row" className="tv-table-head tv-invite-columns">
           <span role="columnheader">Destinatário</span>
           <span role="columnheader">Situação</span>
@@ -132,8 +136,8 @@ export function InviteList({ invites, query, filter, selectedId }: {
               <div role="cell" className="tv-date-cell">{formatShort(invite.createdAt)}</div>
               <div role="cell" className="tv-date-cell">{formatShort(invite.expiresAt)}</div>
               <div role="cell" className="tv-row-actions">
-                {state === 'pending' ? <button type="button" className="is-danger" aria-label="Revogar convite" title="Revogar convite" onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /></button> : null}
-                <button type="button" aria-label={rotateLabel} title={rotateLabel} onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /></button>
+                {state === 'pending' ? <button type="button" className="is-danger" aria-label="Revogar convite" title="Revogar convite" disabled={pending} onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /></button> : null}
+                <button type="button" aria-label={rotateLabel} title={rotateLabel} disabled={pending} onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /></button>
                 <LuChevronRight className="tv-row-chevron" aria-hidden="true" />
               </div>
             </ContextMenuTrigger>
@@ -141,8 +145,8 @@ export function InviteList({ invites, query, filter, selectedId }: {
               <ContextMenuItem onClick={() => showInvite(invite.id)}><LuPanelRightOpen aria-hidden="true" /><span>Abrir</span></ContextMenuItem>
               {invite.email ? <ContextMenuItem onClick={() => void copyText(invite.email!, 'E-mail copiado')}><LuCopy aria-hidden="true" /><span>Copiar e-mail</span></ContextMenuItem> : null}
               <ContextMenuSeparator />
-              <ContextMenuItem onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /><span>{rotateLabel}</span></ContextMenuItem>
-              {state === 'pending' ? <ContextMenuItem variant="destructive" onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /><span>Revogar convite</span></ContextMenuItem> : null}
+              <ContextMenuItem disabled={pending} onClick={() => openInvite(invite.email ?? undefined, state === 'pending' ? invite.id : undefined)}><LuRotateCcw aria-hidden="true" /><span>{rotateLabel}</span></ContextMenuItem>
+              {state === 'pending' ? <ContextMenuItem variant="destructive" disabled={pending} onClick={() => setConfirmId(invite.id)}><LuBan aria-hidden="true" /><span>Revogar convite</span></ContextMenuItem> : null}
             </ContextMenuContent>
           </ContextMenu>
         })}
@@ -150,6 +154,6 @@ export function InviteList({ invites, query, filter, selectedId }: {
       <div className="tv-mobile-cards">{filtered.map((invite) => { const state = inviteState(invite); return <button type="button" key={invite.id} className="tv-mobile-card" onClick={() => showInvite(invite.id)}><span className="tv-row-icon"><LuMail /></span><span className="tv-mobile-card-copy"><strong>{invite.email ?? 'Qualquer e-mail'}</strong><small>{inviteMeta(invite, state)}</small></span><TvBadge state={state} /><LuChevronRight className="tv-row-chevron" /></button> })}</div>
     </>}
     <InviteDrawer invite={openRecord} onClose={() => selectInvite(null)} />
-    {confirmId && <ConfirmDialog title="Revogar convite?" description="O link deixará de funcionar imediatamente." confirmLabel="Revogar" icon={<LuBan />} destructive pending={pending} onCancel={() => setConfirmId(null)} onConfirm={() => revoke(confirmId)} />}
+    {confirmId && <ConfirmDialog title="Revogar convite?" description="O link deixará de funcionar imediatamente." confirmLabel="Revogar" pendingLabel="Revogando…" icon={<LuBan />} destructive pending={pending} onCancel={() => setConfirmId(null)} onConfirm={() => revoke(confirmId)} />}
   </div>
 }

@@ -1,6 +1,6 @@
 import 'server-only'
 import { uuidSchema } from '@/domain/common'
-import { completeOnboardingSchema, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema } from '@/domain/restaurant'
+import { completeOnboardingSchema, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema, type UpdateRestaurantProfileInput } from '@/domain/restaurant'
 import type { RevalidationTarget } from '@/server/revalidate'
 import { getRestaurantRevalidationTarget } from './revalidation-target'
 import { countVisibleItemsWithoutMedia } from './menu-read'
@@ -14,6 +14,17 @@ import { ConflictError, currentTerritory, requireRestaurantAdmin, requirePlatfor
 async function db() {
   return createUserClient(await currentTerritory())
 }
+// Monta o jsonb `contact`. O endereço do CEP substitui o texto antigo;
+// sem endereço novo, o texto antigo volta como estava (o formulário o
+// devolve) ou some, quando o dono escolheu "Remover endereço".
+function storedContact(contact: UpdateRestaurantProfileInput['contact']): Record<string, unknown> {
+  const { address, legacyAddress, ...rest } = contact
+  const stored: Record<string, unknown> = { ...rest }
+  if (address) stored.address = address
+  else if (legacyAddress) stored.address = legacyAddress
+  return stored
+}
+
 export async function updateRestaurantProfile(
   input: unknown,
 ): Promise<RevalidationTarget> {
@@ -28,7 +39,7 @@ export async function updateRestaurantProfile(
     .update({
       name: data.name,
       description: data.description ?? null,
-      contact: data.contact,
+      contact: storedContact(data.contact),
     })
     .eq('id', data.restaurantId)
 

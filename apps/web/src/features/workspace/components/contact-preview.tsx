@@ -28,6 +28,7 @@ export function ContactPreview({
   whatsapp,
   instagram,
   address,
+  mapsUrl,
   coverPath,
   mode,
 }: {
@@ -38,6 +39,8 @@ export function ContactPreview({
   whatsapp: string
   instagram: string
   address: string
+  /** Com link do Maps, "Como chegar" aparece mesmo sem endereço. */
+  mapsUrl: string
   coverPath: string | null
   // Sem `mode`, a face acompanha o tema do painel. O popover do celular
   // continua passando a face escolhida no seletor dele.
@@ -49,7 +52,7 @@ export function ContactPreview({
     phone.trim() ? { key: 'phone', label: 'Ligar', icon: <LuPhone aria-hidden="true" /> } : null,
     whatsapp.trim() ? { key: 'whatsapp', label: 'WhatsApp', icon: <LuMessageCircle aria-hidden="true" /> } : null,
     handle ? { key: 'instagram', label: `@${handle}`, icon: <LuInstagram aria-hidden="true" /> } : null,
-    address.trim() ? { key: 'address', label: 'Como chegar', icon: <LuMapPin aria-hidden="true" /> } : null,
+    address.trim() || mapsUrl.trim() ? { key: 'address', label: 'Como chegar', icon: <LuMapPin aria-hidden="true" /> } : null,
   ]
   const actions = candidates.filter((action): action is Action => action !== null)
   const style = mode

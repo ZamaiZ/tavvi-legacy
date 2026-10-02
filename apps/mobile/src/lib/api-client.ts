@@ -8,6 +8,12 @@ export class ApiError extends Error {
   }
 }
 
+// Recurso que não existe (INVITE_NOT_FOUND, RESTAURANT_NOT_FOUND...). Não é
+// falha de rede: tentar de novo nunca daria certo, e a tela certa é a 404.
+export function isNotFoundError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404
+}
+
 export type SessionInvalidationReason = 'expired' | 'forbidden'
 let invalidator: ((reason: SessionInvalidationReason) => Promise<void>) | null = null
 let refreshPromise: { refreshToken: string; promise: Promise<AuthSession> } | null = null

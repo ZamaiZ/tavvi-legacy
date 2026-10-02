@@ -1,19 +1,9 @@
 'use server'
 
-import type { BrandSlot, MediaKind } from '@/domain/media'
+import type { BrandSlot } from '@/domain/media'
 import * as dal from '@/server/dal/media'
 import { revalidateRestaurant } from '@/server/revalidate'
 import { runAction, type ActionResult } from './result'
-
-// Os tickets de envio não revalidam nada: eles não escrevem no banco, só
-// pedem uma URL assinada ao storage. Quem grava é o `register`, logo abaixo.
-export async function createUploadTicketAction(input: {
-  itemId: string
-  kind: MediaKind
-  mimeType: string
-}): Promise<ActionResult<{ bucket: string; path: string; signedUrl: string }>> {
-  return runAction(() => dal.createUploadTicket(input))
-}
 
 export async function createBrandUploadTicketAction(input: {
   restaurantId: string
@@ -31,36 +21,15 @@ export async function setBrandImageAction(
   })
 }
 
-export async function registerItemMediaAction(
+// Autoriza o envio de um arquivo do item (existente ou por criar). Não
+// grava no banco, então não revalida nada.
+export async function createItemUploadTicketAction(
   input: unknown,
-): Promise<ActionResult<{ id: string }>> {
-  return runAction(async () => {
-    const { createdId, ...revalidationTarget } = await dal.registerItemMedia(input)
-    revalidateRestaurant(revalidationTarget)
-    return { id: createdId }
-  })
+): Promise<ActionResult<{ itemId: string; path: string; signedUrl: string }>> {
+  return runAction(() => dal.createItemUploadTicket(input))
 }
 
-export async function deleteItemMediaAction(
-  mediaId: unknown,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    revalidateRestaurant(await dal.deleteItemMedia(mediaId))
-  })
-}
-
-export async function setMediaFocalAction(
-  input: unknown,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    revalidateRestaurant(await dal.setMediaFocal(input))
-  })
-}
-
-export async function reorderItemMediaAction(
-  input: unknown,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    revalidateRestaurant(await dal.reorderItemMedia(input))
-  })
+// Sobras de um salvamento que não chegou ao banco.
+export async function discardItemUploadsAction(input: unknown): Promise<ActionResult> {
+  return runAction(() => dal.discardItemUploads(input))
 }

@@ -5,12 +5,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { BackHandler, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
+import { z } from 'zod'
 import { AppText } from '@/components/primitives/app-text'
 import { DetailHero } from '@/components/primitives/detail-hero'
 import { InfoList } from '@/components/primitives/info-list'
 import { DetailSkeleton } from '@/components/primitives/detail-skeleton'
 import { StateCard } from '@/components/primitives/state-card'
 import { formatDate } from '@/lib/format'
+import { isNotFoundError } from '@/lib/api-client'
+import { NotFoundScreen } from '@/features/not-found/not-found-screen'
 import { layout, useAppTheme } from '@/theme'
 import { useRestaurant } from './queries'
 import { getRestaurantPresentation } from './restaurant-presentation'
@@ -19,8 +22,13 @@ const publicMenuBase = process.env.EXPO_PUBLIC_MENU_BASE_URL?.replace(/\/+$/, ''
 const roleNames: Record<'admin' | 'cashier' | 'attendant' | 'waiter', string> = { admin: 'Administrador', cashier: 'Caixa', attendant: 'Atendente', waiter: 'Garçom' }
 function nameInitials(name: string) { return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toLocaleUpperCase('pt-BR')).join('') || 'R' }
 
+// As listas do app só abrem ids UUID. Qualquer outra coisa veio de um link
+// digitado ou antigo: é 404 sem nem chamar a API.
+const idSchema = z.string().uuid()
+
 export function RestaurantDetailScreen({ id }: { id: string }) {
-  const insets = useSafeAreaInsets(); const { colors } = useAppTheme(); const query = useRestaurant(id); const restaurant = query.data
+  const validId = idSchema.safeParse(id).success
+  const insets = useSafeAreaInsets(); const { colors } = useAppTheme(); const query = useRestaurant(validId ? id : ''); const restaurant = query.data
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState<string | null>(null)
   useFocusEffect(useCallback(() => {
@@ -44,6 +52,12 @@ export function RestaurantDetailScreen({ id }: { id: string }) {
       setCopyError('Não foi possível copiar. Selecione o endereço e copie manualmente.')
     }
   }
+
+  // Depois de todos os hooks. Restaurante inexistente é a 404 do console, e
+  // não "verifique sua conexão". Erro de rede e 5xx seguem no cartão com
+  // "Tentar novamente". O voltar do Android continua indo a /restaurants
+  // (useFocusEffect acima).
+  if (!validId || isNotFoundError(query.error)) return <NotFoundScreen backHref="/restaurants" />
 
   const body = query.isLoading ? <DetailSkeleton kind="restaurant" />
     : query.isError || !restaurant || !status ? <StateCard error title="Não foi possível carregar" message="Verifique sua conexão e tente novamente." retry actionLabel="Tentar novamente" actionIcon={RotateCcw} onAction={() => void query.refetch()} />

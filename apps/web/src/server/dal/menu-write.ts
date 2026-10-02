@@ -1,14 +1,11 @@
 import 'server-only'
 import { uuidSchema } from '@/domain/common'
 import {
-  createCategorySchema,
-  createItemSchema,
-  createVariantSchema,
+  createCategoriesSchema,
   reorderSchema,
   setItemAvailabilitySchema,
   updateCategorySchema,
   updateItemSchema,
-  updateVariantSchema,
 } from '@/domain/menu'
 import type { RevalidationTarget } from '@/server/revalidate'
 import { getRestaurantRevalidationTarget } from './revalidation-target'
@@ -39,29 +36,47 @@ async function ownerRestaurantOf(
   return data.restaurant_id as string
 }
 
-export async function createCategory(
+// Um insert com N linhas é UMA instrução no PostgREST: entram todas ou
+// nenhuma. A posição continua a partir da última categoria, na ordem
+// digitada — antes, toda categoria nova nascia em 0 e a ordem empatava.
+export async function createCategories(
   input: unknown,
-): Promise<RevalidationTarget & { createdId: string }> {
-  const data = createCategorySchema.parse(input)
+): Promise<RevalidationTarget & { createdIds: string[] }> {
+  const data = createCategoriesSchema.parse(input)
   await requireRestaurantAdmin(data.restaurantId)
 
   const supabase = await db()
-  const { data: row, error } = await supabase
+  const { data: last, error: lastError } = await supabase
     .from('menu_categories')
-    .insert({
-      restaurant_id: data.restaurantId,
-      name: data.name,
-      description: data.description ?? null,
-    })
+    .select('position')
+    .eq('restaurant_id', data.restaurantId)
+    .order('position', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (lastError) {
+    throw new Error(`Não foi possível ler a ordem das categorias: ${lastError.message}`)
+  }
+  const start = last ? (last.position as number) + 1 : 0
+
+  const { data: rows, error } = await supabase
+    .from('menu_categories')
+    .insert(
+      data.categories.map((category, index) => ({
+        restaurant_id: data.restaurantId,
+        name: category.name,
+        description: category.description ?? null,
+        position: start + index,
+      })),
+    )
     .select('id')
-    .single()
 
   if (error) {
-    throw new Error(`Não foi possível criar a categoria: ${error.message}`)
+    throw new Error(`Não foi possível criar as categorias: ${error.message}`)
   }
   return {
     ...(await getRestaurantRevalidationTarget(data.restaurantId)),
-    createdId: row.id as string,
+    createdIds: (rows ?? []).map((row) => row.id as string),
   }
 }
 
@@ -132,41 +147,22 @@ export async function reorderCategories(
   return getRestaurantRevalidationTarget(data.restaurantId)
 }
 
-export async function createItem(
-  input: unknown,
-): Promise<RevalidationTarget & { createdId: string }> {
-  const data = createItemSchema.parse(input)
-  await requireRestaurantAdmin(data.restaurantId)
-
-  const supabase = await db()
-  const { data: row, error } = await supabase
-    .from('menu_items')
-    .insert({
-      restaurant_id: data.restaurantId,
-      category_id: data.categoryId,
-      name: data.name,
-      description: data.description ?? null,
-      base_price_cents: data.basePriceCents,
-      dietary_tags: data.dietaryTags,
-    })
-    .select('id')
-    .single()
-
-  // Se a categoria for de outro restaurante, quem recusa e a chave
-  // estrangeira composta -- nao um if em TypeScript.
-  if (error) throw new Error(`Não foi possível criar o item: ${error.message}`)
-  return {
-    ...(await getRestaurantRevalidationTarget(data.restaurantId)),
-    createdId: row.id as string,
-  }
-}
-
 export async function updateItem(input: unknown): Promise<RevalidationTarget> {
   const data = updateItemSchema.parse(input)
   const restaurantId = await ownerRestaurantOf('menu_items', data.itemId)
   await requireRestaurantAdmin(restaurantId)
 
   const supabase = await db()
+  // Com variações, `base_price_cents` é derivado (o menor preço entre elas)
+  // e só `save_menu_item` o grava. As ações rápidas mandam o registro
+  // inteiro de volta; ignorar o preço aqui é o que impede uma delas de
+  // sobrescrever o derivado.
+  const { count: variantCount, error: countError } = await supabase
+    .from('menu_item_variants')
+    .select('id', { count: 'exact', head: true })
+    .eq('item_id', data.itemId)
+  if (countError) throw new Error(`Não foi possível conferir as variações: ${countError.message}`)
+
   const { error } = await supabase
     .from('menu_items')
     .update({
@@ -175,7 +171,7 @@ export async function updateItem(input: unknown): Promise<RevalidationTarget> {
       category_id: data.categoryId,
       name: data.name,
       description: data.description ?? null,
-      base_price_cents: data.basePriceCents,
+      ...(variantCount && variantCount > 0 ? {} : { base_price_cents: data.basePriceCents }),
       dietary_tags: data.dietaryTags,
       is_visible: data.isVisible,
       is_available: data.isAvailable,
@@ -234,76 +230,3 @@ export async function setItemAvailability(
   return getRestaurantRevalidationTarget(restaurantId)
 }
 
-export async function createVariant(
-  input: unknown,
-): Promise<RevalidationTarget & { createdId: string }> {
-  const data = createVariantSchema.parse(input)
-  const restaurantId = await ownerRestaurantOf('menu_items', data.itemId)
-  await requireRestaurantAdmin(restaurantId)
-
-  const supabase = await db()
-  const { data: row, error } = await supabase
-    .from('menu_item_variants')
-    .insert({
-      restaurant_id: restaurantId,
-      item_id: data.itemId,
-      name: data.name,
-      price_cents: data.priceCents,
-    })
-    .select('id')
-    .single()
-
-  if (error) {
-    throw new Error(`Não foi possível criar a variação: ${error.message}`)
-  }
-  return {
-    ...(await getRestaurantRevalidationTarget(restaurantId)),
-    createdId: row.id as string,
-  }
-}
-
-export async function updateVariant(
-  input: unknown,
-): Promise<RevalidationTarget> {
-  const data = updateVariantSchema.parse(input)
-  const restaurantId = await ownerRestaurantOf(
-    'menu_item_variants',
-    data.variantId,
-  )
-  await requireRestaurantAdmin(restaurantId)
-
-  const supabase = await db()
-  const { error } = await supabase
-    .from('menu_item_variants')
-    .update({
-      name: data.name,
-      price_cents: data.priceCents,
-      is_available: data.isAvailable,
-    })
-    .eq('id', data.variantId)
-
-  if (error) {
-    throw new Error(`Não foi possível salvar a variação: ${error.message}`)
-  }
-  return getRestaurantRevalidationTarget(restaurantId)
-}
-
-export async function deleteVariant(
-  variantId: unknown,
-): Promise<RevalidationTarget> {
-  const id = uuidSchema.parse(variantId)
-  const restaurantId = await ownerRestaurantOf('menu_item_variants', id)
-  await requireRestaurantAdmin(restaurantId)
-  const revalidationTarget = await getRestaurantRevalidationTarget(restaurantId)
-
-  const supabase = await db()
-  const { error } = await supabase
-    .from('menu_item_variants')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    throw new Error(`Não foi possível remover a variação: ${error.message}`)
-  }
-  return revalidationTarget
-}

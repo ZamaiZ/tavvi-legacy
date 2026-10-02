@@ -1,13 +1,13 @@
 'use client'
 
-import { useMemo, useRef, useState, type TouchEvent } from 'react'
+import { useMemo, useRef, useState, useTransition, type TouchEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { LuBookOpen, LuChevronRight, LuFolderPlus, LuPlus } from 'react-icons/lu'
 import type { OwnerMenuCategoryDTO } from '@/domain/menu'
 import type { RestaurantStatus } from '@/domain/restaurant'
 import { PublishCard } from '../publish-card'
 import { CategorySheet } from './category-sheet'
-import { ItemCreateSheet } from './item-sheet'
+import { ItemEditorSheet } from './item-editor-sheet'
 import { MenuMobileRow } from './menu-mobile-row'
 
 type MenuFilter = 'all' | 'media' | 'unavailable' | 'hidden'
@@ -42,7 +42,7 @@ export function MenuMobile({
   const router = useRouter()
   const listRef = useRef<HTMLDivElement>(null)
   const pullStart = useRef<{ x: number; y: number } | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [refreshing, startRefresh] = useTransition()
   const [filter, setFilter] = useState<MenuFilter>('all')
   const [categoryTarget, setCategoryTarget] = useState<{ categoryId: string | null; initialName?: string }>({ categoryId: null })
   const [categoryOpen, setCategoryOpen] = useState(false)
@@ -103,9 +103,8 @@ export function MenuMobile({
     const dx = event.changedTouches[0].clientX - start.x
     const dy = event.changedTouches[0].clientY - start.y
     if (dy > 100 && dy > Math.abs(dx) * 1.4) {
-      setRefreshing(true)
-      router.refresh()
-      window.setTimeout(() => setRefreshing(false), 900)
+      // O indicador acompanha o refresh de verdade, e não um tempo fixo.
+      startRefresh(() => router.refresh())
     }
   }
 
@@ -208,8 +207,9 @@ export function MenuMobile({
             onOpenChange={setCategoryOpen}
           />
           {newItemCategoryId ? (
-            <ItemCreateSheet
+            <ItemEditorSheet
               restaurantId={restaurantId}
+              item={null}
               categoryId={newItemCategoryId}
               categories={categories}
               open={newItemOpen}

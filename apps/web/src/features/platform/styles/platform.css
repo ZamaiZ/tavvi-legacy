@@ -4,6 +4,9 @@
 .tv-icon-button { width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 11px; background: var(--tv-field); color: var(--tv-muted); }
 .tv-icon-button svg { width: 16px; height: 16px; }
 .tv-spinner { width: 18px; height: 18px; border: 2px solid var(--tv-line-strong); border-top-color: var(--tv-gold-text); border-radius: 50%; animation: tv-spin .8s linear infinite; }
+.tv-confirm-spinner.tv-spinner { width: 14px; height: 14px; margin: 0; border-color: color-mix(in srgb, currentColor 30%, transparent); border-top-color: currentColor; }
+.tv-secondary-cta:disabled, .tv-tonal-button:disabled { cursor: default; }
+.tv-secondary-cta:disabled { opacity: .45; }
 .tv-mono { font-family: var(--tv-mono); font-size: 12.5px; font-weight: 500; }
 .tv-state-card { min-height: 360px; padding: 38px 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid var(--tv-line); border-radius: 22px; background: var(--tv-surface); }
 .tv-state-icon { width: 56px; height: 56px; margin-bottom: 16px; display: grid; place-items: center; border-radius: 18px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
@@ -104,3 +107,19 @@
 .tv-member-list strong { overflow: hidden; color: var(--tv-text); font-size: 13.5px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .tv-member-list a { overflow: hidden; color: var(--tv-text-3); font-size: 12px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .tv-member-list small { flex: 0 0 auto; color: var(--tv-text-3); font-size: 12px; }
+
+/* Link em navegação: tamanho fixo, só a opacidade muda. */
+.tv-link-pending { width: 16px; height: 16px; flex: 0 0 16px; display: inline-grid; place-items: center; opacity: 0; transition: opacity 150ms var(--tv-ease); pointer-events: none; }
+.tv-link-pending[data-active] { opacity: 1; }
+.tv-link-pending .tv-spinner { width: 14px; height: 14px; }
+@media (prefers-reduced-motion: reduce) { .tv-link-pending { transition: none; } }
+
+.tv-row-spinner.tv-spinner { width: 13px; height: 13px; flex: 0 0 auto; }
+
+/* Busca/filtro: barra fina enquanto a lista atualiza. */
+.tv-toolbar { position: relative; }
+.tv-toolbar-progress { position: absolute; right: 0; bottom: -6px; left: 0; height: 2px; overflow: hidden; border-radius: 999px; opacity: 0; transition: opacity 150ms var(--tv-ease); pointer-events: none; }
+.tv-toolbar-progress::after { position: absolute; inset: 0; width: 30%; content: ''; border-radius: inherit; background: var(--tv-gold); animation: tv-toolbar-progress 1s ease-in-out infinite; }
+.tv-toolbar-progress[data-active] { opacity: 1; }
+@keyframes tv-toolbar-progress { from { left: -30%; } to { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .tv-toolbar-progress::after { width: 100%; animation: none; } }

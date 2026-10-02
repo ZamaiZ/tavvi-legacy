@@ -204,3 +204,18 @@
     transition-delay: 0ms;
   }
 }
+
+/* Esqueleto do cardápio público (antes do tema chegar). */
+.menu-loading { --ml-bg: #F7F5F0; --ml-block: rgba(23,21,15,.07); --ml-shine: rgba(255,255,255,.55); min-height: 100dvh; background: var(--ml-bg); }
+@media (prefers-color-scheme: dark) { .menu-loading { --ml-bg: #121110; --ml-block: rgba(255,255,255,.07); --ml-shine: rgba(255,255,255,.06); } }
+.menu-loading-cover { height: 34dvh; background: var(--ml-block); }
+.menu-loading-body { max-width: 720px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.menu-loading-line, .menu-loading-actions > span, .menu-loading-cover { position: relative; overflow: hidden; }
+.menu-loading-line { display: block; height: 14px; width: 80%; border-radius: 7px; background: var(--ml-block); }
+.menu-loading-line.is-title { height: 30px; width: 60%; border-radius: 10px; }
+.menu-loading-line.is-short { width: 40%; }
+.menu-loading-actions { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.menu-loading-actions > span { height: 44px; border-radius: 14px; background: var(--ml-block); }
+.menu-loading-line::after, .menu-loading-actions > span::after, .menu-loading-cover::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, var(--ml-shine), transparent); animation: menu-loading-shine 1.4s infinite; translate: -100% 0; }
+@keyframes menu-loading-shine { to { translate: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { .menu-loading-line::after, .menu-loading-actions > span::after, .menu-loading-cover::after { animation: none; } }

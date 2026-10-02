@@ -1,7 +1,8 @@
 'use client'
 
 import { LuArrowRight, LuCheck, LuCopy, LuMail, LuMinus, LuPlus, LuTriangleAlert } from 'react-icons/lu'
-import { MobileSheet, MobileSheetNav, useMobileSheet, useSheetGuard } from '@/components/shell/mobile-sheet'
+import { MobileSheet, MobileSheetNav, useMobileSheet, useSheetBusy, useSheetGuard } from '@/components/shell/mobile-sheet'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { Combobox } from '@/components/ui/combobox'
 import { toast } from '@/components/ui/toast'
 import { MEMBER_ROLE_LABELS, type MemberRole } from '@/domain/invite'
@@ -34,6 +35,7 @@ export function TeamInviteSheet({
 function TeamInviteBody({ restaurantId, restaurantName }: { restaurantId: string; restaurantName: string }) {
   const { forceClose } = useMobileSheet()
   const invite = useTeamInvite(restaurantId)
+  useSheetBusy(invite.pending)
 
   useSheetGuard(() => {
     if (invite.pending) return false
@@ -95,6 +97,7 @@ function TeamInviteBody({ restaurantId, restaurantName }: { restaurantId: string
               aria-label="E-mail (opcional)"
               placeholder="E-mail (opcional)"
               value={invite.email}
+              disabled={invite.pending}
               onChange={(event) => invite.setEmail(event.target.value)}
             />
           </label>
@@ -106,20 +109,21 @@ function TeamInviteBody({ restaurantId, restaurantName }: { restaurantId: string
             options={ROLES.map((role) => ({ value: role, label: MEMBER_ROLE_LABELS[role] }))}
             value={invite.role}
             onValueChange={(value) => invite.setRole(value as MemberRole)}
+            disabled={invite.pending}
           />
           <div className="tv-sheet-m-validity" role="group" aria-label="Validade">
             <span>Validade</span>
             <output aria-live="polite">{invite.days} {invite.days === 1 ? 'dia' : 'dias'}</output>
             <span className="tv-sheet-m-stepper">
-              <button type="button" aria-label="Menos dias" disabled={invite.days <= 1} onPointerDown={() => invite.startHold(-1)} onPointerUp={invite.stopHold} onPointerLeave={invite.stopHold} onClick={() => invite.stepDays(-1)}><LuMinus aria-hidden="true" /></button>
+              <button type="button" aria-label="Menos dias" disabled={invite.pending || invite.days <= 1} onPointerDown={() => invite.startHold(-1)} onPointerUp={invite.stopHold} onPointerLeave={invite.stopHold} onClick={() => invite.stepDays(-1)}><LuMinus aria-hidden="true" /></button>
               <i aria-hidden="true" />
-              <button type="button" aria-label="Mais dias" disabled={invite.days >= 30} onPointerDown={() => invite.startHold(1)} onPointerUp={invite.stopHold} onPointerLeave={invite.stopHold} onClick={() => invite.stepDays(1)}><LuPlus aria-hidden="true" /></button>
+              <button type="button" aria-label="Mais dias" disabled={invite.pending || invite.days >= 30} onPointerDown={() => invite.startHold(1)} onPointerUp={invite.stopHold} onPointerLeave={invite.stopHold} onClick={() => invite.stepDays(1)}><LuPlus aria-hidden="true" /></button>
             </span>
           </div>
           <p className="tv-sheet-m-note">Entre 1 e 30 dias. Quem aceitar dentro do prazo não perde o acesso depois.</p>
           <div className="tv-sheet-m-spacer" />
           <button type="submit" className="tv-m-pill is-primary tv-sheet-m-cta" disabled={invite.pending} aria-busy={invite.pending || undefined}>
-            {invite.pending ? <><span className="tv-spinner" aria-hidden="true" />Gerando…</> : <>Gerar link<LuArrowRight aria-hidden="true" /></>}
+            {invite.pending ? <><SpinnerRing decorative />Gerando…</> : <>Gerar link<LuArrowRight aria-hidden="true" /></>}
           </button>
         </form>
       )}

@@ -9,6 +9,7 @@ import { toast } from '@/components/ui/toast'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
 import { PanelEmptyState } from '@/features/workspace/components/panel-empty-state'
 import { setItemAvailabilityAction, updateItemAction } from '@/server/actions/menu'
+import { priceLabel, variantCountLabel } from '../../lib/item-display'
 import { itemPayload, moveItemToCategory } from '../../lib/menu-order'
 import { StandaloneItemContextMenu } from '../item-context-menu'
 import { NewCategoryButton } from '../new-category-button'
@@ -46,6 +47,7 @@ function SheetRow({ restaurantId, item, categories, categoryOptions, canEdit }: 
   const [categoryId, setCategoryId] = useOptimistic(item.categoryId)
   const [visible, setVisible] = useOptimistic(item.isVisible)
   const [available, setAvailable] = useOptimistic(item.isAvailable)
+  const derivedPrice = item.variants.length > 0
 
   function reset() {
     setName(item.name)
@@ -57,9 +59,9 @@ function SheetRow({ restaurantId, item, categories, categoryOptions, canEdit }: 
     const cents = price
     const trimmed = name.trim()
     if (cents === null || !trimmed) { reset(); return }
-    if (trimmed === item.name && cents === item.basePriceCents) return
+    if (trimmed === item.name && (derivedPrice || cents === item.basePriceCents)) return
     startTransition(async () => {
-      const result = await updateItemAction(itemPayload(item, { name: trimmed, basePriceCents: cents }))
+      const result = await updateItemAction(itemPayload(item, derivedPrice ? { name: trimmed } : { name: trimmed, basePriceCents: cents }))
       if (result.ok) toast.add({ title: 'Item atualizado', type: 'success' })
       else { reset(); toast.add({ title: result.error, type: 'error' }) }
     })
@@ -110,9 +112,9 @@ function SheetRow({ restaurantId, item, categories, categoryOptions, canEdit }: 
       categories={categories}
       onMove={move}
       disabled={!canEdit}
-      render={<div className="tv-sheet-row" />}
+      render={<div className="tv-sheet-row" aria-busy={pending || undefined} />}
     >
-      <input className="tv-sheet-name" value={name} disabled={!canEdit} aria-label={`Nome de ${item.name}`} onChange={(event) => setName(event.target.value)} onBlur={saveText} onKeyDown={onKeyDown} />
+      <input className="tv-sheet-name" value={name} disabled={!canEdit || pending} aria-label={`Nome de ${item.name}`} onChange={(event) => setName(event.target.value)} onBlur={saveText} onKeyDown={onKeyDown} />
       <Combobox
         label={`Categoria de ${item.name}`}
         options={categoryOptions}
@@ -122,18 +124,27 @@ function SheetRow({ restaurantId, item, categories, categoryOptions, canEdit }: 
         disabled={!canEdit || pending}
         className="tv-sheet-combo"
       />
-      <label className="tv-sheet-price">
-        <span aria-hidden="true">R$</span>
-        <CurrencyInput valueCents={price} onValueChange={setPrice} disabled={!canEdit} aria-label={`Preço de ${item.name}`} onBlur={saveText} onKeyDown={onKeyDown} />
-      </label>
+      {derivedPrice ? (
+        // Com variações o preço não se edita aqui: ele é o das variações, e
+        // mudá-lo na linha criaria um "preço seco" que ninguém vê.
+        <span className="tv-sheet-price is-derived" title="Preço definido pelas variações">
+          {priceLabel(item)} · {variantCountLabel(item.variants.length)}
+        </span>
+      ) : (
+        <label className="tv-sheet-price">
+          <span aria-hidden="true">R$</span>
+          <CurrencyInput valueCents={price} onValueChange={setPrice} disabled={!canEdit || pending} aria-label={`Preço de ${item.name}`} onBlur={saveText} onKeyDown={onKeyDown} />
+        </label>
+      )}
       <label className="tv-sheet-toggle">
-        <Switch checked={visible} disabled={!canEdit} onCheckedChange={(next) => toggleVisible(next)} aria-label={`${item.name} visível`} />
+        <Switch checked={visible} disabled={!canEdit || pending} onCheckedChange={(next) => toggleVisible(next)} aria-label={`${item.name} visível`} />
         <span aria-hidden="true">Visível</span>
       </label>
       <label className="tv-sheet-toggle">
-        <Switch checked={available} disabled={!canEdit} onCheckedChange={(next) => toggleAvailable(next)} aria-label={`${item.name} disponível`} />
+        <Switch checked={available} disabled={!canEdit || pending} onCheckedChange={(next) => toggleAvailable(next)} aria-label={`${item.name} disponível`} />
         <span aria-hidden="true">Disponível</span>
       </label>
+      {pending ? <span className="sr-only" role="status">Salvando…</span> : null}
     </StandaloneItemContextMenu>
   )
 }

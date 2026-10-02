@@ -19,6 +19,10 @@ export const VIDEO_BUCKET = 'menu-videos'
 // inserir, e nada é apagado.
 export const MAX_MEDIA_PER_ITEM = 6
 
+// 15 segundos por vídeo. Conferido no navegador ao escolher o arquivo e de
+// novo ao prepará-lo: o servidor não lê duração sem transcodificar.
+export const MAX_VIDEO_DURATION_MS = 15_000
+
 export const MEDIA_LIMITS = {
   image: {
     bucket: IMAGE_BUCKET,
@@ -61,39 +65,24 @@ export const setBrandImageSchema = z.object({
 // O ponto que o dono marcou como "não pode sair do quadro". Vira
 // `object-position` na hora de desenhar. 0,5/0,5 é o centro, que é o que o
 // `cover` já fazia sozinho.
-const focalSchema = z.number().min(0).max(1)
+export const focalSchema = z.number().min(0).max(1)
 
-export const setMediaFocalSchema = z.object({
-  mediaId: uuidSchema,
-  focalX: focalSchema,
-  focalY: focalSchema,
-})
-
-// Mesmo formato do `reorderSchema` de `@/domain/menu`, que já serve
-// categorias e itens. Um formato só de reordenação no projeto inteiro.
-//
-// O teto de 10 é folga sobre o máximo real, que é 4 imagens + 1 vídeo: itens
-// antigos podem ter até 6 imagens, de antes de o teto baixar.
-export const reorderMediaSchema = z.object({
-  itemId: uuidSchema,
-  order: z
-    .array(z.object({ id: uuidSchema, position: z.int().min(0).max(10) }))
-    .min(1),
-})
-
-export const registerMediaSchema = z.object({
-  itemId: uuidSchema,
+// Autorização de envio de um arquivo de item. `itemId` nulo: o item ainda
+// não existe (criação). O servidor reserva o id e o devolve, e as próximas
+// autorizações do mesmo salvamento reaproveitam esse id.
+export const itemUploadTicketSchema = z.object({
+  restaurantId: uuidSchema,
+  itemId: uuidSchema.nullable(),
   kind: mediaKindSchema,
-  storagePath: z.string().min(1).max(400),
-  // Só faz sentido quando kind = 'video'. Anulável porque a captura pode
-  // falhar, e falhar em capturar não impede subir o vídeo.
-  posterPath: z.string().min(1).max(400).optional(),
-  altText: plainTextSchema(160).optional(),
-  width: z.int().min(1).max(10_000).optional(),
-  height: z.int().min(1).max(10_000).optional(),
-  // 15 segundos. Validado no navegador; o servidor não consegue conferir
-  // duração sem transcodificar. Limitação registrada na spec.
-  durationMs: z.int().min(1).max(15_000).optional(),
-  focalX: focalSchema.optional(),
-  focalY: focalSchema.optional(),
+  mimeType: z.string().min(1).max(100),
+})
+
+// Arquivos que subiram para um salvamento que não chegou ao banco.
+export const discardUploadsSchema = z.object({
+  restaurantId: uuidSchema,
+  itemId: uuidSchema,
+  files: z
+    .array(z.object({ kind: mediaKindSchema, path: z.string().min(1).max(400) }))
+    .min(1)
+    .max(20),
 })

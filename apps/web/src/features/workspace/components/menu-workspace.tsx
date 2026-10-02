@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, m, useReducedMotion } from 'motion/react'
 import { LuArrowDownUp, LuArrowUpDown, LuBookOpen, LuFolderPlus, LuLayoutGrid, LuList, LuSearch, LuSparkles } from 'react-icons/lu'
@@ -65,7 +65,7 @@ export function MenuWorkspace({
   const router = useRouter()
   const reduceMotion = useReducedMotion()
   const pullStart = useRef<{ x: number; y: number } | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [refreshing, startRefresh] = useTransition()
   const [view, setView] = useState<MenuView>('list')
   const [filter, setFilter] = useState<MenuFilter>('all')
   const [query, setQuery] = useState('')
@@ -134,9 +134,8 @@ export function MenuWorkspace({
     const dx = event.changedTouches[0].clientX - start.x
     const dy = event.changedTouches[0].clientY - start.y
     if (dy > 100 && dy > Math.abs(dx) * 1.4) {
-      setRefreshing(true)
-      router.refresh()
-      window.setTimeout(() => setRefreshing(false), 900)
+      // O indicador acompanha o refresh de verdade, e não um tempo fixo.
+      startRefresh(() => router.refresh())
     }
   }
 

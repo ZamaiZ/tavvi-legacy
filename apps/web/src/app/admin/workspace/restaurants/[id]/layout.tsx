@@ -1,18 +1,10 @@
 import type { Viewport } from 'next'
-import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getRestaurantNavigation } from '@/components/shell/navigation'
-import type { NavGroup } from '@/components/shell/navigation.types'
-import { ConsoleShell } from '@/components/shell/console-shell'
-import { getRestaurantConsoleConfig } from '@/components/shell/console-config'
-import { MEMBER_ROLE_LABELS } from '@/domain/invite'
-import { restaurantInitials } from '@/lib/initials'
-import { publicMediaUrl } from '@/lib/media-url'
+import { Suspense } from 'react'
+import { ShellSkeleton } from '@/components/shell/shell-skeleton'
 import { uuidSchema } from '@/domain/common'
-import { getCurrentUser } from '@/server/dal/auth'
-import { getMyDisplayName } from '@/server/dal/profile'
-import { listMyRestaurants } from '@/server/dal/restaurant-read'
-import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
+import { MenuSkeleton } from '@/features/workspace/components/menu-skeleton'
+import { RestaurantShell } from '@/features/workspace/components/restaurant-shell'
 
 // Área segura do iPhone (cabeçalho, tab bar e sheets) e cor da barra do
 // navegador igual ao fundo agrupado do painel no celular.
@@ -37,41 +29,12 @@ export default async function RestaurantLayout({
   const parsed = uuidSchema.safeParse(id)
   if (!parsed.success) notFound()
 
-  // Só o papel, o nome e os restaurantes da pessoa, e só para montar a
-  // casca. A autorização de verdade é de cada página, e depois da DAL, e
-  // depois da RLS.
-  const [workspace, user, restaurants, displayName] = await Promise.all([
-    getRestaurantWorkspace(parsed.data),
-    getCurrentUser(),
-    listMyRestaurants(),
-    getMyDisplayName(),
-  ])
-  if (!workspace) notFound()
-  const cookieStore = await cookies()
-  const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
-  const navigation = getRestaurantNavigation(parsed.data, workspace.canEdit)
-  const config = getRestaurantConsoleConfig({
-    email: user?.email ?? null,
-    displayName,
-    roleLabel: workspace.role ? MEMBER_ROLE_LABELS[workspace.role] : 'Membro',
-    restaurantName: workspace.restaurant.name,
-    homeHref: `/restaurantes/${parsed.data}`,
-    navigation: navigation.filter((item): item is NavGroup => item.kind === 'group'),
-    logoUrl: workspace.restaurant.logoPath ? publicMediaUrl('image', workspace.restaurant.logoPath) : null,
-    restaurantId: parsed.data,
-    canEdit: workspace.canEdit,
-    restaurants: restaurants.map((entry) => ({
-      id: entry.id,
-      name: entry.name,
-      logoUrl: entry.logoPath ? publicMediaUrl('image', entry.logoPath) : null,
-      initials: restaurantInitials(entry.name),
-      roleLabel: entry.role ? MEMBER_ROLE_LABELS[entry.role] : 'Membro',
-    })),
-  })
-
+  // As consultas da casca rodam DENTRO do Suspense (doc do Next: layout.md,
+  // "Interaction with loading.js"). Sem isso a navegação para um restaurante
+  // travava até o layout terminar, sem esqueleto nenhum.
   return (
-    <ConsoleShell config={config} initialRail={initialRail}>
-      {children}
-    </ConsoleShell>
+    <Suspense fallback={<ShellSkeleton><MenuSkeleton /></ShellSkeleton>}>
+      <RestaurantShell restaurantId={parsed.data}>{children}</RestaurantShell>
+    </Suspense>
   )
 }

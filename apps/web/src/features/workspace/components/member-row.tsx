@@ -15,6 +15,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import {
   MEMBER_ROLE_LABELS,
@@ -42,6 +43,7 @@ export function MemberRow({
   const [pending, startTransition] = useTransition()
   const [papel, setPapel] = useState<MemberRole>(member.role)
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [changing, setChanging] = useState(false)
 
   // Duas letras no máximo. Nome com sobrenome dá as duas iniciais; e-mail dá
   // as iniciais das partes antes do domínio. O ponto de interrogação cobre o
@@ -61,12 +63,14 @@ export function MemberRow({
   function updateRole(nextRole: MemberRole) {
     const anterior = papel
     setPapel(nextRole)
+    setChanging(true)
 
     startTransition(async () => {
       const result = await changeMemberRoleAction({
         membershipId: member.membershipId,
         role: nextRole,
       })
+      setChanging(false)
 
       if (result.ok) {
         toast.add({ title: 'Papel atualizado', type: 'success' })
@@ -100,6 +104,7 @@ export function MemberRow({
       title={`Remover ${member.email ?? member.displayName ?? 'este membro'}?`}
       description="A pessoa perde o acesso a este restaurante na hora. Para voltar, precisará de um convite novo."
       confirmLabel="Remover"
+      pendingLabel="Removendo…"
       pending={pending}
       onConfirm={removeMember}
     />
@@ -118,7 +123,7 @@ export function MemberRow({
           </span>
         </div>
 
-        <div role="cell">
+        <div role="cell" className="tv-team-role-cell" aria-busy={changing || undefined}>
           {/* Você mesmo não muda o próprio papel: a trava evita se rebaixar
               sem querer. A do último administrador fica no servidor. */}
           <Combobox
@@ -130,6 +135,7 @@ export function MemberRow({
             disabled={pending || isSelf}
             className="tv-team-combo"
           />
+          {changing ? <SpinnerRing label="Atualizando o papel" className="tv-team-role-spinner" /> : null}
         </div>
 
         <div role="cell" className="tv-date-cell">
@@ -159,7 +165,7 @@ export function MemberRow({
             <ContextMenuSubTrigger><LuUserCog aria-hidden="true" /><span>Papel</span></ContextMenuSubTrigger>
             <ContextMenuSubContent aria-label="Papel">
               <ContextMenuRadioGroup value={papel} onValueChange={(next) => updateRole(next as MemberRole)}>
-                {ROLE_OPTIONS.map((option) => <ContextMenuRadioItem key={option.value} value={option.value}>{option.label}</ContextMenuRadioItem>)}
+                {ROLE_OPTIONS.map((option) => <ContextMenuRadioItem key={option.value} value={option.value} disabled={pending}>{option.label}</ContextMenuRadioItem>)}
               </ContextMenuRadioGroup>
             </ContextMenuSubContent>
           </ContextMenuSub>

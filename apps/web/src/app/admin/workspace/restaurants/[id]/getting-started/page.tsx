@@ -1,14 +1,15 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { IdentityForm } from '@/features/workspace/components/identity-form'
-import { ProfileForm } from '@/features/workspace/components/profile-form'
+import {
+  CompleteOnboardingButton,
+  ContinueToContactLink,
+  WizardContactStep,
+  WizardIdentityStep,
+} from '@/features/onboarding/components/wizard-steps'
 import { Reveal } from '@/components/motion/reveal'
-import { buttonVariants } from '@/components/ui/button'
 import { Progress, ProgressLabel } from '@/components/ui/progress'
 import { uuidSchema } from '@/domain/common'
 import { requireRestaurantAdmin } from '@/server/dal/auth'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
-import { completeOnboardingAction } from '@/server/actions/restaurants'
 import { themeSchema } from '@/domain/theme'
 
 export const metadata = { title: 'Configurar restaurante' }
@@ -71,7 +72,7 @@ export default async function Page({
         </div>
 
         {currentStep === 'identidade' ? (
-          <IdentityForm
+          <WizardIdentityStep
             restaurantId={restaurant.id}
             name={restaurant.name}
             segment={restaurant.segment}
@@ -80,7 +81,7 @@ export default async function Page({
             coverPath={restaurant.coverPath}
           />
         ) : (
-          <ProfileForm
+          <WizardContactStep
             restaurantId={restaurant.id}
             name={restaurant.name}
             description={restaurant.description}
@@ -93,26 +94,11 @@ export default async function Page({
         {/* Pular é visível nos dois passos, e não escondido num canto. O
             restaurante já existe; nada aqui é obrigatório para operar. */}
         <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-border pt-6">
-          {/* Link estilizado, e não Button com `render`: a doc local do Base
-              UI (`button.md:150`) diz que âncora não deve receber semântica
-              de botão pelo `render`. */}
-          {currentStep === 'identidade' ? (
-            <Link
-              href={`/restaurantes/${restaurant.id}/comecar?passo=contato`}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              Continuar para o contato
-            </Link>
-          ) : null}
-
-          {/* Formulário, e não link: sair do assistente grava a marca que
-              esconde "Primeiros passos" do cabeçalho do cardápio. */}
-          <form action={completeOnboardingAction}>
-            <input type="hidden" name="restaurantId" value={restaurant.id} />
-            <button type="submit" className={buttonVariants({ variant: 'ghost' })}>
-              {currentStep === 'identidade' ? 'Pular e montar o cardápio' : 'Ir para o cardápio'}
-            </button>
-          </form>
+          {currentStep === 'identidade' ? <ContinueToContactLink restaurantId={restaurant.id} /> : null}
+          <CompleteOnboardingButton
+            restaurantId={restaurant.id}
+            label={currentStep === 'identidade' ? 'Pular e montar o cardápio' : 'Ir para o cardápio'}
+          />
         </div>
       </Reveal>
     </main>

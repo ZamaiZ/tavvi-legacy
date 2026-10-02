@@ -1,6 +1,7 @@
 'use client'
 
 import { LuImagePlus } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
 import { firstMedia, focalPosition, mediaPreviewUrl, priceLabel } from '../lib/item-display'
@@ -44,11 +45,11 @@ export function ItemCard({
       categories={categories}
       actions={actions}
       disabled={!canEdit}
-      render={<article className={`tv-gcard${item.isVisible ? '' : ' is-hidden'}`} />}
+      render={<article className={`tv-gcard${item.isVisible ? '' : ' is-hidden'}${actions.pending ? ' is-busy' : ''}`} aria-busy={actions.pending || undefined} />}
     >
       <div className="tv-gcard-media">
         {canEdit ? (
-          <button type="button" className="tv-gcard-image" aria-label={`Editar ${item.name}`} onClick={() => actions.setEditOpen(true)}>{image}</button>
+          <button type="button" className="tv-gcard-image" aria-label={`Editar ${item.name}`} disabled={actions.pending} onClick={() => actions.setEditOpen(true)}>{image}</button>
         ) : (
           <div className="tv-gcard-image">{image}</div>
         )}
@@ -71,6 +72,7 @@ export function ItemCard({
         <strong>{item.name}</strong>
         <div className="tv-gcard-row">
           <span className={actions.available ? undefined : 'is-soldout'}>{priceLabel(item)}</span>
+          {actions.running === 'availability' ? <SpinnerRing label="Salvando disponibilidade" className="tv-row-spinner" /> : null}
           {canEdit ? (
             <Switch
               checked={actions.available}
@@ -83,7 +85,7 @@ export function ItemCard({
           )}
         </div>
       </div>
-      {canEdit ? <ItemDialogs item={item} categories={categories} actions={actions} /> : null}
+      {canEdit ? <ItemDialogs restaurantId={restaurantId} item={item} categories={categories} actions={actions} /> : null}
     </ItemContextMenu>
   )
 }

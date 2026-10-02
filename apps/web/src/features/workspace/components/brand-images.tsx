@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LuImageUp, LuTrash2 } from 'react-icons/lu'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { BRAND_SLOT_LABELS, MEDIA_LIMITS, type BrandSlot } from '@/domain/media'
+import { formatFileSize } from '@/lib/format'
 import { compressImage } from '@/lib/media/compress-image'
 import { publicMediaUrl } from '@/lib/media-url'
 import { uploadToSignedUrl } from '@/lib/upload'
@@ -26,20 +27,74 @@ const SLOT_COPY: Record<BrandSlot, { empty: string; help: string }> = {
 
 const ACCEPTED_TYPES: readonly string[] = MEDIA_LIMITS.image.mimes
 
-// O bloco inteiro é a área de envio: clicar, arrastar ou colar. Logo e capa
-// gravam SOZINHAS, na hora — envio de arquivo já é uma confirmação por si, e
-// amarrá-lo ao "Salvar identidade" criaria um estado em que o arquivo está no
-// storage e o banco ainda não sabe dele.
+// Logo e capa em rascunho, como o resto da Identidade: escolher um arquivo
+// só o prepara (comprime e confere o peso) e mostra na prévia; o envio e a
+// gravação acontecem no "Salvar identidade".
+export type BrandDraft =
+  | { kind: 'saved'; path: string | null }
+  | { kind: 'new'; blob: Blob; mimeType: string; previewUrl: string }
+  | { kind: 'removed' }
+
+/** O que a prévia desenha: o caminho gravado ou a imagem local. */
+export function brandPreviewPath(draft: BrandDraft): string | null {
+  if (draft.kind === 'saved') return draft.path
+  if (draft.kind === 'new') return draft.previewUrl
+  return null
+}
+
+export function brandChanged(draft: BrandDraft, original: string | null): boolean {
+  if (draft.kind === 'saved') return false
+  if (draft.kind === 'removed') return original !== null
+  return true
+}
+
+export function revokeBrandPreview(draft: BrandDraft) {
+  if (draft.kind === 'new') URL.revokeObjectURL(draft.previewUrl)
+}
+
+// Grava uma troca de logo ou capa: sobe o arquivo e aponta o restaurante
+// para ele, ou remove. Devolve o caminho gravado, ou a causa exata da falha.
+export async function commitBrandImage(
+  restaurantId: string,
+  slot: BrandSlot,
+  draft: BrandDraft,
+  original: string | null,
+): Promise<{ ok: true; path: string | null } | { ok: false; error: string }> {
+  const label = BRAND_SLOT_LABELS[slot]
+  if (draft.kind === 'saved') return { ok: true, path: original }
+  if (draft.kind === 'removed') {
+    if (original === null) return { ok: true, path: null }
+    const removed = await setBrandImageAction({ restaurantId, slot, storagePath: null })
+    return removed.ok ? { ok: true, path: null } : { ok: false, error: `${label}: ${removed.error}` }
+  }
+
+  const ticket = await createBrandUploadTicketAction({ restaurantId, slot, mimeType: draft.mimeType })
+  if (!ticket.ok) return { ok: false, error: `${label}: ${ticket.error}` }
+  try {
+    await uploadToSignedUrl(ticket.data.signedUrl, draft.blob, draft.mimeType)
+  } catch {
+    return { ok: false, error: `Não foi possível enviar a ${label.toLowerCase()}. Confira a conexão e tente de novo.` }
+  }
+  const saved = await setBrandImageAction({ restaurantId, slot, storagePath: ticket.data.path })
+  return saved.ok ? { ok: true, path: ticket.data.path } : { ok: false, error: `${label}: ${saved.error}` }
+}
+
+function imageSrc(path: string) {
+  // A imagem local (blob:) é desenhada como está; a gravada vem do storage.
+  return path.startsWith('blob:') ? path : publicMediaUrl('image', path)
+}
+
+// O bloco inteiro é a área de escolha: clicar, arrastar ou colar.
 function BrandTile({
-  restaurantId,
   slot,
-  path,
+  draft,
+  disabled,
   onChange,
 }: {
-  restaurantId: string
   slot: BrandSlot
-  path: string | null
-  onChange: (path: string | null) => void
+  draft: BrandDraft
+  disabled: boolean
+  onChange: (draft: BrandDraft) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const tileRef = useRef<HTMLDivElement>(null)
@@ -47,93 +102,53 @@ function BrandTile({
   // FILHO, e com booleano o estado pisca a cada movimento do mouse.
   const dragDepth = useRef(0)
   const [draggingOver, setDraggingOver] = useState(false)
-  const [pending, startTransition] = useTransition()
+  const [preparing, setPreparing] = useState(false)
   const label = BRAND_SLOT_LABELS[slot]
   const copy = SLOT_COPY[slot]
+  const blocked = preparing || disabled
+  const path = brandPreviewPath(draft)
 
-  function uploadFile(file: File) {
+  async function chooseFile(file: File) {
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.add({ title: 'Envie uma imagem JPG, PNG, WebP ou AVIF.', type: 'error' })
       return
     }
-
-    // As actions vão DENTRO de startTransition por virem de manipulador de
-    // evento — contrato documentado do Next 16.3.5. Fora dela, a revalidação
-    // pode não voltar aplicada e a tela fica velha depois de um envio que
-    // deu certo.
-    startTransition(async () => {
+    setPreparing(true)
+    try {
       // Comprime ANTES de conferir o teto. A capa é a imagem mais pesada do
       // sistema, e recusar o original de uma foto que comprimiria bem abaixo
       // do limite desperdiçaria justamente a compressão.
       const compression = await compressImage(file)
       const blob = compression.blob
-
       if (blob.size > MEDIA_LIMITS.image.maxBytes) {
         toast.add({
           title: 'Arquivo grande demais',
-          description: `Mesmo comprimido ficou em ${(blob.size / 1_048_576).toFixed(1)} MB, e o limite é ${Math.round(MEDIA_LIMITS.image.maxBytes / 1_048_576)} MB.`,
+          description: `Mesmo comprimido ficou com ${formatFileSize(blob.size)}, e o limite é ${formatFileSize(MEDIA_LIMITS.image.maxBytes)}.`,
           type: 'error',
         })
         return
       }
-
+      revokeBrandPreview(draft)
       // O tipo do BLOB, e não o do arquivo: depois da compressão eles
-      // divergem, e mandar o antigo grava no storage um arquivo com
-      // content-type errado — que o navegador depois não desenha.
-      const mimeType = blob.type || file.type
-
-      const ticket = await createBrandUploadTicketAction({
-        restaurantId,
-        slot,
-        mimeType,
-      })
-      if (!ticket.ok) {
-        toast.add({ title: ticket.error, type: 'error' })
-        return
-      }
-
-      try {
-        await uploadToSignedUrl(ticket.data.signedUrl, blob, mimeType)
-      } catch {
-        toast.add({ title: 'Não foi possível enviar o arquivo.', type: 'error' })
-        return
-      }
-
-      const savedResult = await setBrandImageAction({
-        restaurantId,
-        slot,
-        storagePath: ticket.data.path,
-      })
-      if (savedResult.ok) {
-        onChange(ticket.data.path)
-        toast.add({ title: `${label} atualizada`, type: 'success' })
-      } else {
-        toast.add({ title: savedResult.error, type: 'error' })
-      }
-    })
+      // divergem, e mandar o antigo gravaria um content-type errado.
+      onChange({ kind: 'new', blob, mimeType: blob.type || file.type, previewUrl: URL.createObjectURL(blob) })
+    } catch {
+      toast.add({ title: `Não foi possível ler a imagem “${file.name}”.`, type: 'error' })
+    } finally {
+      setPreparing(false)
+    }
   }
 
   function removeImage() {
-    startTransition(async () => {
-      const result = await setBrandImageAction({
-        restaurantId,
-        slot,
-        storagePath: null,
-      })
-      if (result.ok) {
-        onChange(null)
-        toast.add({ title: `${label} removida`, type: 'success' })
-      } else {
-        toast.add({ title: result.error, type: 'error' })
-      }
-    })
+    revokeBrandPreview(draft)
+    onChange({ kind: 'removed' })
   }
 
   // Colar vai para o bloco em que a pessoa está — com foco ou sob o
   // ponteiro. Ouvir a janela nos dois blocos mandaria a mesma imagem para o
   // logo E para a capa.
   useEffect(() => {
-    if (pending) return
+    if (blocked) return
 
     function handlePaste(event: ClipboardEvent) {
       const tile = tileRef.current
@@ -141,7 +156,7 @@ function BrandTile({
       const file = event.clipboardData?.files[0]
       if (!file) return
       event.preventDefault()
-      uploadFile(file)
+      void chooseFile(file)
     }
 
     window.addEventListener('paste', handlePaste)
@@ -154,10 +169,10 @@ function BrandTile({
       className={`tv-brand-tile is-${slot}`}
       data-filled={path ? '' : undefined}
       data-dragging={draggingOver ? '' : undefined}
-      aria-busy={pending || undefined}
+      aria-busy={preparing || undefined}
       onDragEnter={(event) => {
         event.preventDefault()
-        if (pending) return
+        if (blocked) return
         dragDepth.current += 1
         setDraggingOver(true)
       }}
@@ -174,12 +189,12 @@ function BrandTile({
         dragDepth.current = 0
         setDraggingOver(false)
         const file = event.dataTransfer.files[0]
-        if (!pending && file) uploadFile(file)
+        if (!blocked && file) void chooseFile(file)
       }}
     >
       {path ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={publicMediaUrl('image', path)} alt="" />
+        <img src={imageSrc(path)} alt="" />
       ) : (
         <span className="tv-brand-tile-empty" aria-hidden="true">
           <LuImageUp />
@@ -192,11 +207,11 @@ function BrandTile({
       <button
         type="button"
         className="tv-brand-tile-hit"
-        aria-label={`Enviar ${label.toLowerCase()}`}
+        aria-label={`Escolher ${label.toLowerCase()}`}
         aria-hidden={path ? true : undefined}
         tabIndex={path ? -1 : undefined}
         title={copy.help}
-        disabled={pending}
+        disabled={blocked}
         onClick={() => inputRef.current?.click()}
       />
 
@@ -204,20 +219,20 @@ function BrandTile({
         <div className="tv-brand-tile-actions">
           {/* No quadrado de 120 px do logo só cabem os ícones; o nome
               acessível leva o texto nos dois blocos. */}
-          <button type="button" aria-label={`Trocar ${label.toLowerCase()}`} title="Trocar" disabled={pending} onClick={() => inputRef.current?.click()}>
+          <button type="button" aria-label={`Trocar ${label.toLowerCase()}`} title="Trocar" disabled={blocked} onClick={() => inputRef.current?.click()}>
             <LuImageUp aria-hidden="true" />
             <span>Trocar</span>
           </button>
-          <button type="button" aria-label={`Remover ${label.toLowerCase()}`} title="Remover" disabled={pending} onClick={removeImage}>
+          <button type="button" aria-label={`Remover ${label.toLowerCase()}`} title="Remover" disabled={blocked} onClick={removeImage}>
             <LuTrash2 aria-hidden="true" />
             <span>Remover</span>
           </button>
         </div>
       ) : null}
 
-      {pending ? (
+      {preparing ? (
         <span className="tv-brand-tile-busy">
-          <Spinner className="size-[18px]" aria-label={`Enviando ${label.toLowerCase()}`} />
+          <Spinner className="size-[18px]" aria-label={`Preparando ${label.toLowerCase()}`} />
         </span>
       ) : null}
 
@@ -227,9 +242,10 @@ function BrandTile({
         accept={ACCEPTED_TYPES.join(',')}
         className="hidden"
         tabIndex={-1}
+        disabled={blocked}
         onChange={(event) => {
           const file = event.target.files?.[0]
-          if (file) uploadFile(file)
+          if (file) void chooseFile(file)
           // Zerar permite escolher o MESMO arquivo de novo depois de removê-lo.
           event.target.value = ''
         }}
@@ -239,25 +255,23 @@ function BrandTile({
 }
 
 export function BrandImages({
-  restaurantId,
-  logoPath,
-  coverPath,
+  drafts,
+  disabled = false,
   onChange,
 }: {
-  restaurantId: string
-  logoPath: string | null
-  coverPath: string | null
-  onChange: (slot: BrandSlot, path: string | null) => void
+  drafts: Record<BrandSlot, BrandDraft>
+  disabled?: boolean
+  onChange: (slot: BrandSlot, draft: BrandDraft) => void
 }) {
   return (
     <section className="tv-identity-card" aria-labelledby="identity-brand-title">
       <div className="tv-identity-card-head">
         <h2 id="identity-brand-title">Logo e capa</h2>
-        <p>Gravam sozinhas, na hora do envio.</p>
+        <p>Valem quando você salvar a identidade.</p>
       </div>
       <div className="tv-brand-tiles">
-        <BrandTile restaurantId={restaurantId} slot="logo" path={logoPath} onChange={(path) => onChange('logo', path)} />
-        <BrandTile restaurantId={restaurantId} slot="cover" path={coverPath} onChange={(path) => onChange('cover', path)} />
+        <BrandTile slot="logo" draft={drafts.logo} disabled={disabled} onChange={(draft) => onChange('logo', draft)} />
+        <BrandTile slot="cover" draft={drafts.cover} disabled={disabled} onChange={(draft) => onChange('cover', draft)} />
       </div>
     </section>
   )

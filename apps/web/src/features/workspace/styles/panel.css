@@ -68,7 +68,10 @@ body:has(.workspace-territory) [data-slot="dropdown-menu-separator"] { height: 1
 .tv-pconfirm-title { margin: 0; font-size: 15px; font-weight: 600; text-wrap: balance; }
 .tv-pconfirm-text { margin: 0; color: var(--tv-text-2); font-size: 12.5px; line-height: 1.5; text-wrap: pretty; }
 .tv-pconfirm-actions { width: 100%; margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.tv-pconfirm-cancel, .tv-pconfirm-confirm { height: 32px; border-radius: 999px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.tv-pconfirm-cancel, .tv-pconfirm-confirm { height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.tv-pconfirm-cancel:disabled, .tv-pconfirm-confirm:disabled { cursor: default; }
+.tv-pconfirm-cancel:disabled { opacity: .45; }
+.tv-pconfirm-spinner.tv-spinner { width: 13px; height: 13px; border-color: color-mix(in srgb, currentColor 30%, transparent); border-top-color: currentColor; }
 .tv-pconfirm-cancel { border: 1px solid var(--tv-line-2); background: var(--tv-surface); color: var(--tv-text); font-weight: 500; }
 .tv-pconfirm-confirm { border: 0; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-weight: 600; }
 .tv-pconfirm.is-destructive .tv-pconfirm-confirm { background: var(--tv-danger-soft); color: var(--tv-danger); }

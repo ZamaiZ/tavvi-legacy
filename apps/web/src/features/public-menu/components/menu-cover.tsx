@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { LuInstagram, LuMapPin, LuMessageCircle, LuPhone } from 'react-icons/lu'
 import { publicMediaUrl } from '@/lib/media-url'
+import { directionsUrl, displayAddress, type RestaurantContact } from '@/domain/restaurant'
 
 type ContactLink = { label: string; href: string; icon: React.ReactNode }
 
@@ -23,8 +24,10 @@ export function MenuCover({
   description: string | null
   logoPath: string | null
   coverPath: string | null
-  contact: Record<string, string>
+  contact: RestaurantContact
 }) {
+  const addressText = displayAddress(contact)
+  const directions = directionsUrl(contact)
   // O predicado é escrito à mão: a inferência automática de `filter` só
   // chegou no TypeScript 5.5, e o projeto declara `^5`, que permite 5.0.
   // Anotado como `(Atalho | null)[]` ANTES do filtro: sem isso o TypeScript
@@ -55,10 +58,10 @@ export function MenuCover({
           icon: <LuInstagram className="size-4 shrink-0" aria-hidden="true" />,
         }
       : null,
-    contact.address
+    directions
       ? {
           label: 'Como chegar',
-          href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`,
+          href: directions,
           icon: <LuMapPin className="size-4 shrink-0" aria-hidden="true" />,
         }
       : null,
@@ -190,12 +193,12 @@ export function MenuCover({
                 </div>
               ) : null}
 
-              {contact.address ? (
+              {addressText ? (
                 <p
                   className="mt-4 text-[0.8125rem] leading-relaxed"
                   style={{ color: 'var(--m-muted)' }}
                 >
-                  {contact.address}
+                  {addressText}
                 </p>
               ) : null}
             </div>

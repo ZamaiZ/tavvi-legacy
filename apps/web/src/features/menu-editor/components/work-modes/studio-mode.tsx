@@ -9,7 +9,7 @@ import { resolveTheme } from '@/lib/theme/resolve'
 import { useDocumentDark } from '@/lib/use-document-dark'
 import { firstMedia, focalPosition, mediaPreviewUrl, priceLabel } from '../../lib/item-display'
 import { StandaloneItemContextMenu } from '../item-context-menu'
-import { ItemEditDialog } from '../item-edit-dialog'
+import { ItemEditorPanel } from '../item-editor-panel'
 import { NewCategoryButton } from '../new-category-button'
 import { NewItemButton } from '../new-item-button'
 import '@/features/public-menu/styles/menu.css'
@@ -96,7 +96,7 @@ export function StudioMode({
             <button type="button" className="tv-pbtn is-primary" onClick={() => setEditorOpen(true)}>
               <LuPencil aria-hidden="true" />Editar item
             </button>
-            <ItemEditDialog key={selected.id} item={selected} categories={categories} open={editorOpen} onOpenChange={setEditorOpen} />
+            <ItemEditorPanel key={selected.id} restaurantId={restaurantId} item={selected} categoryId={selected.categoryId} categories={categories} open={editorOpen} onOpenChange={setEditorOpen} />
           </>
         ) : null}
       </div>

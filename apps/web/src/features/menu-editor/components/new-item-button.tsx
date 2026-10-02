@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { LuPlus } from 'react-icons/lu'
-import { ItemCreateDialog } from './item-create-dialog'
+import { ItemEditorPanel } from './item-editor-panel'
 
 // "Adicionar item" em dourado no rodapé da categoria, ou pílula com borda
 // ("chip") nos estados vazios. É o pedacinho de cliente que segura o estado
@@ -25,7 +25,7 @@ export function NewItemButton({
         <LuPlus aria-hidden="true" />
         {label}
       </button>
-      <ItemCreateDialog restaurantId={restaurantId} categoryId={categoryId} open={open} onOpenChange={setOpen} />
+      <ItemEditorPanel restaurantId={restaurantId} item={null} categoryId={categoryId} open={open} onOpenChange={setOpen} />
     </>
   )
 }

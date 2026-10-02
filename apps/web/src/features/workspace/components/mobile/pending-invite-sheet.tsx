@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { LuBan, LuMail } from 'react-icons/lu'
-import { MobileSheet, MobileSheetNav, useMobileSheet } from '@/components/shell/mobile-sheet'
+import { MobileSheet, MobileSheetNav, useMobileSheet, useSheetBusy } from '@/components/shell/mobile-sheet'
 import { toast } from '@/components/ui/toast'
 import { MEMBER_ROLE_LABELS, type InviteDTO } from '@/domain/invite'
 import { formatLong } from '@/lib/format-date'
@@ -31,10 +31,12 @@ function PendingInviteBody({ invite }: { invite: InviteDTO }) {
   const { forceClose } = useMobileSheet()
   const [pending, startTransition] = useTransition()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  useSheetBusy(pending)
 
   function revoke() {
     startTransition(async () => {
       const result = await revokeInviteAction(invite.id)
+      setConfirmOpen(false)
       toast.add(result.ok ? { title: 'Convite revogado', type: 'success' } : { title: result.error, type: 'error' })
       if (result.ok) forceClose()
     })
@@ -54,7 +56,7 @@ function PendingInviteBody({ invite }: { invite: InviteDTO }) {
         </div>
       </section>
       <button type="button" className="tv-m-pill is-danger tv-mprofile-action" disabled={pending} onClick={() => setConfirmOpen(true)}>
-        <LuBan aria-hidden="true" />Revogar convite
+        <LuBan aria-hidden="true" />{pending ? 'Revogando…' : 'Revogar convite'}
       </button>
       <PanelConfirm
         open={confirmOpen}
@@ -63,6 +65,8 @@ function PendingInviteBody({ invite }: { invite: InviteDTO }) {
         title="Revogar convite?"
         description="O link deixará de funcionar imediatamente."
         confirmLabel="Revogar"
+        pendingLabel="Revogando…"
+        pending={pending && confirmOpen}
         destructive
         onConfirm={revoke}
       />

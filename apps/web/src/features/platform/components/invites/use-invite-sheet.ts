@@ -41,6 +41,8 @@ export function useInviteSheet(request: InviteSheetRequest | null, onClose: () =
   }, [])
 
   function requestClose() {
+    // Fechar no meio do envio esconderia o link gerado (ou o erro).
+    if (pending) return
     if (link && !copied) { setDiscard(true); return }
     onClose()
     setTimeout(() => { setLink(null); setCopied(false); setDiscard(false) }, 360)

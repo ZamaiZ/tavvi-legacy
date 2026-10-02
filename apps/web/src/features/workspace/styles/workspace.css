@@ -196,6 +196,34 @@
 .workspace-territory .tv-contact-preview-label { align-self: flex-start; color: var(--tv-text-3); font-size: 11.5px; font-weight: 500; }
 .tv-contact-floating { display: none; }
 
+/* Endereço por CEP e trava do formulário durante o salvamento. */
+.workspace-territory .tv-contact-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 14px; }
+.workspace-territory .tv-contact-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.workspace-territory .tv-contact-number { display: flex; align-items: center; gap: 10px; }
+.workspace-territory .tv-contact-number > .tv-contact-input { min-width: 0; flex: 1; }
+.workspace-territory .tv-contact-check { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; color: var(--tv-text-2); font-size: 12px; white-space: nowrap; cursor: pointer; }
+.workspace-territory .tv-contact-check input { width: 14px; height: 14px; margin: 0; accent-color: var(--tv-gold); }
+.workspace-territory .tv-contact-city { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.workspace-territory .tv-contact-city > span { color: var(--tv-text-2); font-size: 12px; font-weight: 500; }
+.workspace-territory .tv-contact-city > strong { font-size: 13px; font-weight: 500; }
+.workspace-territory .tv-contact-notice { margin: 0; font-size: 12px; }
+.workspace-territory .tv-contact-notice.is-error { color: var(--tv-danger); }
+.workspace-territory .tv-contact-notice.is-info { color: var(--tv-text-2); }
+.workspace-territory .tv-contact-note { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-contact-note strong { color: var(--tv-text); font-weight: 500; }
+.workspace-territory .tv-contact-preview-line { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px dashed var(--tv-line-2); border-radius: 8px; }
+.workspace-territory .tv-contact-preview-line > span { color: var(--tv-text-3); font-size: 11px; font-weight: 500; }
+.workspace-territory .tv-contact-preview-line > p { margin: 0; font-size: 12.5px; overflow-wrap: anywhere; }
+.workspace-territory .tv-contact-field-error { color: var(--tv-danger); font-size: 11.5px; }
+.workspace-territory .tv-contact-help { color: var(--tv-text-3); font-size: 11px; line-height: 1.4; }
+.workspace-territory .tv-contact-control[data-invalid], .workspace-territory .tv-contact-input[aria-invalid="true"] { border-color: var(--tv-danger); }
+.workspace-territory .tv-contact-input:disabled, .workspace-territory .tv-contact-control:has(input:disabled) { opacity: .6; }
+.workspace-territory .tv-contact-link { align-self: flex-start; padding: 0; border: 0; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.workspace-territory .tv-contact-link:disabled { opacity: .4; cursor: default; }
+@media (max-width: 560px) {
+  .workspace-territory .tv-contact-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* O celular das prévias (Contato e Identidade, no popover do telefone):
    260 × 520 fixos, sem depender da altura da janela. Sem o prefixo do
    território porque o popover é portado para `body`. */

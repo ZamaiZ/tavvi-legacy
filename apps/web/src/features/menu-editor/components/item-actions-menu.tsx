@@ -41,7 +41,7 @@ export function ItemActionsMenu({
 
   return (
     <DropdownMenu open={open} onOpenChange={(next) => setOpen(next)}>
-      <DropdownMenuTrigger className={triggerClassName} aria-label={`Ações do item ${item.name}`}>
+      <DropdownMenuTrigger className={triggerClassName} disabled={actions.pending} aria-label={`Ações do item ${item.name}`}>
         <LuEllipsis aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={4} className="is-item">
@@ -57,6 +57,7 @@ export function ItemActionsMenu({
               item={item}
               categories={categories}
               touch={touch}
+              disabled={actions.pending}
               onMove={(categoryId) => {
                 setOpen(false)
                 actions.moveTo(categoryId)

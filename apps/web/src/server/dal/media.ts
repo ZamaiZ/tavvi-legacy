@@ -3,12 +3,10 @@ import { randomUUID } from 'node:crypto'
 import { uuidSchema } from '@/domain/common'
 import {
   brandSlotSchema,
-  MAX_MEDIA_PER_ITEM,
+  discardUploadsSchema,
+  itemUploadTicketSchema,
   MEDIA_LIMITS,
-  registerMediaSchema,
-  reorderMediaSchema,
   setBrandImageSchema,
-  setMediaFocalSchema,
   type BrandSlot,
   type MediaKind,
 } from '@/domain/media'
@@ -17,7 +15,6 @@ import { recordAudit } from '@/server/security/audit'
 import { getRestaurantRevalidationTarget } from './revalidation-target'
 import { createUserClient } from './_client'
 import {
-  ConflictError,
   currentTerritory,
   requireRestaurantAdmin,
   UserFacingError,
@@ -34,53 +31,6 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   'image/avif': 'avif',
   'video/mp4': 'mp4',
   'video/webm': 'webm',
-}
-
-// O caminho e montado no SERVIDOR, a partir do restaurante resolvido no
-// servidor. O navegador nunca escolhe onde grava: o prefixo do caminho e a
-// fronteira do inquilino, e deixar o cliente decidi-lo anularia a politica
-// de storage inteira.
-export async function createUploadTicket(input: {
-  itemId: string
-  kind: MediaKind
-  mimeType: string
-}): Promise<{ bucket: string; path: string; signedUrl: string }> {
-  const itemId = uuidSchema.parse(input.itemId)
-
-  const limits = MEDIA_LIMITS[input.kind]
-  if (!(limits.mimes as readonly string[]).includes(input.mimeType)) {
-    throw new UserFacingError('Formato de arquivo não aceito.')
-  }
-
-  const supabase = await db()
-  const { data, error } = await supabase
-    .from('menu_items')
-    .select('restaurant_id')
-    .eq('id', itemId)
-    .single()
-
-  if (error || !data) throw new UserFacingError('Item não encontrado.')
-  const restaurantId = data.restaurant_id
-  await requireRestaurantAdmin(restaurantId)
-
-  const extension = EXTENSION_BY_MIME[input.mimeType]
-  // O caminho é montado no SERVIDOR, a partir do restaurante resolvido no
-  // servidor. O navegador nunca escolhe onde grava: o prefixo do caminho é
-  // a fronteira do inquilino, e deixar o cliente decidi-lo anularia a
-  // política de storage inteira.
-  const path = `${restaurantId}/${itemId}/${randomUUID()}.${extension}`
-
-  // A assinatura também passa pela RLS do storage: se esta sessão não
-  // puder escrever neste caminho, o Supabase recusa aqui.
-  const { data: ticket, error: signError } = await supabase.storage
-    .from(limits.bucket)
-    .createSignedUploadUrl(path)
-
-  if (signError || !ticket) {
-    throw new UserFacingError('Não foi possível autorizar o envio.')
-  }
-
-  return { bucket: limits.bucket, path, signedUrl: ticket.signedUrl }
 }
 
 // Irmão do createUploadTicket, para a marca do restaurante. Precisa existir
@@ -185,186 +135,89 @@ export async function setBrandImage(
   return getRestaurantRevalidationTarget(data.restaurantId)
 }
 
-export async function registerItemMedia(
+// Autoriza o envio de um arquivo de item, existente ou ainda por criar.
+// Para item novo, o id nasce AQUI e volta ao navegador: os arquivos sobem
+// antes de o item existir, para a gravação no banco ser uma só.
+export async function createItemUploadTicket(
   input: unknown,
-): Promise<RevalidationTarget & { createdId: string }> {
-  const data = registerMediaSchema.parse(input)
+): Promise<{ itemId: string; path: string; signedUrl: string }> {
+  const data = itemUploadTicketSchema.parse(input)
+  const limits = MEDIA_LIMITS[data.kind]
+  if (!(limits.mimes as readonly string[]).includes(data.mimeType)) {
+    throw new UserFacingError('Formato de arquivo não aceito.')
+  }
+  await requireRestaurantAdmin(data.restaurantId)
 
   const supabase = await db()
-  const { data: item, error: lookupError } = await supabase
-    .from('menu_items')
-    .select('restaurant_id')
-    .eq('id', data.itemId)
-    .single()
-
-  if (lookupError || !item) throw new Error('Item não encontrado')
-  const restaurantId = item.restaurant_id as string
-  await requireRestaurantAdmin(restaurantId)
-
-  // Revalidamos o prefixo aqui mesmo com o CHECK do banco fazendo o mesmo.
-  // O CHECK e a garantia; esta linha e a mensagem de erro decente.
-  if (!data.storagePath.startsWith(`${restaurantId}/`)) {
-    throw new Error('Caminho de arquivo inválido')
+  let itemId = data.itemId
+  if (itemId) {
+    const { data: item, error } = await supabase
+      .from('menu_items')
+      .select('restaurant_id')
+      .eq('id', itemId)
+      .maybeSingle()
+    if (error) throw new Error(`Não foi possível conferir o item: ${error.message}`)
+    // Item de outro restaurante não autoriza nada aqui.
+    if (item && item.restaurant_id !== data.restaurantId) {
+      throw new UserFacingError('Item não encontrado.')
+    }
+  } else {
+    itemId = randomUUID()
   }
 
-  // Uma consulta, dois problemas. O teto por item e REGRA: o navegador
-  // confere para responder na hora, mas quem garante e esta linha. E a
-  // contagem do mesmo tipo vira a position da nova midia -- sem isso toda
-  // linha fica no default 0, a ordem da galeria passa a depender do que o
-  // banco devolver naquele instante, e a miniatura do item troca sozinha.
-  const { data: siblings, error: countError } = await supabase
-    .from('menu_item_media')
-    .select('kind')
-    .eq('item_id', data.itemId)
+  // O caminho continua sendo montado no SERVIDOR: o prefixo é a fronteira
+  // do inquilino, e a função no banco confere `restaurante/item/` de novo.
+  const path = `${data.restaurantId}/${itemId}/${randomUUID()}.${EXTENSION_BY_MIME[data.mimeType]}`
+  const { data: ticket, error: signError } = await supabase.storage
+    .from(limits.bucket)
+    .createSignedUploadUrl(path)
 
-  if (countError) {
-    throw new Error(
-      `Não foi possível conferir a mídia do item: ${countError.message}`,
-    )
+  if (signError || !ticket) {
+    throw new UserFacingError('Não foi possível autorizar o envio.')
   }
+  return { itemId, path, signedUrl: ticket.signedUrl }
+}
 
-  const todas = siblings ?? []
-
-  // Teto por ITEM, e não por tipo, desde a Fase 5. O dono pensa em "quantas
-  // telas tem meu prato", não em "quantas imagens e quantos vídeos" — e o
-  // cliente, no feed, também não distingue: ele só rola.
-  if (todas.length >= MAX_MEDIA_PER_ITEM) {
-    // ConflictError, nao Error cru: so UserFacingError e suas filhas
-    // atravessam o runAction com a mensagem intacta. Um Error comum viraria
-    // "Nao foi possivel concluir a operacao" e o dono nao saberia o que fazer.
-    throw new ConflictError(
-      `Este prato já tem ${MAX_MEDIA_PER_ITEM} telas. Remova uma para enviar outra.`,
-    )
-  }
-
-  const { data: row, error } = await supabase
-    .from('menu_item_media')
-    .insert({
-      restaurant_id: restaurantId,
-      item_id: data.itemId,
-      kind: data.kind,
-      // A posição conta o item INTEIRO, e não o tipo. Contar por tipo punha
-      // a primeira imagem e o vídeo os dois em 0, e no feed a ordem das
-      // mídias É a ordem das telas: duas em 0 deixam indefinido qual abre o
-      // prato. O TETO continua sendo por tipo, em `sameKind`, acima.
-      position: todas.length,
-      storage_path: data.storagePath,
-      poster_path: data.posterPath ?? null,
-      alt_text: data.altText ?? null,
-      width: data.width ?? null,
-      height: data.height ?? null,
-      duration_ms: data.durationMs ?? null,
-      focal_x: data.focalX ?? 0.5,
-      focal_y: data.focalY ?? 0.5,
-    })
-    .select('id')
-    .single()
-
-  if (error) {
-    throw new Error(`Não foi possível registrar a mídia: ${error.message}`)
-  }
-  return {
-    ...(await getRestaurantRevalidationTarget(restaurantId)),
-    createdId: row.id as string,
+// Remove arquivos do storage, cada um no bucket do seu tipo. Melhor
+// esforço: uma falha aqui deixa um arquivo órfão (registrado no log), mas
+// nunca desfaz uma gravação que já deu certo.
+export async function removeStorageFiles(files: { kind: MediaKind; path: string }[]): Promise<void> {
+  if (files.length === 0) return
+  const supabase = await db()
+  for (const kind of ['image', 'video'] as const) {
+    const paths = files.filter((file) => file.kind === kind).map((file) => file.path)
+    if (paths.length === 0) continue
+    const { error } = await supabase.storage.from(MEDIA_LIMITS[kind].bucket).remove(paths)
+    if (error) console.error('[media] remoção de arquivos', kind, error.message)
   }
 }
 
-export async function deleteItemMedia(
-  mediaId: unknown,
-): Promise<RevalidationTarget> {
-  const id = uuidSchema.parse(mediaId)
+// Sobras de um salvamento que falhou: apaga só arquivos DESTE item, direto
+// na pasta dele, e que nenhuma linha usa — um arquivo referenciado é mídia
+// de verdade, não sobra.
+export async function discardItemUploads(input: unknown): Promise<void> {
+  const data = discardUploadsSchema.parse(input)
+  await requireRestaurantAdmin(data.restaurantId)
+
+  const prefix = `${data.restaurantId}/${data.itemId}/`
+  const candidates = data.files.filter(
+    (file) => file.path.startsWith(prefix) && !file.path.slice(prefix.length).includes('/'),
+  )
+  if (candidates.length === 0) return
 
   const supabase = await db()
-  const { data: row, error: lookupError } = await supabase
-    .from('menu_item_media')
-    .select('restaurant_id, kind, storage_path, poster_path')
-    .eq('id', id)
-    .single()
-
-  if (lookupError || !row) throw new Error('Mídia não encontrada')
-  const restaurantId = row.restaurant_id as string
-  await requireRestaurantAdmin(restaurantId)
-  const revalidationTarget = await getRestaurantRevalidationTarget(restaurantId)
-
-  const bucket = MEDIA_LIMITS[row.kind as MediaKind].bucket
-  // Remove o arquivo ANTES da linha. Se a ordem fosse invertida e a segunda
-  // etapa falhasse, sobraria arquivo sem dono e sem rastro no banco -- o
-  // pior dos dois estados possiveis.
-  await supabase.storage.from(bucket).remove([row.storage_path as string])
-
-  // A capa mora no bucket de imagem, mesmo pertencendo a um video. Deixa-la
-  // para tras daria um arquivo pago e inalcancavel a cada video trocado --
-  // e invisivel, porque nada no banco voltaria a apontar para ele.
-  if (row.poster_path) {
-    await supabase.storage
-      .from(MEDIA_LIMITS.image.bucket)
-      .remove([row.poster_path as string])
+  const paths = candidates.map((file) => file.path)
+  const [byStorage, byPoster] = await Promise.all([
+    supabase.from('menu_item_media').select('storage_path').in('storage_path', paths),
+    supabase.from('menu_item_media').select('poster_path').in('poster_path', paths),
+  ])
+  if (byStorage.error || byPoster.error) {
+    console.error('[media] conferência de sobras', byStorage.error ?? byPoster.error)
+    return
   }
-
-  const { error } = await supabase.from('menu_item_media').delete().eq('id', id)
-  if (error) {
-    throw new Error(`Não foi possível remover a mídia: ${error.message}`)
-  }
-  return revalidationTarget
-}
-
-export async function setMediaFocal(input: unknown): Promise<RevalidationTarget> {
-  const data = setMediaFocalSchema.parse(input)
-
-  const supabase = await db()
-  const { data: row, error: lookupError } = await supabase
-    .from('menu_item_media')
-    .select('restaurant_id')
-    .eq('id', data.mediaId)
-    .single()
-
-  if (lookupError || !row) throw new Error('Mídia não encontrada')
-  const restaurantId = row.restaurant_id as string
-  await requireRestaurantAdmin(restaurantId)
-
-  const { error } = await supabase
-    .from('menu_item_media')
-    .update({ focal_x: data.focalX, focal_y: data.focalY })
-    .eq('id', data.mediaId)
-
-  if (error) {
-    throw new Error(`Não foi possível salvar o enquadramento: ${error.message}`)
-  }
-
-  return getRestaurantRevalidationTarget(restaurantId)
-}
-
-export async function reorderItemMedia(
-  input: unknown,
-): Promise<RevalidationTarget> {
-  const data = reorderMediaSchema.parse(input)
-
-  const supabase = await db()
-  const { data: item, error: lookupError } = await supabase
-    .from('menu_items')
-    .select('restaurant_id')
-    .eq('id', data.itemId)
-    .single()
-
-  if (lookupError || !item) throw new Error('Item não encontrado')
-  const restaurantId = item.restaurant_id as string
-  await requireRestaurantAdmin(restaurantId)
-
-  // Uma chamada por linha, e não um upsert em lote: o upsert do PostgREST
-  // exige mandar a linha inteira, e mandar colunas que não mudaram abre a
-  // porta para sobrescrever `storage_path` por engano. O teto por item é de
-  // cinco mídias, então cinco chamadas é o pior caso.
-  for (const entry of data.order) {
-    const { error } = await supabase
-      .from('menu_item_media')
-      .update({ position: entry.position })
-      .eq('id', entry.id)
-      // A trava: sem ela, um id de mídia de OUTRO item passaria pela
-      // autorização que acabou de ser feita sobre este item.
-      .eq('item_id', data.itemId)
-
-    if (error) throw new Error(`Não foi possível reordenar: ${error.message}`)
-  }
-
-  return getRestaurantRevalidationTarget(restaurantId)
+  const used = new Set<string>([
+    ...(byStorage.data ?? []).map((row) => row.storage_path as string),
+    ...(byPoster.data ?? []).map((row) => row.poster_path as string),
+  ])
+  await removeStorageFiles(candidates.filter((file) => !used.has(file.path)))
 }

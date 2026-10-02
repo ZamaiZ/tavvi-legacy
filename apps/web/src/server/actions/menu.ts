@@ -1,6 +1,7 @@
 'use server'
 
 import * as dal from '@/server/dal/menu-write'
+import * as saveDal from '@/server/dal/menu-item-save'
 import { revalidateRestaurant } from '@/server/revalidate'
 import { runAction, type ActionResult } from './result'
 
@@ -8,13 +9,13 @@ import { runAction, type ActionResult } from './result'
 // proxy reescreve. A doc empacotada do Next manda passar o DESTINO, e é o
 // que `revalidateRestaurant` faz. Ver `@/server/revalidate`.
 
-export async function createCategoryAction(
+export async function createCategoriesAction(
   input: unknown,
-): Promise<ActionResult<{ id: string }>> {
+): Promise<ActionResult<{ ids: string[] }>> {
   return runAction(async () => {
-    const { createdId, ...revalidationTarget } = await dal.createCategory(input)
+    const { createdIds, ...revalidationTarget } = await dal.createCategories(input)
     revalidateRestaurant(revalidationTarget)
-    return { id: createdId }
+    return { ids: createdIds }
   })
 }
 
@@ -39,16 +40,6 @@ export async function reorderCategoriesAction(
 ): Promise<ActionResult> {
   return runAction(async () => {
     revalidateRestaurant(await dal.reorderCategories(input))
-  })
-}
-
-export async function createItemAction(
-  input: unknown,
-): Promise<ActionResult<{ id: string }>> {
-  return runAction(async () => {
-    const { createdId, ...revalidationTarget } = await dal.createItem(input)
-    revalidateRestaurant(revalidationTarget)
-    return { id: createdId }
   })
 }
 
@@ -80,28 +71,11 @@ export async function setItemAvailabilityAction(
   })
 }
 
-export async function createVariantAction(
-  input: unknown,
-): Promise<ActionResult<{ id: string }>> {
+// Criar e editar item: uma gravação só, com item, variações e mídia.
+export async function saveItemAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   return runAction(async () => {
-    const { createdId, ...revalidationTarget } = await dal.createVariant(input)
+    const { itemId, ...revalidationTarget } = await saveDal.saveItem(input)
     revalidateRestaurant(revalidationTarget)
-    return { id: createdId }
-  })
-}
-
-export async function updateVariantAction(
-  input: unknown,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    revalidateRestaurant(await dal.updateVariant(input))
-  })
-}
-
-export async function deleteVariantAction(
-  variantId: unknown,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    revalidateRestaurant(await dal.deleteVariant(variantId))
+    return { id: itemId }
   })
 }

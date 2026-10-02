@@ -1,12 +1,14 @@
 'use client'
 
 import {
+  defaultDropAnimationSideEffects,
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
   type Announcements,
+  type DropAnimation,
   type ScreenReaderInstructions,
   type UniqueIdentifier,
 } from '@dnd-kit/core'
@@ -40,4 +42,16 @@ export function panelAnnouncements(
     onDragEnd: ({ active, over }) => (over ? `${describe(active.id)} solto em ${place(over.id)}.` : `${describe(active.id)} solto fora de uma área; nada mudou.`),
     onDragCancel: ({ active }) => `Movimento de ${describe(active.id)} cancelado.`,
   }
+}
+
+// Soltar: a peça desce da inclinação para 0° junto com o encaixe. A classe
+// `is-dropping` vai no invólucro do overlay; o CSS faz a transição do
+// `rotate` da peça (`.tv-lift`) de volta a zero nos mesmos 180 ms.
+export const LIFT_DROP_ANIMATION: DropAnimation = {
+  duration: 180,
+  easing: 'cubic-bezier(.2,.8,.2,1)',
+  sideEffects: defaultDropAnimationSideEffects({
+    className: { dragOverlay: 'is-dropping' },
+    styles: { active: { opacity: '0' } },
+  }),
 }

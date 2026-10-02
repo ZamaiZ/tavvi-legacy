@@ -1,0 +1,293 @@
+/* Páginas 404: admin, painel e as duas do cardápio
+ * (docs/superpowers/specs/2026-10-01-paginas-404-design.md).
+ *
+ * Uma composição só. As variantes trocam fonte, cor e marca:
+ *   .tv-nf--console  admin. e painel. Herda fonte e fundo de
+ *                    .admin-territory/.workspace-territory e não tem regra
+ *                    própria.
+ *   .tv-nf--site     cardápio, restaurante não existe (Inter + Fraunces).
+ *   .tv-nf--menu     cardápio, página não existe (tema --m-* do restaurante).
+ *
+ * A entrada é CSS puro, sem biblioteca de animação: roda quando a tela pinta
+ * pela primeira vez, venha ela no HTML do servidor (notFound() abaixo de um
+ * loading.tsx) ou do render no navegador (notFound() fora de Suspense, que no
+ * Next 16.3.5 manda um shell vazio e monta a 404 no cliente). Curva e
+ * deslocamento são os do <Reveal> (components/motion/reveal.tsx). */
+
+.tv-nf {
+  --nf-ease: cubic-bezier(.16, 1, .3, 1);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding:
+    max(48px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right))
+    max(48px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  text-align: center;
+}
+
+.tv-nf-column {
+  width: min(100%, 400px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Cascata: cada elemento traz a posição em --nf-step (nfStep()). */
+.tv-nf-step {
+  animation: tv-nf-rise 460ms var(--nf-ease) both;
+  animation-delay: calc(var(--nf-step, 0) * 70ms);
+}
+
+.tv-nf-mark { display: block; width: 44px; height: 44px; }
+.tv-nf-mark img { width: 100%; height: 100%; object-fit: contain; }
+
+/* O 404 em gradiente dourado. A primeira camada é a faixa de luz que
+   atravessa o número uma vez, depois que ele termina de entrar. Em 160% a
+   faixa está à esquerda, fora do número; em -60%, à direita. */
+.tv-nf-code {
+  margin: 22px 0 0;
+  font-size: 96px;
+  line-height: .9;
+  font-weight: 800;
+  letter-spacing: -.05em;
+  font-variant-numeric: tabular-nums;
+  background:
+    linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%) 160% 0 / 250% 100% no-repeat,
+    var(--tv-hero-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    tv-nf-code-in 520ms var(--nf-ease) both,
+    tv-nf-shine 1100ms ease-in-out both;
+  animation-delay:
+    calc(var(--nf-step, 0) * 70ms),
+    calc(var(--nf-step, 0) * 70ms + 520ms);
+}
+
+/* Título no padrão das telas do console: 28/32, peso 800, ponto dourado
+   (platform.css, .tv-detail-page-content > header h1). */
+.tv-nf-title {
+  margin: 18px 0 0;
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 800;
+  letter-spacing: -.9px;
+  color: var(--tv-text);
+  text-wrap: balance;
+}
+.tv-nf-title i { color: var(--tv-gold-text); font-style: normal; }
+
+.tv-nf-text {
+  margin: 10px 0 0;
+  max-width: 320px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--tv-text-2);
+  text-wrap: pretty;
+}
+
+/* A principal vem primeiro no DOM, para o foco do teclado chegar nela antes.
+   No desktop ela fica à direita; no celular, em cima. */
+.tv-nf-actions {
+  width: 100%;
+  margin-top: 28px;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tv-nf-primary,
+.tv-nf-secondary {
+  height: 40px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 150ms var(--tv-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.tv-nf-primary { border: 0; background: var(--tv-btn); color: var(--tv-btn-text); }
+.tv-nf-secondary { border: 1px solid var(--tv-line-2); background: var(--tv-surface); color: var(--tv-text); }
+.tv-nf-secondary svg { width: 16px; height: 16px; }
+.tv-nf-primary:focus-visible,
+.tv-nf-secondary:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.tv-nf-primary:active,
+.tv-nf-secondary:active { opacity: .82; }
+@media (hover: hover) {
+  .tv-nf-primary:hover,
+  .tv-nf-secondary:hover { opacity: .88; }
+}
+
+@media (max-width: 640px) {
+  .tv-nf-code { font-size: 84px; }
+  .tv-nf-actions { flex-direction: column; }
+  .tv-nf-primary,
+  .tv-nf-secondary { width: 100%; height: 50px; border-radius: 16px; }
+}
+
+/* Cardápio: restaurante não existe. Mesma linguagem da página raiz do
+   domínio público ((site)/page.tsx): sobrelinha, Fraunces e o brilho
+   dourado no topo. Os tamanhos repetem os tokens text-micro (0.6875rem/1.4)
+   e text-display (1.375rem/1.2) de base.css. */
+.tv-nf--site { color: var(--tv-text); }
+.tv-nf-eyebrow {
+  margin: 0;
+  font-size: .6875rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--tv-text-2);
+}
+.tv-nf--site .tv-nf-code {
+  font-family: var(--display-face);
+  font-weight: 600;
+  letter-spacing: -.03em;
+}
+.tv-nf--site .tv-nf-title {
+  font-family: var(--display-face);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.tv-nf-footnote {
+  margin: 40px 0 0;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--tv-text-2);
+}
+.tv-nf-footnote a {
+  color: var(--tv-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+/* `translate` e `scale` separados, e não `transform`, para a animação de
+   escala não desfazer o centramento. */
+.tv-nf-glow {
+  position: absolute;
+  z-index: -1;
+  top: -160px;
+  left: 50%;
+  width: 620px;
+  height: 420px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tv-hero) 25%, transparent);
+  filter: blur(64px);
+  pointer-events: none;
+  animation: tv-nf-glow 900ms var(--nf-ease) both;
+}
+
+/* Cardápio: página não existe. Veste o tema do restaurante: as variáveis
+   --m-* chegam pelo <style> do layout de [slug], no seletor
+   [data-menu="<preset>"], que o <main> desta variante carrega. As fontes
+   --tf-* vêm do .site-public do layout (site). */
+.tv-nf--menu {
+  background: var(--m-base);
+  color: var(--m-ink);
+  font-family: var(--m-font-text);
+}
+.tv-nf-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.tv-nf-logo {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+  background: var(--m-chip);
+  color: var(--m-ink);
+  font-family: var(--m-font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.tv-nf-logo img { width: 100%; height: 100%; object-fit: cover; }
+.tv-nf-brand-name {
+  font-family: var(--m-font-display);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+.tv-nf--menu .tv-nf-code {
+  background: none;
+  color: var(--m-accent);
+  font-family: var(--m-font-display);
+  animation: tv-nf-code-in 520ms var(--nf-ease) both;
+  animation-delay: calc(var(--nf-step, 0) * 70ms);
+}
+.tv-nf--menu .tv-nf-title {
+  font-family: var(--m-font-display);
+  color: var(--m-ink);
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.tv-nf--menu .tv-nf-text { color: var(--m-muted); }
+.tv-nf--menu .tv-nf-primary,
+.tv-nf--menu .tv-nf-secondary { border-radius: var(--m-radius-block); }
+.tv-nf--menu .tv-nf-primary { background: var(--m-accent); color: var(--m-on-accent); }
+.tv-nf--menu .tv-nf-secondary { border-color: var(--m-line); background: transparent; color: var(--m-ink); }
+.tv-nf--menu .tv-nf-primary:focus-visible,
+.tv-nf--menu .tv-nf-secondary:focus-visible { outline-color: var(--m-accent); }
+
+/* Admin e painel aparecem direto. A regra global de base.css
+   (.admin-territory *, .workspace-territory *) zera a duração, mas não o
+   atraso da cascata: sem `animation: none`, cada elemento ficaria invisível
+   pelo atraso dele e surgiria aos saltos. As variantes do cardápio não estão
+   nesses territórios e ficam só com um fade curto: sem deslocamento, sem
+   desfoque, sem brilho. */
+@media (prefers-reduced-motion: reduce) {
+  .tv-nf--console .tv-nf-step,
+  .tv-nf--console .tv-nf-code {
+    animation: none;
+  }
+
+  .tv-nf--site .tv-nf-step,
+  .tv-nf--site .tv-nf-code,
+  .tv-nf--site .tv-nf-glow,
+  .tv-nf--menu .tv-nf-step,
+  .tv-nf--menu .tv-nf-code {
+    animation: tv-nf-fade 200ms linear both;
+  }
+}
+
+@keyframes tv-nf-rise {
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes tv-nf-code-in {
+  from { opacity: 0; translate: 0 10px; scale: .96; filter: blur(6px); }
+  to { opacity: 1; translate: 0 0; scale: 1; filter: blur(0); }
+}
+
+@keyframes tv-nf-shine {
+  from { background-position: 160% 0, 0 0; }
+  to { background-position: -60% 0, 0 0; }
+}
+
+@keyframes tv-nf-glow {
+  from { opacity: 0; scale: .9; }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes tv-nf-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

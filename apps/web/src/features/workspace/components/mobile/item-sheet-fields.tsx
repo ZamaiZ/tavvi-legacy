@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, useTransition, type KeyboardEvent } from 'react'
-import { LuCheck, LuChevronRight, LuPlus, LuTrash2 } from 'react-icons/lu'
+import { useState, type KeyboardEvent } from 'react'
+import { LuCheck, LuChevronRight } from 'react-icons/lu'
 import { Combobox } from '@/components/ui/combobox'
 import { CurrencyInput } from '@/components/ui/currency-input'
-import { toast } from '@/components/ui/toast'
-import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
-import { formatCents, formatCentsInput } from '@/lib/money'
-import { createVariantAction, deleteVariantAction } from '@/server/actions/menu'
+import type { OwnerMenuCategoryDTO } from '@/domain/menu'
+import { formatCentsInput } from '@/lib/money'
 
 const TAG_SUGGESTIONS = ['Vegetariano', 'Vegano', 'Sem glúten', 'Sem lactose', 'Picante', 'Contém castanhas']
 
@@ -17,10 +15,12 @@ export function PriceRow({
   valueCents,
   onValueChange,
   onKeyDown,
+  disabled,
 }: {
   valueCents: number | null
   onValueChange: (cents: number | null) => void
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void
+  disabled?: boolean
 }) {
   const shown = valueCents === null ? '0,00' : formatCentsInput(valueCents)
   return (
@@ -32,6 +32,7 @@ export function PriceRow({
           valueCents={valueCents}
           onValueChange={onValueChange}
           onKeyDown={onKeyDown}
+          disabled={disabled}
           aria-label="Preço"
           enterKeyHint="done"
           style={{ width: `${shown.length + 1}ch` }}
@@ -47,10 +48,12 @@ export function CategoryRow({
   categories,
   value,
   onChange,
+  disabled,
 }: {
   categories: OwnerMenuCategoryDTO[]
   value: string
   onChange: (categoryId: string) => void
+  disabled?: boolean
 }) {
   return (
     <Combobox
@@ -59,103 +62,24 @@ export function CategoryRow({
       options={categories.map((category) => ({ value: category.id, label: category.name }))}
       value={value}
       onValueChange={onChange}
+      disabled={disabled}
     />
   )
 }
 
 // Linha que abre uma subtela ("Variações ›", "Destaques e restrições ›").
-export function NavRow({ label, value, onClick }: { label: string; value?: string | null; onClick: () => void }) {
+export function NavRow({ label, value, onClick, disabled }: { label: string; value?: string | null; onClick: () => void; disabled?: boolean }) {
   return (
-    <button type="button" className="tv-frow is-nav" onClick={onClick}>
+    <button type="button" className="tv-frow is-nav" disabled={disabled} onClick={onClick}>
       <span>{label}</span>
       <span className="tv-frow-value">{value}<LuChevronRight aria-hidden="true" /></span>
     </button>
   )
 }
 
-export function variantsLabel(count: number) {
-  return count === 0 ? 'Adicionar' : `${count} ${count === 1 ? 'variação' : 'variações'}`
-}
-
-// Subtela Variações: cada variação é salva na hora, como no desktop.
-export function VariantsScreen({ itemId, variants }: { itemId: string; variants: OwnerMenuItemDTO['variants'] }) {
-  const [pending, startTransition] = useTransition()
-  const [name, setName] = useState('')
-  const [priceCents, setPriceCents] = useState<number | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  function add() {
-    if (!name.trim()) {
-      setError('Informe o nome da variação.')
-      return
-    }
-    if (priceCents === null) {
-      setError('Informe o preço.')
-      return
-    }
-    setError(null)
-    startTransition(async () => {
-      const result = await createVariantAction({ itemId, name: name.trim(), priceCents })
-      if (result.ok) {
-        setName('')
-        setPriceCents(null)
-        toast.add({ title: 'Variação adicionada', type: 'success' })
-      } else {
-        setError(result.error)
-      }
-    })
-  }
-
-  function remove(variantId: string) {
-    startTransition(async () => {
-      const result = await deleteVariantAction(variantId)
-      if (!result.ok) toast.add({ title: result.error, type: 'error' })
-    })
-  }
-
-  function onEnter(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key !== 'Enter') return
-    event.preventDefault()
-    add()
-  }
-
-  return (
-    <>
-      {variants.length > 0 ? (
-        <div className="tv-group">
-          {variants.map((variant) => (
-            <div key={variant.id} className="tv-frow">
-              <span>{variant.name}</span>
-              <span className="tv-frow-trail">
-                {formatCents(variant.priceCents)}
-                <button type="button" className="tv-frow-icon" disabled={pending} aria-label={`Remover variação ${variant.name}`} onClick={() => remove(variant.id)}>
-                  <LuTrash2 aria-hidden="true" />
-                </button>
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      <h3 className="tv-msheet-label">Nova variação</h3>
-      <div className="tv-group">
-        <label className="tv-frow">
-          <span>Nome</span>
-          <input value={name} onChange={(event) => setName(event.target.value)} onKeyDown={onEnter} maxLength={60} autoComplete="off" enterKeyHint="next" placeholder="Tamanho G" />
-        </label>
-        <PriceRow valueCents={priceCents} onValueChange={setPriceCents} onKeyDown={onEnter} />
-      </div>
-      {error ? <p role="alert" className="tv-sheet-m-error">{error}</p> : null}
-      <button type="button" className="tv-m-pill is-secondary" disabled={pending} onClick={add}>
-        {pending ? <span className="tv-spinner" aria-hidden="true" /> : <LuPlus aria-hidden="true" />}Adicionar variação
-      </button>
-      <p className="tv-sheet-m-note">Tamanhos ou opções com preços diferentes. Cada variação é salva na hora.</p>
-    </>
-  )
-}
-
 // Subtela Destaques e restrições: marca as sugestões e os destaques próprios.
 // O estado é do sheet e vai junto no "Salvar"/"Criar".
-export function TagsScreen({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+export function TagsScreen({ value, onChange, disabled }: { value: string[]; onChange: (tags: string[]) => void; disabled?: boolean }) {
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
   const options = [...TAG_SUGGESTIONS, ...value.filter((tag) => !TAG_SUGGESTIONS.includes(tag))]
@@ -201,7 +125,7 @@ export function TagsScreen({ value, onChange }: { value: string[]; onChange: (ta
         {options.map((tag) => {
           const checked = value.includes(tag)
           return (
-            <button key={tag} type="button" role="checkbox" aria-checked={checked} className="tv-choice" onClick={() => toggle(tag)}>
+            <button key={tag} type="button" role="checkbox" aria-checked={checked} className="tv-choice" disabled={disabled} onClick={() => toggle(tag)}>
               <span><strong>{tag}</strong></span>
               {checked ? <LuCheck aria-hidden="true" /> : null}
             </button>
@@ -224,8 +148,9 @@ export function TagsScreen({ value, onChange }: { value: string[]; onChange: (ta
             autoComplete="off"
             enterKeyHint="done"
             placeholder="Ex.: Sem açúcar"
+            disabled={disabled}
           />
-          {draft.trim() ? <button type="button" className="tv-frow-link" onClick={addDraft}>Adicionar</button> : null}
+          {draft.trim() ? <button type="button" className="tv-frow-link" disabled={disabled} onClick={addDraft}>Adicionar</button> : null}
         </label>
       </div>
       {error ? <p role="alert" className="tv-sheet-m-error">{error}</p> : null}

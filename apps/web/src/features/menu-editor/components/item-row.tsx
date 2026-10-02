@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { LuImagePlus, LuPencil } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import type { OwnerMenuCategoryDTO, OwnerMenuItemDTO } from '@/domain/menu'
 import { mediaSummary, priceLabel } from '../lib/item-display'
@@ -42,7 +43,7 @@ export function ItemRow({
   // Toque: segurar abre o menu; deslizar à direita alterna a
   // disponibilidade; à esquerda pede para excluir.
   function onTouchStart(event: React.TouchEvent<HTMLDivElement>) {
-    if (!canEdit || reorderMode || (event.target as HTMLElement).closest('button,input,[role="switch"],a')) return
+    if (!canEdit || reorderMode || actions.pending || (event.target as HTMLElement).closest('button,input,[role="switch"],a')) return
     touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
     longPressFired.current = false
     longPress.current = setTimeout(() => {
@@ -71,7 +72,8 @@ export function ItemRow({
       disabled={!canEdit}
       render={
         <div
-          className={`tv-item${item.isVisible ? '' : ' is-hidden'}`}
+          className={`tv-item${item.isVisible ? '' : ' is-hidden'}${actions.pending ? ' is-busy' : ''}`}
+          aria-busy={actions.pending || undefined}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           onTouchCancel={() => { clearLongPress(); touchStart.current = null }}
@@ -95,6 +97,7 @@ export function ItemRow({
       <div className="tv-item-actions">
         {canEdit ? (
           <label className="tv-avail">
+            {actions.running === 'availability' ? <SpinnerRing label="Salvando disponibilidade" className="tv-row-spinner" /> : null}
             <span>{actions.available ? 'Disponível' : 'Esgotado'}</span>
             <Switch
               checked={actions.available}
@@ -117,13 +120,13 @@ export function ItemRow({
           />
         ) : null}
         {canEdit ? (
-          <button type="button" className="tv-picon" aria-label={`Editar ${item.name}`} onClick={() => actions.setEditOpen(true)}>
+          <button type="button" className="tv-picon" aria-label={`Editar ${item.name}`} disabled={actions.pending} onClick={() => actions.setEditOpen(true)}>
             <LuPencil aria-hidden="true" />
           </button>
         ) : null}
         {canEdit ? <ItemActionsMenu item={item} categories={categories} actions={actions} open={menuOpen} onOpenChange={setMenuOpen} /> : null}
       </div>
-      {canEdit ? <ItemDialogs item={item} categories={categories} actions={actions} /> : null}
+      {canEdit ? <ItemDialogs restaurantId={restaurantId} item={item} categories={categories} actions={actions} /> : null}
     </ItemContextMenu>
   )
 }

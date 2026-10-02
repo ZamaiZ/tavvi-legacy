@@ -40,7 +40,7 @@ function AccountSheet({ email, name, description, onClose }: { email: string | n
           <span className="tv-account-sheet-avatar" aria-hidden="true">{accountInitial(email)}</span>
           <span className="tv-account-sheet-copy"><strong>{email ?? 'Conta'}</strong><small>{description}</small></span>
         </div>
-        <AccountNameAction variant="row" name={name} className="is-spaced" />
+        <AccountNameAction variant="row" name={name} className="is-spaced" disabled={pending} />
         <h2 className="tv-group-label">Aparência</h2>
         <div className="tv-group"><ThemeSegment className="tv-account-segment" /></div>
         <PwaInstallAction variant="row" className="is-spaced" />
@@ -56,6 +56,7 @@ function AccountSheet({ email, name, description, onClose }: { email: string | n
           title="Sair da conta?"
           description="Você precisará entrar novamente para acessar o console."
           confirmLabel="Sair da conta"
+          pendingLabel="Saindo…"
           icon={<LuLogOut />}
           destructive
           pending={pending}

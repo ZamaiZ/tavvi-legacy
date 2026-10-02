@@ -763,6 +763,10 @@ export type Database = {
         Args: { p_name: string }
         Returns: string
       }
+      save_menu_item: {
+        Args: { p_payload: Json }
+        Returns: Json
+      }
       save_push_subscription: {
         Args: {
           p_auth: string

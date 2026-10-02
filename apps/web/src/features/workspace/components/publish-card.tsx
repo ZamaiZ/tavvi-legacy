@@ -56,6 +56,7 @@ export function PublishCard({
     // botão é cortesia; quem recusa de novo é o `setPublished` no servidor.
     startTransition(async () => {
       const result = await setPublishedAction({ restaurantId, published })
+      setUnpublishOpen(false)
       if (result.ok) {
         setStatus(published ? 'active' : 'draft')
         toast.add({ title: published ? 'Cardápio publicado' : 'Cardápio despublicado', type: 'success' })
@@ -93,6 +94,8 @@ export function PublishCard({
       title="Despublicar o cardápio?"
       description="Clientes deixarão de encontrar este cardápio até você publicá-lo novamente."
       confirmLabel="Despublicar"
+      pendingLabel="Despublicando…"
+      pending={pending && unpublishOpen}
       cancelLabel="Continuar no ar"
       destructive
       onConfirm={() => togglePublication(false)}

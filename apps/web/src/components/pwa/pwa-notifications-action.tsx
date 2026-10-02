@@ -2,6 +2,7 @@
 
 import { useId, useState, type MouseEvent, type ReactNode } from 'react'
 import { LuBell, LuBellOff, LuBellRing } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { usePush, type PushResult } from './push-provider'
 
@@ -15,6 +16,13 @@ type Action = {
   expands?: boolean
 }
 
+// O texto enquanto a ação roda: o spinner sozinho não diz o que está acontecendo.
+const PENDING_LABEL: Record<string, string> = {
+  on: 'Ativando…',
+  off: 'Desativando…',
+  test: 'Enviando teste…',
+}
+
 // "Notificações": logo abaixo de "Instalar app" nas telas de conta (Ajustes
 // do painel, Conta do console, popover do desktop). A permissão do
 // navegador só é pedida num toque em "Ativar notificações", nunca sozinha.
@@ -22,6 +30,7 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
   const { availability, subscribed, pending, enable, disable, sendTest } = usePush()
   const [helpOpen, setHelpOpen] = useState(false)
   const helpId = useId()
+  const [runningKey, setRunningKey] = useState<string | null>(null)
   if (availability === 'unsupported') return null
 
   const help =
@@ -82,11 +91,18 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
           },
         ]
 
+  function running(action: Action) {
+    return pending && runningKey === action.key && !action.expands
+  }
+
   function buttonProps(action: Action) {
     return {
       type: 'button' as const,
       disabled: pending && !action.expands,
-      onClick: action.run,
+      onClick: (event: MouseEvent<HTMLButtonElement>) => {
+        setRunningKey(action.key)
+        action.run(event)
+      },
       'aria-expanded': action.expands ? helpOpen : undefined,
       'aria-controls': action.expands ? helpId : undefined,
     }
@@ -97,8 +113,8 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
       <div className="tv-account-section">
         {actions.map((action) => (
           <button key={action.key} {...buttonProps(action)} className="tv-account-action">
-            {action.icon}
-            <span>{action.label}</span>
+            {running(action) ? <SpinnerRing decorative /> : action.icon}
+            <span>{running(action) ? PENDING_LABEL[action.key] ?? action.label : action.label}</span>
           </button>
         ))}
         {help ? <p id={helpId} className="tv-account-note" hidden={!helpOpen}>{help}</p> : null}
@@ -111,9 +127,9 @@ export function PwaNotificationsAction({ variant, className }: { variant: 'row' 
       <div className={className ? `tv-group ${className}` : 'tv-group'}>
         {actions.map((action) => (
           <button key={action.key} {...buttonProps(action)} className="tv-mlink">
-            <span className="tv-mlink-icon" aria-hidden="true">{action.icon}</span>
+            <span className="tv-mlink-icon" aria-hidden="true">{running(action) ? <SpinnerRing decorative /> : action.icon}</span>
             <span className="tv-mlink-copy">
-              <span>{action.label}</span>
+              <span>{running(action) ? PENDING_LABEL[action.key] ?? action.label : action.label}</span>
               {action.hint ? <small>{action.hint}</small> : null}
             </span>
           </button>

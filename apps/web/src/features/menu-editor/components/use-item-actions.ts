@@ -7,6 +7,8 @@ import { deleteItemAction, setItemAvailabilityAction, updateItemAction } from '@
 import type { ActionResult } from '@/server/actions/result'
 import { itemPayload, moveItemToCategory, saveItemOrder } from '../lib/menu-order'
 
+type RunningAction = 'availability' | 'visibility' | 'move' | 'reorder' | 'delete'
+
 // Ações de um item, as mesmas na linha (Lista/Índice) e no cartão (Grade).
 // A disponibilidade é otimista: no meio do serviço ninguém espera a ida e
 // volta ao servidor para ver o interruptor mudar.
@@ -26,11 +28,16 @@ export function useItemActions({
   const [available, setAvailable] = useOptimistic(item.isAvailable)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  // Qual ação está rodando: a linha mostra o progresso no controle certo.
+  const [lastAction, setLastAction] = useState<RunningAction | null>(null)
   const index = siblings.findIndex((entry) => entry.id === item.id)
 
-  function run(action: () => Promise<ActionResult>, done: string) {
+  function run(kind: RunningAction, action: () => Promise<ActionResult>, done: string, after?: () => void) {
+    if (pending) return
+    setLastAction(kind)
     startTransition(async () => {
       const result = await action()
+      after?.()
       toast.add(result.ok ? { title: done, type: 'success' } : { title: result.error, type: 'error' })
     })
   }
@@ -38,6 +45,8 @@ export function useItemActions({
   // `announce`: o celular confirma com toast ("Item esgotado"), como no
   // design; o desktop fica calado, porque o switch já diz tudo.
   function toggleAvailability(next: boolean, announce = false) {
+    if (pending) return
+    setLastAction('availability')
     startTransition(async () => {
       setAvailable(next)
       const result = await setItemAvailabilityAction({ itemId: item.id, isAvailable: next })
@@ -48,13 +57,14 @@ export function useItemActions({
 
   function toggleVisibility() {
     const next = !item.isVisible
-    run(() => updateItemAction(itemPayload(item, { isVisible: next })), next ? 'Item exibido no cardápio' : 'Item ocultado')
+    run('visibility', () => updateItemAction(itemPayload(item, { isVisible: next })), next ? 'Item exibido no cardápio' : 'Item ocultado')
   }
 
   function moveTo(categoryId: string) {
     const target = categories.find((category) => category.id === categoryId)
     if (!target || target.id === item.categoryId) return
     run(
+      'move',
       () => moveItemToCategory({
         restaurantId,
         item,
@@ -71,15 +81,17 @@ export function useItemActions({
     if (index < 0 || target < 0 || target >= siblings.length) return
     const ids = siblings.map((entry) => entry.id)
     ;[ids[index], ids[target]] = [ids[target], ids[index]]
-    run(() => saveItemOrder(restaurantId, ids), 'Ordem atualizada')
+    run('reorder', () => saveItemOrder(restaurantId, ids), 'Ordem atualizada')
   }
 
+  // O alerta de excluir fica aberto com o progresso e fecha ao terminar.
   function remove() {
-    run(() => deleteItemAction(item.id), 'Item excluído')
+    run('delete', () => deleteItemAction(item.id), 'Item excluído', () => setDeleteOpen(false))
   }
 
   return {
     pending,
+    running: pending ? lastAction : null,
     available,
     toggleAvailability,
     toggleVisibility,

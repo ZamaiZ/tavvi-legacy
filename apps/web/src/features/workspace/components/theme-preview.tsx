@@ -3,6 +3,12 @@
 import type { CSSProperties } from 'react'
 import type { Density, ThemeChoice } from '@/domain/theme'
 import { publicMediaUrl } from '@/lib/media-url'
+
+// Logo e capa ainda não salvas chegam como imagem local (blob:), e são
+// desenhadas como estão; as gravadas vêm do storage.
+function brandSrc(path: string) {
+  return path.startsWith('blob:') ? path : publicMediaUrl('image', path)
+}
 import { resolveTheme } from '@/lib/theme/resolve'
 import { PhonePreviewFrame, type PreviewMode } from './floating-restaurant-preview'
 import '@/features/public-menu/styles/menu.css'
@@ -53,12 +59,12 @@ export function ThemePreviewContent({
       <div className="tv-theme-preview-cover">
         {coverPath ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={publicMediaUrl('image', coverPath)} alt="" />
+          <img src={brandSrc(coverPath)} alt="" />
         ) : null}
         <span className="tv-theme-preview-logo">
           {logoPath ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={publicMediaUrl('image', logoPath)} alt="" />
+            <img src={brandSrc(logoPath)} alt="" />
           ) : null}
         </span>
       </div>

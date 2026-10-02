@@ -1,6 +1,7 @@
 'use client'
 
 import { LuArrowRight, LuCheck, LuCopy, LuMail, LuMinus, LuPlus, LuTriangleAlert } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import type { InviteSheetState } from './use-invite-sheet'
 
 // Sheet do iOS (print novo-convite): alça, "Cancelar · título", grupos e o
@@ -32,7 +33,7 @@ export function InviteSheetMobile({ sheet }: { sheet: InviteSheetState }) {
         {sheet.error ? <p role="alert" className="tv-sheet-m-error">{sheet.error}</p> : null}
         <label className="tv-sheet-m-field">
           <LuMail aria-hidden="true" />
-          <input type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" aria-label="E-mail (opcional)" placeholder="E-mail (opcional)" value={sheet.email} readOnly={sheet.rotating} onChange={(event) => sheet.setEmail(event.target.value)} />
+          <input type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" aria-label="E-mail (opcional)" placeholder="E-mail (opcional)" value={sheet.email} readOnly={sheet.rotating || sheet.pending} onChange={(event) => sheet.setEmail(event.target.value)} />
         </label>
         {!sheet.rotating ? <p className="tv-sheet-m-note">Preenchido, o link só funciona para quem entrar com esse e-mail.</p> : null}
         {!sheet.rotating ? <>
@@ -40,16 +41,16 @@ export function InviteSheetMobile({ sheet }: { sheet: InviteSheetState }) {
             <span>Validade</span>
             <output aria-live="polite">{sheet.days} {sheet.days === 1 ? 'dia' : 'dias'}</output>
             <span className="tv-sheet-m-stepper">
-              <button type="button" aria-label="Menos dias" disabled={sheet.days <= 1} onPointerDown={() => sheet.startHold(-1)} onPointerUp={sheet.stopHold} onPointerLeave={sheet.stopHold} onClick={() => sheet.stepDays(-1)}><LuMinus aria-hidden="true" /></button>
+              <button type="button" aria-label="Menos dias" disabled={sheet.pending || sheet.days <= 1} onPointerDown={() => sheet.startHold(-1)} onPointerUp={sheet.stopHold} onPointerLeave={sheet.stopHold} onClick={() => sheet.stepDays(-1)}><LuMinus aria-hidden="true" /></button>
               <i aria-hidden="true" />
-              <button type="button" aria-label="Mais dias" disabled={sheet.days >= 30} onPointerDown={() => sheet.startHold(1)} onPointerUp={sheet.stopHold} onPointerLeave={sheet.stopHold} onClick={() => sheet.stepDays(1)}><LuPlus aria-hidden="true" /></button>
+              <button type="button" aria-label="Mais dias" disabled={sheet.pending || sheet.days >= 30} onPointerDown={() => sheet.startHold(1)} onPointerUp={sheet.stopHold} onPointerLeave={sheet.stopHold} onClick={() => sheet.stepDays(1)}><LuPlus aria-hidden="true" /></button>
             </span>
           </div>
           <p className="tv-sheet-m-note">Entre 1 e 30 dias. Quem aceitar dentro do prazo não perde o acesso depois.</p>
         </> : null}
         <div className="tv-sheet-m-spacer" />
         <button type="button" className="tv-m-pill is-primary tv-sheet-m-cta" disabled={sheet.pending} onClick={sheet.submit}>
-          {sheet.pending ? <><span className="tv-spinner" />Gerando…</> : <>{sheet.rotating ? 'Gerar novo link' : 'Gerar link'}<LuArrowRight aria-hidden="true" /></>}
+          {sheet.pending ? <><SpinnerRing decorative />Gerando…</> : <>{sheet.rotating ? 'Gerar novo link' : 'Gerar link'}<LuArrowRight aria-hidden="true" /></>}
         </button>
       </div>
     )}

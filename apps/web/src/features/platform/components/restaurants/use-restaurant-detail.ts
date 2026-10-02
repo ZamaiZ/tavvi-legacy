@@ -24,7 +24,13 @@ export function useRestaurantDetail(restaurant: RestaurantDetailDTO, rootDomain:
   const [copied, setCopied] = useState(false)
   const [slugError, setSlugError] = useState('')
   const [confirm, setConfirm] = useState<'suspend' | 'remove' | null>(null)
-  const [pending, startTransition] = useTransition()
+  // Uma transição por ação: cada botão mostra o próprio andamento, e o
+  // `pending` geral trava o resto da tela.
+  const [savingSlug, startSlug] = useTransition()
+  const [changingStatus, startStatus] = useTransition()
+  const [confirming, startConfirm] = useTransition()
+  const [statusTarget, setStatusTarget] = useState<RestaurantStatus | null>(null)
+  const pending = savingSlug || changingStatus || confirming
   const validSlug = slugSchema.safeParse(slug)
   const canSaveSlug = validSlug.success && slug !== restaurant.slug
   const domain = rootDomain.replace(/^https?:\/\//, '')
@@ -41,7 +47,7 @@ export function useRestaurantDetail(restaurant: RestaurantDetailDTO, rootDomain:
   function saveSlug() {
     setSlugError('')
     if (!validSlug.success) { setSlugError('Use letras minúsculas, números e hífens.'); return }
-    startTransition(async () => {
+    startSlug(async () => {
       const result = await updateRestaurantSlugAction({ restaurantId: restaurant.id, slug: validSlug.data })
       if (result.ok) { toast.add({ title: 'Endereço atualizado', type: 'success' }); router.refresh() }
       else setSlugError(result.error.includes('em uso') ? 'Este endereço já está em uso.' : result.error)
@@ -49,22 +55,24 @@ export function useRestaurantDetail(restaurant: RestaurantDetailDTO, rootDomain:
   }
   function setStatus(status: RestaurantStatus) {
     if (status === 'suspended') { setConfirm('suspend'); return }
-    startTransition(async () => {
+    setStatusTarget(status)
+    startStatus(async () => {
       const result = await setRestaurantStatusAction({ restaurantId: restaurant.id, status })
+      setStatusTarget(null)
       toast.add(result.ok ? { title: 'Situação atualizada', type: 'success' } : { title: result.error, type: 'error' })
       if (result.ok) router.refresh()
     })
   }
   function confirmAction() {
     if (confirm === 'suspend') {
-      startTransition(async () => {
+      startConfirm(async () => {
         const result = await setRestaurantStatusAction({ restaurantId: restaurant.id, status: 'suspended' })
         setConfirm(null)
         toast.add(result.ok ? { title: 'Situação atualizada', type: 'success' } : { title: result.error, type: 'error' })
         if (result.ok) router.refresh()
       })
     } else if (confirm === 'remove') {
-      startTransition(async () => {
+      startConfirm(async () => {
         const result = await softDeleteRestaurantAction(restaurant.id)
         setConfirm(null)
         if (result.ok) { toast.add({ title: 'Restaurante removido', type: 'success' }); router.push('/restaurantes') }
@@ -73,7 +81,7 @@ export function useRestaurantDetail(restaurant: RestaurantDetailDTO, rootDomain:
     }
   }
 
-  return { slug, setSlug, slugError, canSaveSlug, saveSlug, copied, copyPublicLink, domain, publicHost, pending, setStatus, confirm, setConfirm, confirmAction }
+  return { slug, setSlug, slugError, canSaveSlug, saveSlug, copied, copyPublicLink, domain, publicHost, pending, savingSlug, changingStatus, statusTarget, confirming, setStatus, confirm, setConfirm, confirmAction }
 }
 
 export type RestaurantDetailState = ReturnType<typeof useRestaurantDetail>

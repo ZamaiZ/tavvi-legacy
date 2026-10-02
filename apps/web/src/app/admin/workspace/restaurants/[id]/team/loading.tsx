@@ -11,7 +11,8 @@ import {
 // nada pula de lugar quando a página chega.
 export default function Loading() {
   return (
-    <main className="tv-team-page" aria-busy="true">
+    <>
+    <main className="tv-team-page tv-d-only" aria-busy="true">
       <PageHeader
         eyebrow="Acessos"
         title="Equipe"
@@ -59,5 +60,18 @@ export default function Loading() {
         </div>
       </div>
     </main>
+      <div className="tv-mp tv-m-only" aria-busy="true">
+        <div className="tv-mp-titlebar"><h1 className="tv-mp-title">Equipe</h1></div>
+        <p className="tv-mp-lead is-team">Administradores editam o restaurante. Caixa, atendente e garçom consultam o cardápio e os preços.</p>
+        <div className="mx-4 overflow-hidden rounded-[14px]">
+          {[0, 1, 2].map((member) => (
+            <div key={member} className="flex items-center gap-3 py-3">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="flex-1 space-y-2"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-24" /></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }

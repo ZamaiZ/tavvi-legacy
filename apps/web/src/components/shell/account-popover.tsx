@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { LuLogOut } from 'react-icons/lu'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { PwaNotificationsAction } from '@/components/pwa/pwa-notifications-action'
 import { AccountNameAction } from './account-name-action'
 import { accountInitial, ThemeSegment, useAccountDialogKeys, useSignOut } from './account-panel'
@@ -30,7 +31,7 @@ export function AccountPopover({ email, name, description, onClose }: {
             <small>{description ?? 'Administrador da plataforma'}</small>
           </span>
         </div>
-        <AccountNameAction variant="popover" name={name} />
+        <AccountNameAction variant="popover" name={name} disabled={pending} />
         <div className="tv-account-section">
           <span className="tv-account-label">Tema</span>
           <ThemeSegment className="tv-theme-segment" />
@@ -39,7 +40,7 @@ export function AccountPopover({ email, name, description, onClose }: {
         <PwaNotificationsAction variant="popover" />
         <hr className="tv-account-divider" />
         <button type="button" disabled={pending} className="tv-signout-button" onClick={signOut}>
-          {pending ? <span className="tv-spinner" aria-hidden="true" /> : <LuLogOut aria-hidden="true" />}
+          {pending ? <SpinnerRing decorative /> : <LuLogOut aria-hidden="true" />}
           <span>{pending ? 'Saindo…' : 'Sair'}</span>
         </button>
       </div>

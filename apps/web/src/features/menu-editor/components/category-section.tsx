@@ -52,11 +52,14 @@ export function CategorySection({
   const [pending, startTransition] = useTransition()
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const titleId = `categoria-${category.id}-titulo`
 
-  function run(action: () => Promise<ActionResult>, done: string) {
+  function run(action: () => Promise<ActionResult>, done: string, after?: () => void) {
+    if (pending) return
     startTransition(async () => {
       const result = await action()
+      after?.()
       toast.add(result.ok ? { title: done, type: 'success' } : { title: result.error, type: 'error' })
     })
   }
@@ -88,7 +91,7 @@ export function CategorySection({
   const total = category.items.length
 
   return (
-    <section id={`categoria-${category.id}`} className="tv-cat" aria-labelledby={titleId}>
+    <section id={`categoria-${category.id}`} className="tv-cat" aria-labelledby={titleId} aria-busy={pending || undefined}>
       <ContextMenu disabled={!canEdit}>
         <ContextMenuTrigger render={<header className="tv-cat-head" />}>
           <div className="tv-cat-title">
@@ -108,23 +111,23 @@ export function CategorySection({
           ) : null}
           {canEdit ? (
             <DropdownMenu>
-              <DropdownMenuTrigger className="tv-picon is-more" aria-label={`Ações da categoria ${category.name}`}>
+              <DropdownMenuTrigger className="tv-picon is-more" disabled={pending} aria-label={`Ações da categoria ${category.name}`}>
                 <LuEllipsis aria-hidden="true" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={4} className="is-category">
-                {entries.map((entry) => <DropdownMenuItem key={entry.key} onClick={entry.run}><entry.icon />{entry.label}</DropdownMenuItem>)}
+                {entries.map((entry) => <DropdownMenuItem key={entry.key} disabled={pending} onClick={entry.run}><entry.icon />{entry.label}</DropdownMenuItem>)}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}><LuTrash2 />Excluir</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" disabled={pending} onClick={() => setDeleteOpen(true)}><LuTrash2 />Excluir</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
         </ContextMenuTrigger>
         <ContextMenuContent width="sm" aria-label={`Ações da categoria ${category.name}`}>
           {entries.map((entry) => (
-            <ContextMenuItem key={entry.key} onClick={entry.run}><entry.icon aria-hidden="true" /><span>{entry.label}</span></ContextMenuItem>
+            <ContextMenuItem key={entry.key} disabled={pending} onClick={entry.run}><entry.icon aria-hidden="true" /><span>{entry.label}</span></ContextMenuItem>
           ))}
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}><LuTrash2 aria-hidden="true" /><span>Excluir</span></ContextMenuItem>
+          <ContextMenuItem variant="destructive" disabled={pending} onClick={() => setDeleteOpen(true)}><LuTrash2 aria-hidden="true" /><span>Excluir</span></ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
@@ -147,8 +150,16 @@ export function CategorySection({
             title={`Excluir a categoria ${category.name}?`}
             description={total > 0 ? `Os ${total} itens dentro dela também serão excluídos. Isto não pode ser desfeito.` : 'Isto não pode ser desfeito.'}
             confirmLabel="Excluir"
+            pending={deleting}
+            pendingLabel="Excluindo…"
             destructive
-            onConfirm={() => run(() => deleteCategoryAction(category.id), 'Categoria excluída')}
+            onConfirm={() => {
+              setDeleting(true)
+              run(() => deleteCategoryAction(category.id), 'Categoria excluída', () => {
+                setDeleting(false)
+                setDeleteOpen(false)
+              })
+            }}
           />
         </>
       ) : null}

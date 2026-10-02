@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
+import { Suspense } from 'react'
 import { ConsoleShell } from '@/components/shell/console-shell'
 import { getConsoleConfig } from '@/components/shell/console-config'
+import { ShellSkeleton } from '@/components/shell/shell-skeleton'
+import { ConsoleListSkeleton } from '@/features/platform/components/console-list-skeleton'
 import { PlatformInviteOverlay } from '@/features/platform/components/invites/platform-invite-overlay'
 import { ConsoleAccountSheet } from '@/features/platform/components/account/account-sheet'
 import { getCurrentUser, getPlatformAdminStatus } from '@/server/dal/auth'
@@ -28,9 +31,27 @@ export const viewport: Viewport = {
 // PwaProvider. Vale também no login, que este layout envolve.
 export const metadata: Metadata = pwaMetadata('admin')
 
+// A casca do console com os dados dela (contagens, nome). Vive dentro do
+// <Suspense> do layout (doc do Next: layout.md, "Interaction with
+// loading.js"): a navegação mostra o esqueleto em vez de travar.
+async function PlatformShell({ user, children }: { user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
+  const [invites, restaurants, displayName] = await Promise.all([getCachedPlatformInvites(), getCachedAdminRestaurants(), getMyDisplayName()])
+  const config = getConsoleConfig(user, displayName)
+  const pendingCount = invites.filter((invite) => inviteState(invite) === 'pending').length
+  const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
+  return (
+    <ConsoleShell surface="console" config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />} accountSheet={<ConsoleAccountSheet />}>
+      {children}
+    </ConsoleShell>
+  )
+}
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // This layout also wraps the sign-in page, so authorization stays in the
   // private pages and the existing access-denied decision remains unchanged.
+  // A checagem fica antes do Suspense: ela decide se há casca.
   const user = await getCurrentUser()
   if (!user || (await getPlatformAdminStatus()) === 'denied') {
     return (
@@ -40,18 +61,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     )
   }
 
-  const cookieStore = await cookies()
-  const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
-  const [invites, restaurants, displayName] = await Promise.all([getCachedPlatformInvites(), getCachedAdminRestaurants(), getMyDisplayName()])
-  const config = getConsoleConfig(user, displayName)
-  const pendingCount = invites.filter((invite) => inviteState(invite) === 'pending').length
-  const consoleConfig = { ...config, counts: { pendingInvites: pendingCount, restaurants: restaurants.length } }
   return (
     <PwaProvider vapidPublicKey={env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}>
       <div className="admin-territory min-h-dvh">
-        <ConsoleShell surface="console" config={consoleConfig} initialRail={initialRail} inviteOverlay={<PlatformInviteOverlay />} accountSheet={<ConsoleAccountSheet />}>
-          {children}
-        </ConsoleShell>
+        <Suspense fallback={<ShellSkeleton><ConsoleListSkeleton /></ShellSkeleton>}>
+          <PlatformShell user={user}>{children}</PlatformShell>
+        </Suspense>
       </div>
     </PwaProvider>
   )

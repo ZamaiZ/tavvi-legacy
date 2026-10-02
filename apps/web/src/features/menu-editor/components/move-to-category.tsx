@@ -15,6 +15,7 @@ export function MoveToCategory({
   categories,
   onMove,
   touch = false,
+  disabled = false,
 }: {
   item: OwnerMenuItemDTO
   categories: OwnerMenuCategoryDTO[]
@@ -22,6 +23,8 @@ export function MoveToCategory({
   /** No toque, a busca fica fora do foco inicial do menu: o teclado só abre
    *  quando a pessoa toca no campo. */
   touch?: boolean
+  /** Outra ação do item está rodando. */
+  disabled?: boolean
 }) {
   const options = useMemo<Option[]>(
     () => categories.filter((category) => category.id !== item.categoryId).map(({ id, name }) => ({ id, name })),
@@ -55,6 +58,7 @@ export function MoveToCategory({
         open={listOpen}
         onOpenChange={(next) => setListOpen(next)}
         inline
+        disabled={disabled}
         itemToStringLabel={(option: Option) => option.name}
         isItemEqualToValue={(a: Option, b: Option) => a.id === b.id}
       >

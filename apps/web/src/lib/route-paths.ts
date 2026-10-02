@@ -1,3 +1,11 @@
+// Destino das reescritas do proxy que precisam terminar em 404 (caminho de
+// outro território). Sempre cai em notFound(): `_` nunca passa no
+// slugSchema, e nenhuma pasta de rota pode se chamar `_404`, porque pastas
+// com `_` são privadas no App Router. Quem atende é o layout de
+// `(site)/[slug]`, sem consulta ao banco, e a 404 raiz escolhe a variante
+// pelo host.
+export const NOT_FOUND_PATH = '/_404'
+
 export type PrivateTerritory = 'admin' | 'painel'
 
 const externalFirstSegments: Record<PrivateTerritory, Record<string, string>> = {

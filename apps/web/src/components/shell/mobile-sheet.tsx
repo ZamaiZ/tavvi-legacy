@@ -1,12 +1,15 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 import { LuChevronLeft } from 'react-icons/lu'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { useTerritoryContainer } from '@/features/workspace/components/use-territory-container'
 
 export type MobileSheetAction = {
   label: string
+  /** Texto durante o envio. Padrão: "Salvando…". */
+  pendingLabel?: string
   /** Id do formulário que a ação envia. Sem ele, usa `onClick`. */
   form?: string
   onClick?: () => void
@@ -21,6 +24,9 @@ type MobileSheetContextValue = {
   forceClose: () => void
   setBack: (back: (() => void) | null) => void
   setGuard: (guard: (() => boolean) | null) => void
+  /** Uma ação está rodando: nada fecha nem volta. */
+  busy: boolean
+  setBusy: (busy: boolean) => void
 }
 
 const MobileSheetContext = createContext<MobileSheetContextValue | null>(null)
@@ -45,6 +51,17 @@ export function useSheetGuard(guard: () => boolean) {
   }, [setGuard])
 }
 
+// Trava o sheet enquanto uma ação roda: Esc, toque fora, alça, Cancelar e
+// voltar não fazem nada. Fechar no meio esconderia o resultado, e a pessoa
+// não saberia se salvou.
+export function useSheetBusy(busy: boolean) {
+  const { setBusy } = useMobileSheet()
+  useEffect(() => {
+    setBusy(busy)
+  }, [busy, setBusy])
+  useEffect(() => () => setBusy(false), [setBusy])
+}
+
 // Sheet do iOS (Tavvi Mobile.dc.html, bloco bEdit): alça, barra
 // "Cancelar · título · ação" fixa no topo e o corpo em grupos, que rola por
 // baixo dela. O corpo só monta com o sheet aberto, então o estado dele
@@ -64,10 +81,17 @@ export function MobileSheet({
   const container = useTerritoryContainer()
   const backRef = useRef<(() => void) | null>(null)
   const guardRef = useRef<(() => boolean) | null>(null)
+  const busyRef = useRef(false)
+  const [busy, setBusyState] = useState(false)
   const dragStart = useRef<number | null>(null)
 
+  const setBusy = useCallback((next: boolean) => {
+    busyRef.current = next
+    setBusyState(next)
+  }, [])
   const forceClose = useCallback(() => onOpenChange(false), [onOpenChange])
   const requestClose = useCallback(() => {
+    if (busyRef.current) return
     if (guardRef.current && !guardRef.current()) return
     onOpenChange(false)
   }, [onOpenChange])
@@ -76,7 +100,9 @@ export function MobileSheet({
     forceClose,
     setBack: (back) => { backRef.current = back },
     setGuard: (guard) => { guardRef.current = guard },
-  }), [forceClose, requestClose])
+    busy,
+    setBusy,
+  }), [busy, forceClose, requestClose, setBusy])
 
   // O sheet só existe no celular: se a janela crescer, ele fecha.
   useEffect(() => {
@@ -88,6 +114,7 @@ export function MobileSheet({
   }, [open, forceClose])
 
   function dismissOneLevel() {
+    if (busyRef.current) return
     if (backRef.current) backRef.current()
     else requestClose()
   }
@@ -95,6 +122,7 @@ export function MobileSheet({
   return (
     <Dialog.Root
       open={open}
+      disablePointerDismissal={busy}
       onOpenChange={(next, details) => {
         if (next) {
           onOpenChange(true)
@@ -111,7 +139,7 @@ export function MobileSheet({
         <Dialog.Backdrop className="tv-msheet-scrim" />
         {/* Nenhum campo ganha foco ao abrir: o teclado só sobe quando a
             pessoa toca num campo. */}
-        <Dialog.Popup className={`tv-msheet${detent === 'content' ? ' is-content' : ''}`}>
+        <Dialog.Popup className={`tv-msheet${detent === 'content' ? ' is-content' : ''}`} aria-busy={busy || undefined}>
           <div
             className="tv-msheet-grip"
             aria-hidden="true"
@@ -148,7 +176,7 @@ export function MobileSheetNav({
   action?: MobileSheetAction
   back?: { label: string; onBack: () => void }
 }) {
-  const { requestClose, setBack } = useMobileSheet()
+  const { requestClose, setBack, busy } = useMobileSheet()
   const onBack = back?.onBack
   useEffect(() => {
     setBack(onBack ?? null)
@@ -158,11 +186,11 @@ export function MobileSheetNav({
   return (
     <div className="tv-msheet-nav">
       {back ? (
-        <button type="button" className="tv-msheet-back" onClick={back.onBack}>
+        <button type="button" className="tv-msheet-back" disabled={busy} onClick={back.onBack}>
           <LuChevronLeft aria-hidden="true" />{back.label}
         </button>
       ) : (
-        <button type="button" className="tv-msheet-cancel" onClick={requestClose}>{cancelLabel}</button>
+        <button type="button" className="tv-msheet-cancel" disabled={busy} onClick={requestClose}>{cancelLabel}</button>
       )}
       <Dialog.Title className="tv-msheet-title">{title}</Dialog.Title>
       {action ? (
@@ -174,7 +202,12 @@ export function MobileSheetNav({
           aria-busy={action.pending || undefined}
           onClick={action.onClick}
         >
-          {action.pending ? <span className="tv-spinner" aria-label="Enviando" /> : action.label}
+          {action.pending ? (
+            <>
+              <SpinnerRing decorative />
+              {action.pendingLabel ?? 'Salvando…'}
+            </>
+          ) : action.label}
         </button>
       ) : null}
     </div>

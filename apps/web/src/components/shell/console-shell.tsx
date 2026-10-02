@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
 import { MobileTabBar } from './mobile-tab-bar'
+import { NavigationProgress } from './navigation-progress'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
@@ -115,6 +116,7 @@ export function ConsoleShell({
     <ConsoleInviteContext.Provider value={inviteContext}>
       <ConsoleAccountContext.Provider value={accountContext}>
         <RestaurantShellContext.Provider value={restaurantContext}>
+        <NavigationProgress>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
             items={leaves.map((leaf) => ({
@@ -147,6 +149,7 @@ export function ConsoleShell({
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>
+        </NavigationProgress>
         </RestaurantShellContext.Provider>
       </ConsoleAccountContext.Provider>
     </ConsoleInviteContext.Provider>

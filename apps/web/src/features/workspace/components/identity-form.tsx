@@ -1,8 +1,15 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { LuCheck, LuUndo2 } from 'react-icons/lu'
-import { BrandImages } from '@/features/workspace/components/brand-images'
+import {
+  BrandImages,
+  brandChanged,
+  brandPreviewPath,
+  commitBrandImage,
+  revokeBrandPreview,
+  type BrandDraft,
+} from '@/features/workspace/components/brand-images'
 import { FloatingRestaurantPreview } from '@/features/workspace/components/floating-restaurant-preview'
 import { IdentityPreview } from '@/features/workspace/components/identity-preview'
 import { ThemePreview } from '@/features/workspace/components/theme-preview'
@@ -34,6 +41,8 @@ const DENSITIES: { value: Density; label: string }[] = [
   { value: 'compacto', label: 'Compacto' },
 ]
 
+const BRAND_SLOTS: BrandSlot[] = ['logo', 'cover']
+
 // "Não informar" é o valor vazio, gravado como null.
 const SEGMENT_OPTIONS: ComboboxOption[] = [
   { value: '', label: 'Não informar' },
@@ -51,6 +60,8 @@ export function IdentityForm({
   theme,
   logoPath,
   coverPath,
+  continueLabel,
+  busy,
   onSaved,
 }: {
   restaurantId: string
@@ -59,6 +70,10 @@ export function IdentityForm({
   theme: unknown
   logoPath: string | null
   coverPath: string | null
+  /** Assistente: o botão vira "Salvar e continuar" e, sem mudanças, só continua. */
+  continueLabel?: string
+  /** Algo fora do formulário está rodando (o assistente navegando). */
+  busy?: boolean
   /** O assistente usa isto para avançar de passo; a tela solta não passa. */
   onSaved?: () => void
 }) {
@@ -72,10 +87,23 @@ export function IdentityForm({
   const [selectedSegment, setSelectedSegment] = useState<string | null>(segment)
   const [savedSegment, setSavedSegment] = useState(segment)
   const [themeTouched, setThemeTouched] = useState(false)
-  // Logo e capa gravam sozinhas; o formulário só guarda o caminho atual para
-  // a prévia mostrar a imagem assim que o envio termina.
-  const [brand, setBrand] = useState<Record<BrandSlot, string | null>>({ logo: logoPath, cover: coverPath })
+  // Logo e capa em rascunho: o arquivo escolhido aparece na prévia e só sobe
+  // no "Salvar identidade", como o resto da tela.
+  const [savedBrand, setSavedBrand] = useState<Record<BrandSlot, string | null>>({ logo: logoPath, cover: coverPath })
+  const [brand, setBrand] = useState<Record<BrandSlot, BrandDraft>>({
+    logo: { kind: 'saved', path: logoPath },
+    cover: { kind: 'saved', path: coverPath },
+  })
+  const brandRef = useRef(brand)
+  useEffect(() => {
+    brandRef.current = brand
+  })
+  useEffect(() => () => {
+    revokeBrandPreview(brandRef.current.logo)
+    revokeBrandPreview(brandRef.current.cover)
+  }, [])
   const [pending, startTransition] = useTransition()
+  const locked = pending || busy === true
 
   const preset = PRESETS[choice.preset]
   const currentBase = choice.base ?? preset.light.base
@@ -104,8 +132,11 @@ export function IdentityForm({
       : contrastRatio(currentAccent, currentBase) >= CONTRAST_MINIMUMS.accent
   const isAccentValid =
     choice.accent === null ? accentReadsOnLight : isAccentUsable(choice.preset, currentAccent, currentBase)
-  const hasChanges = JSON.stringify(choice) !== JSON.stringify(savedChoice) || selectedSegment !== savedSegment
-  const canSave = !pending && hasChanges && isBaseValid && isAccentValid
+  const themeChanged = JSON.stringify(choice) !== JSON.stringify(savedChoice) || selectedSegment !== savedSegment
+  const brandDirty = BRAND_SLOTS.some((slot) => brandChanged(brand[slot], savedBrand[slot]))
+  const hasChanges = themeChanged || brandDirty
+  const canSave = !locked && hasChanges && isBaseValid && isAccentValid
+  const canContinue = !locked && !hasChanges && Boolean(continueLabel)
 
   function updateSegment(value: string) {
     const nextSegment = value === '' ? null : value
@@ -134,21 +165,48 @@ export function IdentityForm({
   }
 
   function save() {
+    if (locked) return
+    if (canContinue) {
+      onSaved?.()
+      return
+    }
     if (!canSave) return
+    const choiceToSave = choice
+    const segmentToSave = selectedSegment
+    const brandToSave = brand
     startTransition(async () => {
-      const result = await updateIdentityAction({
-        restaurantId,
-        segment: selectedSegment,
-        theme: choice,
-      })
-      if (result.ok) {
-        setSavedChoice(choice)
-        setSavedSegment(selectedSegment)
-        toast.add({ title: 'Identidade salva', type: 'success' })
-        onSaved?.()
-      } else {
-        toast.add({ title: result.error, type: 'error' })
+      // Logo e capa primeiro: são arquivos, e a falha mais provável (rede)
+      // aparece antes de gravar o tema. Cada um vale sozinho no banco.
+      const nextSaved = { ...savedBrand }
+      for (const slot of BRAND_SLOTS) {
+        if (!brandChanged(brandToSave[slot], savedBrand[slot])) continue
+        const result = await commitBrandImage(restaurantId, slot, brandToSave[slot], savedBrand[slot])
+        if (!result.ok) {
+          setSavedBrand(nextSaved)
+          toast.add({ title: result.error, type: 'error' })
+          return
+        }
+        revokeBrandPreview(brandToSave[slot])
+        nextSaved[slot] = result.path
+        setBrand((current) => ({ ...current, [slot]: { kind: 'saved', path: result.path } }))
       }
+      setSavedBrand(nextSaved)
+
+      if (themeChanged) {
+        const result = await updateIdentityAction({
+          restaurantId,
+          segment: segmentToSave,
+          theme: choiceToSave,
+        })
+        if (!result.ok) {
+          toast.add({ title: result.error, type: 'error' })
+          return
+        }
+        setSavedChoice(choiceToSave)
+        setSavedSegment(segmentToSave)
+      }
+      toast.add({ title: 'Identidade salva', type: 'success' })
+      onSaved?.()
     })
   }
 
@@ -156,21 +214,20 @@ export function IdentityForm({
     theme: choice,
     name,
     segment: selectedSegment,
-    logoPath: brand.logo,
-    coverPath: brand.cover,
+    logoPath: brandPreviewPath(brand.logo),
+    coverPath: brandPreviewPath(brand.cover),
   }
 
   return (
     <div className="tv-identity-layout">
       <div className="tv-identity-main">
         <BrandImages
-          restaurantId={restaurantId}
-          logoPath={brand.logo}
-          coverPath={brand.cover}
-          onChange={(slot, path) => setBrand((current) => ({ ...current, [slot]: path }))}
+          drafts={brand}
+          disabled={locked}
+          onChange={(slot, draft) => setBrand((current) => ({ ...current, [slot]: draft }))}
         />
 
-        <section className="tv-identity-card is-theme" aria-label="Tema e cores">
+        <section className="tv-identity-card is-theme" aria-label="Tema e cores" aria-busy={locked || undefined}>
           <div className="tv-identity-field is-segment">
             <span className="tv-identity-label">Tipo de restaurante</span>
             <Combobox
@@ -178,6 +235,7 @@ export function IdentityForm({
               options={SEGMENT_OPTIONS}
               value={selectedSegment ?? ''}
               onValueChange={updateSegment}
+              disabled={locked}
               className="tv-identity-combo"
             />
             <span className="tv-identity-help">Só serve para sugerir um tema. Você pode trocar o tema depois.</span>
@@ -196,6 +254,7 @@ export function IdentityForm({
                     type="button"
                     className="tv-identity-theme"
                     aria-pressed={choice.preset === id}
+                    disabled={locked}
                     onClick={() => updatePreset(id)}
                   >
                     <span className="tv-identity-theme-swatches" aria-hidden="true">
@@ -226,6 +285,7 @@ export function IdentityForm({
                     title={color}
                     aria-label={`Cor de fundo ${color}`}
                     aria-pressed={sameColor(currentBase, color)}
+                    disabled={locked}
                     onClick={() => setChoice((current) => ({ ...current, base: sameColor(color, preset.light.base) ? null : color }))}
                     style={{ background: color }}
                   />
@@ -250,6 +310,7 @@ export function IdentityForm({
                     title={color}
                     aria-label={`Cor de destaque ${color}`}
                     aria-pressed={sameColor(currentAccent, color)}
+                    disabled={locked}
                     onClick={() => setChoice((current) => ({ ...current, accent: sameColor(color, preset.light.accent) ? null : color }))}
                     style={{ background: color }}
                   />
@@ -275,6 +336,7 @@ export function IdentityForm({
                   key={density.value}
                   type="button"
                   aria-pressed={choice.density === density.value}
+                  disabled={locked}
                   onClick={() => setChoice((current) => ({ ...current, density: density.value }))}
                 >
                   {density.label}
@@ -293,16 +355,24 @@ export function IdentityForm({
             <button
               type="button"
               className="tv-identity-reset"
+              disabled={locked}
               onClick={() => setChoice((current) => ({ ...current, base: null, accent: null }))}
             >
               <LuUndo2 aria-hidden="true" />
               <span className="tv-savebar-long">Restaurar as cores do tema</span>
               <span className="tv-savebar-short">Restaurar cores</span>
             </button>
-            <button type="button" className="tv-identity-save" aria-disabled={!canSave} onClick={save}>
+            <button
+              type="button"
+              className="tv-identity-save"
+              disabled={locked}
+              aria-disabled={!canSave && !canContinue ? true : undefined}
+              aria-busy={pending || undefined}
+              onClick={save}
+            >
               {pending ? <Spinner className="size-3.5" aria-hidden="true" /> : <LuCheck aria-hidden="true" />}
-              <span className="tv-savebar-long">Salvar identidade</span>
-              <span className="tv-savebar-short">Salvar</span>
+              <span className="tv-savebar-long">{pending ? 'Salvando…' : continueLabel ?? 'Salvar identidade'}</span>
+              <span className="tv-savebar-short">{pending ? 'Salvando…' : continueLabel ?? 'Salvar'}</span>
             </button>
           </div>
         </div>

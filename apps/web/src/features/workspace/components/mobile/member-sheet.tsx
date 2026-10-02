@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { LuCheck, LuTrash2, LuUserMinus } from 'react-icons/lu'
-import { MobileSheet, MobileSheetNav, useMobileSheet } from '@/components/shell/mobile-sheet'
+import { MobileSheet, MobileSheetNav, useMobileSheet, useSheetBusy } from '@/components/shell/mobile-sheet'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { MEMBER_ROLE_HINTS, MEMBER_ROLE_LABELS, type MemberDTO, type MemberRole } from '@/domain/invite'
 import { formatShort } from '@/lib/format-date'
@@ -38,6 +39,8 @@ function MemberBody({ member, isSelf }: { member: MemberDTO; isSelf: boolean }) 
   const [role, setRole] = useState<MemberRole>(member.role)
   const [pending, startTransition] = useTransition()
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [changingTo, setChangingTo] = useState<MemberRole | null>(null)
+  useSheetBusy(pending)
   const primary = member.displayName ?? member.email ?? 'Sem identificação'
   const secondary = member.displayName && member.email ? member.email : null
   const label = member.email ?? member.displayName ?? 'este membro'
@@ -46,8 +49,10 @@ function MemberBody({ member, isSelf }: { member: MemberDTO; isSelf: boolean }) 
     if (isSelf || pending || next === role) return
     const previous = role
     setRole(next)
+    setChangingTo(next)
     startTransition(async () => {
       const result = await changeMemberRoleAction({ membershipId: member.membershipId, role: next })
+      setChangingTo(null)
       if (result.ok) {
         toast.add({ title: 'Papel atualizado', type: 'success' })
       } else {
@@ -61,6 +66,7 @@ function MemberBody({ member, isSelf }: { member: MemberDTO; isSelf: boolean }) 
   function remove() {
     startTransition(async () => {
       const result = await removeMemberAction(member.membershipId)
+      setRemoveOpen(false)
       toast.add(result.ok ? { title: 'Membro removido', type: 'success' } : { title: result.error, type: 'error' })
       if (result.ok) forceClose()
     })
@@ -81,7 +87,7 @@ function MemberBody({ member, isSelf }: { member: MemberDTO; isSelf: boolean }) 
         {ROLES.map((option) => (
           <button key={option} type="button" role="radio" aria-checked={role === option} className="tv-choice" disabled={isSelf || pending} onClick={() => choose(option)}>
             <span><strong>{MEMBER_ROLE_LABELS[option]}</strong><small>{MEMBER_ROLE_HINTS[option]}</small></span>
-            {role === option ? <LuCheck aria-hidden="true" /> : null}
+            {changingTo === option ? <SpinnerRing label="Atualizando o papel" /> : role === option ? <LuCheck aria-hidden="true" /> : null}
           </button>
         ))}
       </div>
@@ -103,6 +109,8 @@ function MemberBody({ member, isSelf }: { member: MemberDTO; isSelf: boolean }) 
         title={`Remover ${label}?`}
         description="A pessoa perde o acesso a este restaurante na hora. Para voltar, precisará de um convite novo."
         confirmLabel="Remover"
+        pendingLabel="Removendo…"
+        pending={pending && removeOpen}
         destructive
         onConfirm={remove}
       />

@@ -139,3 +139,8 @@
   .workspace-territory .tv-team-columns { grid-template-columns: minmax(0, 1fr) 120px; }
   .workspace-territory .tv-team-columns > :nth-child(n + 3) { display: none; }
 }
+
+/* Troca de papel em andamento. */
+.tv-team-role-cell { display: flex; align-items: center; gap: 6px; }
+.tv-team-role-cell .tv-team-combo { min-width: 0; flex: 1; }
+.tv-team-role-spinner.tv-spinner { width: 14px; height: 14px; flex: 0 0 auto; }

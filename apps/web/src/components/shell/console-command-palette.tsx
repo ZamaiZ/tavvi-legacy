@@ -2,11 +2,12 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import type { IconType } from 'react-icons'
 import { LuBookOpen, LuContact, LuMail, LuPalette, LuPlus, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import { getActiveConsoleLeaf, type ConsoleIcon, type ConsoleLeaf } from './console-config'
+import { useProgressNavigate } from './navigation-progress'
 
 const icons: Record<ConsoleIcon, IconType> = {
   mail: LuMail,
@@ -33,7 +34,7 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listId = useId()
-  const router = useRouter()
+  const navigate = useProgressNavigate()
   const pathname = usePathname()
   const activeLeaf = getActiveConsoleLeaf(toExternalPath(pathname), leaves)
   const rows = useMemo<PaletteRow[]>(() => {
@@ -47,7 +48,7 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
 
   function run(row: PaletteRow) {
     onClose()
-    if ('href' in row) router.push(row.href)
+    if ('href' in row) navigate(row.href)
     else row.action()
   }
 
@@ -76,13 +77,13 @@ export function CommandPalette({ leaves, open, onClose, onNewInvite }: {
         event.preventDefault()
         const row = rows[active]
         onClose()
-        if ('href' in row) router.push(row.href)
+        if ('href' in row) navigate(row.href)
         else row.action()
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [active, onClose, open, router, rows])
+  }, [active, navigate, onClose, open, rows])
 
   if (!open) return null
   const activeId = rows[active] ? `${listId}-${rows[active].key}` : undefined

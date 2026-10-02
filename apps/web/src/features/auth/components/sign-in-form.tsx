@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { signInAction } from '@/server/actions/auth'
 
-export function SignInForm({ next }: { next: string }) {
+export function SignInForm({ next, onPendingChange }: { next: string; onPendingChange?: (pending: boolean) => void }) {
   const [state, formAction, pending] = useActionState(signInAction, undefined)
 
   // Navegação de documento inteiro depois do sucesso (ver signInAction).
@@ -18,10 +18,16 @@ export function SignInForm({ next }: { next: string }) {
   }, [state])
   const busy = pending || state?.ok === true
 
+  // As abas do convite travam junto (InviteAuthTabs).
+  useEffect(() => {
+    onPendingChange?.(busy)
+  }, [busy, onPendingChange])
+
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-6" aria-busy={busy || undefined}>
       <input type="hidden" name="next" value={next} />
 
+      <fieldset disabled={busy} className="contents">
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -45,6 +51,7 @@ export function SignInForm({ next }: { next: string }) {
           />
         </Field>
       </FieldGroup>
+      </fieldset>
 
       {/* `Alert` na tela de entrada, e não um parágrafo vermelho: é a
           primeira superfície que o dono vê, e "e-mail ou senha incorretos"
@@ -62,7 +69,7 @@ export function SignInForm({ next }: { next: string }) {
       ) : null}
 
       <Button type="submit" className="h-11 w-full" disabled={busy}>
-        {busy ? <Spinner className="size-4" /> : null}
+        {busy ? <Spinner className="size-4" aria-hidden="true" /> : null}
         {busy ? 'Entrando…' : 'Entrar'}
       </Button>
     </form>

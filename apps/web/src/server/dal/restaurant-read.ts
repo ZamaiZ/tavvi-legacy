@@ -2,6 +2,7 @@ import 'server-only'
 import { plainTextSchema, slugSchema, uuidSchema } from '@/domain/common'
 import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPickerDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
 import type { MemberRole } from '@/domain/invite'
+import { parseContact } from '@/domain/restaurant'
 import { nextSlugCandidate, slugify } from '@/lib/slug'
 import { rateLimitIdentity } from '@/server/security/client-ip'
 import { enforceRateLimit } from '@/server/security/rate-limit'
@@ -107,7 +108,7 @@ export async function listMyRestaurants(): Promise<RestaurantPickerDTO[]> {
       status: row.status as RestaurantStatus,
       logoPath: row.logo_path as string | null,
       coverPath: row.cover_path as string | null,
-      contact: (row.contact ?? {}) as Record<string, string>,
+      contact: parseContact(row.contact),
       segment: row.segment as string | null,
       theme: row.theme,
       onboardingCompletedAt: row.onboarding_completed_at as string | null,
@@ -147,7 +148,7 @@ export async function getRestaurantForMember(
     status: data.status as RestaurantStatus,
     logoPath: data.logo_path as string | null,
     coverPath: data.cover_path as string | null,
-    contact: (data.contact ?? {}) as Record<string, string>,
+    contact: parseContact(data.contact),
     segment: data.segment as string | null,
     theme: data.theme,
     onboardingCompletedAt: data.onboarding_completed_at as string | null,
@@ -180,7 +181,7 @@ export async function getRestaurantForAdmin(
     name: data.name,
     description: data.description,
     status: data.status,
-    contact: (data.contact ?? {}) as Record<string, string>,
+    contact: parseContact(data.contact),
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     segment: data.segment,
@@ -238,6 +239,6 @@ export async function getRestaurantBySlugPublic(
     description: data.description as string | null,
     logoPath: data.logo_path as string | null,
     coverPath: data.cover_path as string | null,
-    contact: (data.contact ?? {}) as Record<string, string>,
+    contact: parseContact(data.contact),
   }
 }

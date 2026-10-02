@@ -15,6 +15,7 @@ import {
   LuX,
 } from 'react-icons/lu'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
+import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { MEMBER_ROLE_LABELS, type MemberRole } from '@/domain/invite'
 import { useTerritoryContainer } from '@/features/workspace/components/use-territory-container'
@@ -119,6 +120,7 @@ export function InviteDialog({
                     placeholder="Qualquer e-mail"
                     aria-describedby={`${ids}-email-help`}
                     value={invite.email}
+                    disabled={invite.pending}
                     onChange={(event) => invite.setEmail(event.target.value)}
                   />
                 </span>
@@ -138,6 +140,7 @@ export function InviteDialog({
                   value={invite.role}
                   onValueChange={(next) => invite.setRole(next as MemberRole)}
                   size="lg"
+                  disabled={invite.pending}
                   className="tv-team-field-combo"
                 />
               </div>
@@ -153,7 +156,7 @@ export function InviteDialog({
                   <button
                     type="button"
                     aria-label="Menos dias"
-                    disabled={invite.days <= 1}
+                    disabled={invite.pending || invite.days <= 1}
                     onClick={() => invite.stepDays(-1)}
                   >
                     <LuMinus aria-hidden="true" />
@@ -164,7 +167,7 @@ export function InviteDialog({
                   <button
                     type="button"
                     aria-label="Mais dias"
-                    disabled={invite.days >= 30}
+                    disabled={invite.pending || invite.days >= 30}
                     onClick={() => invite.stepDays(1)}
                   >
                     <LuPlus aria-hidden="true" />
@@ -185,7 +188,7 @@ export function InviteDialog({
               >
                 {invite.pending ? (
                   <>
-                    <span className="tv-spinner" aria-hidden="true" />
+                    <SpinnerRing decorative />
                     Gerando link…
                   </>
                 ) : (

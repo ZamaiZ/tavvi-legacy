@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createProxyClient } from '@/server/dal/_client'
 import { territoryFromHost } from '@/server/territory'
-import { toInternalPath, type PrivateTerritory } from '@/lib/route-paths'
+import { NOT_FOUND_PATH, toInternalPath, type PrivateTerritory } from '@/lib/route-paths'
 
 // Rotas alcancaveis sem sessao, dentro de cada territorio privado.
 const PUBLIC_PATHS: Record<PrivateTerritory, readonly string[]> = {
@@ -13,6 +13,15 @@ function isUnder(path: string, prefix: string): boolean {
   return path === prefix || path.startsWith(`${prefix}/`)
 }
 
+// Caminho de outro territorio vira a 404 personalizada deste host, e nao
+// uma resposta vazia (que o navegador mostraria como a pagina de erro
+// dele). URL absoluta pelo mesmo motivo do rewrite de baixo.
+function rewriteToNotFound(request: NextRequest) {
+  const target = new URL(request.url)
+  target.pathname = NOT_FOUND_PATH
+  return NextResponse.rewrite(target)
+}
+
 export async function proxy(request: NextRequest) {
   const territory = territoryFromHost(request.headers.get('host'))
   const path = request.nextUrl.pathname
@@ -21,7 +30,7 @@ export async function proxy(request: NextRequest) {
     // O dominio publico nao alcanca territorio privado. Sem isto, os
     // caminhos /admin e /painel ficariam servidos tambem pela raiz.
     if (isUnder(path, '/admin') || isUnder(path, '/painel')) {
-      return new NextResponse(null, { status: 404 })
+      return rewriteToNotFound(request)
     }
     // O territorio publico NAO cria cliente de auth e NAO toca cookie de
     // sessao. E isto que torna verdadeira a frase "a raiz nao tem sessao":
@@ -30,7 +39,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (territory === 'admin' && (isUnder(path, '/workspace') || isUnder(path, '/admin/workspace'))) {
-    return new NextResponse(null, { status: 404 })
+    return rewriteToNotFound(request)
   }
 
   // NextResponse.rewrite precisa receber um URL absoluto. Passar o NextURL
