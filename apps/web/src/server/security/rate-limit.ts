@@ -24,6 +24,7 @@ export const RATE_LIMITS = {
   // restaurante no banco (0030) é a barreira que não depende do IP.
   'feedback:start': { max: 5, windowSeconds: 600 },
   'feedback:publish': { max: 10, windowSeconds: 600 },
+  'service-call:start': { max: 5, windowSeconds: 60 },
 } as const
 
 export type RateLimitBucket = keyof typeof RATE_LIMITS

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { PageHeader } from '@/components/shell/page-header'
 import type { OwnerMenuCategoryDTO } from '@/domain/menu'
 import { ServiceMode } from '@/features/menu-editor/components/work-modes/service-mode'
+import { LuBell } from 'react-icons/lu'
+import { markStackedFromList } from '@/lib/viewport'
 
 // Serviço (Tavvi Mobile.dc.html, bService): a disponibilidade dos itens
 // visíveis, um toque por item. No celular é aba própria. No desktop a rota
@@ -28,6 +30,7 @@ export function ServiceScreen({
       <div className="tv-m-only tv-mp-head">
         <h1 className="tv-mp-title">Serviço</h1>
         <p className="tv-mp-lead">{canEdit ? 'Toque para marcar como esgotado ou disponível.' : 'Só administradores alteram a disponibilidade.'}</p>
+        <button type="button" className="tv-service-calls-link" onClick={() => { markStackedFromList(`${menuHref}/chamados`); router.push(`${menuHref}/chamados`) }}><LuBell aria-hidden="true" /> Chamados de atendimento</button>
       </div>
       <ServiceMode
         restaurantId={restaurantId}

@@ -1,9 +1,9 @@
 import { restaurantInitials } from '@/lib/initials'
 import { getRestaurantMobileTabs } from './navigation'
-import type { MobileTab } from './navigation.types'
+import type { MobileTab, NavIconName } from './navigation.types'
 import type { SidebarIdentity } from './sidebar'
 
-export type ConsoleIcon = 'mail' | 'store' | 'menu' | 'palette' | 'contact' | 'team' | 'feedback'
+export type ConsoleIcon = NavIconName
 
 export type ConsoleLeaf = {
   kind: 'leaf'
@@ -51,7 +51,7 @@ export type ConsoleConfig = {
   userDescription?: string | null
   homeHref?: string
   showNewInvite?: boolean
-  counts?: { pendingInvites: number; restaurants: number; unreadFeedback?: number; unreadNotifications?: number }
+  counts?: { pendingInvites: number; restaurants: number; unreadFeedback?: number; unreadNotifications?: number; pendingServiceCalls?: number }
   railWidths?: { collapsed: number; pinned: number }
   mobileTabs?: MobileTab[]
   restaurant?: RestaurantShellInfo
@@ -118,6 +118,7 @@ export function getRestaurantConsoleConfig({
   restaurants,
   unreadFeedback = 0,
   unreadNotifications = 0,
+  pendingServiceCalls = 0,
 }: {
   email: string | null
   displayName: string | null
@@ -125,14 +126,14 @@ export function getRestaurantConsoleConfig({
   restaurantName: string
   homeHref: string
   logoUrl: string | null
-  navigation: { kind: 'group'; id: string; label: string; children: { kind: 'leaf'; href: string; label: string; icon: string; description?: string }[] }[]
+  navigation: { kind: 'group'; id: string; label: string; children: { kind: 'leaf'; href: string; label: string; icon: ConsoleIcon; description?: string }[] }[]
   restaurantId: string
   canEdit: boolean
   restaurants: RestaurantSwitchEntry[]
   unreadFeedback?: number
   unreadNotifications?: number
+  pendingServiceCalls?: number
 }): ConsoleConfig {
-  const iconMap = { menu: 'menu', palette: 'palette', contact: 'contact', team: 'team', feedback: 'feedback' } as const
   const leaves = navigation.flatMap((group) => group.children).map((leaf) => ({
     kind: 'leaf' as const,
     key: leaf.icon,
@@ -140,7 +141,7 @@ export function getRestaurantConsoleConfig({
     activeMatch: [],
     label: leaf.label,
     sub: leaf.description ?? '',
-    icon: iconMap[leaf.icon as keyof typeof iconMap],
+    icon: leaf.icon,
   }))
 
   return {
@@ -153,7 +154,7 @@ export function getRestaurantConsoleConfig({
     items: [{ kind: 'group', id: 'restaurant', label: 'Restaurante', children: leaves }],
     leaves,
     showNewInvite: false,
-    counts: { pendingInvites: 0, restaurants: 0, unreadFeedback, unreadNotifications },
+    counts: { pendingInvites: 0, restaurants: 0, unreadFeedback, unreadNotifications, pendingServiceCalls },
     railWidths: { collapsed: 60, pinned: 232 },
     mobileTabs: getRestaurantMobileTabs(restaurantId, canEdit),
     restaurant: { restaurantId, canEdit, restaurants },

@@ -1,4 +1,4 @@
-import { RealtimeClient, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js'
+import { RealtimeClient, REALTIME_SUBSCRIBE_STATES, type RealtimeChannel } from '@supabase/supabase-js'
 import type { RealtimeSession } from '@/domain/notification'
 import { getRealtimeTokenAction } from '@/server/actions/notifications'
 
@@ -30,6 +30,17 @@ type Handlers = {
 export async function openNotificationsChannel(handlers: Handlers): Promise<() => void> {
   const first = await currentSession()
   if (!first) return () => undefined
+  return openPrivateBroadcastChannel(`notifications:${first.territory}:${first.userId}`, ['INSERT', 'UPDATE', 'DELETE'], handlers)
+}
+
+export async function openPrivateBroadcastChannel(
+  topic: string,
+  events: readonly ('INSERT' | 'UPDATE' | 'DELETE')[],
+  handlers: Handlers,
+  onSubscribed?: () => void,
+): Promise<() => void> {
+  const first = await currentSession()
+  if (!first) return () => undefined
 
   // O cliente quer o endereço WebSocket, sem o `/websocket` do fim (ele
   // acrescenta). O supabase-js faz a mesma troca de http por ws.
@@ -45,10 +56,10 @@ export async function openNotificationsChannel(handlers: Handlers): Promise<() =
 
   // O tópico tem o território: a mesma conta no console e no painel abre
   // dois canais diferentes, e a política do banco só libera os dela.
-  const channel = client.channel(`notifications:${first.territory}:${first.userId}`, {
+  const channel: RealtimeChannel = client.channel(topic, {
     config: { private: true },
   })
-  for (const event of ['INSERT', 'UPDATE', 'DELETE'] as const) {
+  for (const event of events) {
     channel.on('broadcast', { event }, (message) => handlers.onMessage(event, message))
   }
 
@@ -56,6 +67,7 @@ export async function openNotificationsChannel(handlers: Handlers): Promise<() =
   channel.subscribe((status, error) => {
     if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
       if (subscribedOnce) handlers.onResync()
+      else onSubscribed?.()
       subscribedOnce = true
       return
     }

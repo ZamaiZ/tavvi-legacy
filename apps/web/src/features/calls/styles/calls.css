@@ -1,0 +1,60 @@
+.workspace-territory .tv-calls-page { width: min(100%, 1240px); margin: 0 auto; padding: 26px 32px 72px; color: var(--tv-text); }
+.workspace-territory .tv-calls-toolbar { margin: 18px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-calls-tabs { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface-2); }
+.workspace-territory .tv-calls-tabs button,.workspace-territory .tv-calls-sound { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
+.workspace-territory .tv-calls-tabs button[aria-selected="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-shadow); }
+.workspace-territory .tv-calls-tabs button svg,.workspace-territory .tv-calls-sound svg { width: 15px; height: 15px; }
+.workspace-territory .tv-calls-tabs button span { min-width: 20px; padding: 2px 5px; border-radius: 999px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 10px; text-align: center; }
+.workspace-territory .tv-calls-sound { border: 1px solid var(--tv-line); background: var(--tv-surface); }
+.workspace-territory .tv-calls-sound.is-on { border-color: var(--tv-gold); color: var(--tv-gold-text); }
+.workspace-territory .tv-calls-layout { min-height: min(62dvh, 720px); display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.15fr); overflow: hidden; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
+.workspace-territory .tv-calls-list-panel { min-width: 0; border-right: 1px solid var(--tv-line); }
+.workspace-territory .tv-calls-list-head { min-height: 48px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-calls-list-head strong { font-size: 12px; font-weight: 600; }
+.workspace-territory .tv-calls-list-head span { display: inline-flex; align-items: center; gap: 5px; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-calls-list-head svg { width: 12px; height: 12px; }
+.workspace-territory .tv-calls-list { max-height: 58dvh; margin: 0; padding: 6px; overflow: auto; list-style: none; }
+.workspace-territory .tv-call-row { width: 100%; min-height: 64px; padding: 9px; display: flex; align-items: center; gap: 10px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--tv-text); text-align: left; cursor: pointer; }
+.workspace-territory .tv-call-row[aria-current="true"] { border-color: var(--tv-line); background: var(--tv-surface-2); }
+.workspace-territory .tv-call-row-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-row-icon.is-done { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-call-row-icon svg { width: 16px; height: 16px; }
+.workspace-territory .tv-call-row-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.workspace-territory .tv-call-row-copy strong { font-size: 12px; font-weight: 600; }
+.workspace-territory .tv-call-row-copy small { overflow: hidden; color: var(--tv-text-3); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-territory .tv-call-row time { display: inline-flex; align-items: center; gap: 4px; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-row time svg { width: 11px; height: 11px; }
+.workspace-territory .tv-calls-empty,.workspace-territory .tv-call-detail-empty { min-height: 220px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--tv-text-3); text-align: center; }
+.workspace-territory .tv-calls-empty > span svg,.workspace-territory .tv-call-detail-empty svg { width: 24px; height: 24px; color: var(--tv-gold-text); }
+.workspace-territory .tv-calls-empty strong,.workspace-territory .tv-call-detail-empty strong { color: var(--tv-text); font-size: 13px; font-weight: 600; }
+.workspace-territory .tv-calls-empty small,.workspace-territory .tv-call-detail-empty span { font-size: 11px; }
+.workspace-territory .tv-call-detail { min-width: 0; padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.workspace-territory .tv-call-detail-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 15px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-detail-icon svg { width: 23px; height: 23px; }
+.workspace-territory .tv-call-status { margin: 12px 0 0; color: var(--tv-gold-text); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .09em; }
+.workspace-territory .tv-call-detail h2 { margin: 4px 0 0; font-size: clamp(24px, 3vw, 34px); font-weight: 650; letter-spacing: -.03em; }
+.workspace-territory .tv-call-detail-time { margin: 10px 0 0; display: flex; align-items: center; gap: 6px; color: var(--tv-text-2); font-size: 11px; }
+.workspace-territory .tv-call-detail-time svg { width: 13px; height: 13px; }
+.workspace-territory .tv-call-resolved-time { margin: 7px 0 0; color: var(--tv-text-3); font-size: 11px; }
+.workspace-territory .tv-call-resolve { min-height: 42px; margin-top: 20px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--tv-gold); color: #17150f; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.workspace-territory .tv-call-resolve:disabled { opacity: .7; cursor: progress; }
+.workspace-territory .tv-call-resolve svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-calls-tabs button:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-call-resolve:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-calls-load-more { width: calc(100% - 12px); min-height: 36px; margin: 0 6px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; cursor: pointer; }
+.workspace-territory .tv-calls-load-more svg { width: 13px; height: 13px; }
+.workspace-territory .tv-service-calls-link { min-height: 44px; padding: 0 13px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
+.workspace-territory .tv-service-calls-link svg { width: 15px; height: 15px; color: var(--tv-gold-text); }
+.workspace-territory .tv-calls-loading { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.workspace-territory .tv-calls-loading span { min-height: 72px; border-radius: 12px; background: var(--tv-surface-2); animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+@keyframes tv-calls-pulse { to { opacity: .55; } }
+@media (max-width: 767px) {
+  .workspace-territory .tv-calls-page { padding: 14px 16px calc(76px + env(safe-area-inset-bottom)); }
+  .workspace-territory .tv-calls-toolbar { margin: 12px 0 9px; align-items: stretch; flex-direction: column; }
+  .workspace-territory .tv-calls-tabs button { flex: 1; min-height: 40px; }
+  .workspace-territory .tv-calls-sound { align-self: flex-start; }
+  .workspace-territory .tv-calls-layout { min-height: 0; grid-template-columns: minmax(0, 1fr); overflow: visible; }
+  .workspace-territory .tv-calls-list-panel { border-right: 0; }
+  .workspace-territory .tv-calls-list { max-height: 34dvh; }
+  .workspace-territory .tv-call-detail { min-height: 250px; padding: 20px 12px; border-top: 1px solid var(--tv-line); }
+}
+@media (prefers-reduced-motion: reduce) { .workspace-territory .tv-calls-loading span { animation: none; } }

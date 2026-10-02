@@ -3,24 +3,16 @@
 import { useCallback, useRef, useState, useSyncExternalStore, type Ref } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { LuBookOpen, LuChevronsUpDown, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPanelLeft, LuPanelLeftOpen, LuSearch, LuStore, LuUsers } from 'react-icons/lu'
+import { LuChevronsUpDown, LuPanelLeft, LuPanelLeftOpen, LuSearch } from 'react-icons/lu'
 import { setCommandPaletteOpen } from './command-palette-store'
 import { navigationPathname, pickActiveHref } from './navigation'
+import { getNavIcon } from './navigation-icons'
 import { toExternalPath } from '@/lib/route-paths'
 import type { RailMode } from './rail-store'
+import type { NavIconName } from './navigation.types'
 import type { RestaurantSwitchEntry } from './console-config'
 import { RestaurantSwitcher } from './restaurant-switcher'
-
-const icons = {
-  mail: LuMail,
-  store: LuStore,
-  restaurant: LuStore,
-  menu: LuBookOpen,
-  palette: LuPalette,
-  contact: LuContact,
-  team: LuUsers,
-  feedback: LuMessageSquareText,
-} as const
+import { useCallArrivalShake } from './use-call-arrival-shake'
 
 export type SidebarBrand =
   | { kind: 'tavvi' }
@@ -63,7 +55,7 @@ export type SidebarEntry = {
   href: string
   label: string
   description?: string
-  icon: keyof typeof icons
+  icon: NavIconName
   count?: number
 }
 
@@ -97,6 +89,7 @@ export function Sidebar({
   mobileChrome = 'full',
   switcher,
   accountBadge = false,
+  callsArrivalKey = 0,
   pendingHref,
   onNavigate,
 }: {
@@ -115,6 +108,7 @@ export function Sidebar({
   mobileChrome?: 'full' | 'header' | 'none'
   /** Com 2 ou mais restaurantes, o bloco da marca vira o seletor. */
   switcher?: { restaurants: RestaurantSwitchEntry[]; currentId: string }
+  callsArrivalKey?: number
   /** Ponto no avatar quando há notificações não lidas. */
   accountBadge?: boolean
   pendingHref?: string | null
@@ -132,6 +126,7 @@ export function Sidebar({
   const initial = email?.trim().slice(0, 1).toUpperCase() || 'A'
   const [switchOpen, setSwitchOpen] = useState(false)
   const switchButtonRef = useRef<HTMLButtonElement>(null)
+  const callsLinkRef = useCallArrivalShake<HTMLAnchorElement>(callsArrivalKey)
   const closeSwitch = useCallback(() => {
     setSwitchOpen(false)
     switchButtonRef.current?.focus()
@@ -144,7 +139,7 @@ export function Sidebar({
 
   function links(mobile = false) {
     return items.map((item) => {
-      const Icon = icons[item.icon]
+      const Icon = getNavIcon(item.icon)
       const selected = item.href === activeHref
       const loading = Boolean(pendingHref && selected)
       return (
@@ -154,7 +149,8 @@ export function Sidebar({
           aria-current={selected ? 'page' : undefined}
           aria-label={mobile || !expanded ? item.label : undefined}
           title={!mobile && !expanded ? item.label : undefined}
-          className={`tv-sidebar-link${selected ? ' is-active' : ''}${loading ? ' is-loading' : ''}${mobile ? ' is-mobile' : ''}`}
+          ref={item.icon === 'bell' ? callsLinkRef : undefined}
+          className={`tv-sidebar-link${selected ? ' is-active' : ''}${loading ? ' is-loading' : ''}${mobile ? ' is-mobile' : ''}${item.icon === 'bell' && (item.count ?? 0) > 0 ? ' has-call-pending' : ''}`}
           onClick={(event) => {
             if (item.href !== activeHref && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
               onNavigate?.(item.href)

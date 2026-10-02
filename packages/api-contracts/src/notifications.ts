@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-// Os mesmos tipos do disparador (supabase/migrations/0029 e 0032). Um tipo
+// Os mesmos tipos do disparador (supabase/migrations/0029, 0032 e 0034). Um tipo
 // novo no banco antes do deploy é descartado na leitura, nunca derruba a
 // central.
-export const NOTIFICATION_KINDS = ['feedback_received', 'team_member_joined', 'restaurant_joined', 'test'] as const
+export const NOTIFICATION_KINDS = ['feedback_received', 'team_member_joined', 'restaurant_joined', 'service_call_received', 'test'] as const
 export const notificationKindSchema = z.enum(NOTIFICATION_KINDS)
 
 // Data como o PostgREST devolve (timestamptz, até microssegundos).

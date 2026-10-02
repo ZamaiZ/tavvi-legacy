@@ -8,6 +8,7 @@ import { MenuCover } from './menu-cover'
 import { MenuDetails } from './menu-details'
 import { MenuDish } from './menu-dish'
 import { MenuRail } from './menu-rail'
+import { RequestServiceCall } from './request-service-call'
 
 type FeedColumn = {
   item: MenuItemDTO
@@ -20,9 +21,11 @@ type FeedColumn = {
 export function MenuFeed({
   menu,
   presetId,
+  tagToken,
 }: {
   menu: PublicMenuDTO
   presetId: string
+  tagToken?: string | null
 }) {
   const feedRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -109,6 +112,7 @@ export function MenuFeed({
 
   return (
     <>
+      {tagToken ? <RequestServiceCall token={tagToken} /> : null}
       <MenuRail
         categories={menu.categories}
         active={activeColumn?.categoryId ?? null}

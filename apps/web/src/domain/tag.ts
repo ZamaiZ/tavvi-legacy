@@ -8,12 +8,13 @@ export const tagTokenSchema = z
 
 export const createTagSchema = z.object({
   restaurantId: uuidSchema,
+  tableNumber: z.number().int().positive(),
   label: plainTextSchema(40).optional(),
 })
 
 export const updateTagSchema = z.object({
   tagId: uuidSchema,
-  label: plainTextSchema(40).optional(),
+  tableNumber: z.number().int().positive().nullable(),
   isActive: z.boolean(),
 })
 
@@ -21,6 +22,7 @@ export type TagDTO = {
   id: string
   publicToken: string
   label: string | null
+  tableNumber: number | null
   isActive: boolean
   lastSeenAt: string | null
 }
@@ -28,4 +30,5 @@ export type TagDTO = {
 export type ResolvedTagDTO = {
   restaurantSlug: string
   tagLabel: string | null
+  tableNumber: number | null
 }

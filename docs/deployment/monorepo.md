@@ -42,8 +42,13 @@ Apply these migrations in order:
 3. `0031_push_subscriptions.sql`. It recreates the push subscription table and functions from 0024 without the retired `push_events` part, and is safe where 0024 was already applied.
 4. `0032_test_notification.sql`, for the "Enviar notificação de teste" button.
 5. `0033_mobile_push.sql`, for Expo push tokens and the two-channel claim.
+6. `0034_service_calls.sql`, for table mappings, staff calls, notification kind and private call Broadcast.
 
-In Supabase, open Realtime → Settings and turn off "Allow public access" so that only private channels exist. After applying migrations, regenerate `supabase/schema.sql` from the history.
+In Supabase, open Realtime → Settings and turn off "Allow public access" so that only private channels exist. Service calls use a database trigger with `realtime.broadcast_changes` and the private topic `service_calls:{restaurant_id}`; the table does not need to be added to the public Postgres Changes publication or have its dashboard Realtime table toggle enabled. The topic policy grants reads only to authenticated members of that restaurant.
+
+Before displaying "Chamar a equipe", assign every active plaque a unique positive table number in the restaurant's Plaquinhas section. Legacy plaques without a number continue to open the menu but cannot create a call. The database allows at most ten new calls per plaque in an hour; repeats return the current pending call without another notification.
+
+After applying migrations, regenerate `supabase/schema.sql` from the history.
 
 The canonical API target is `/api/v1`. During the incremental migration, Mobile still uses its existing route and Web still has unmigrated server-side Supabase data access. Do not remove either path until the corresponding migration phase and the Mobile minimum-version gate are complete.
 

@@ -65,6 +65,14 @@
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
+  :is(.admin-territory, .workspace-territory) .tv-tabbar-item.has-call-pending .tv-tabbar-badge {
+    min-width: 21px;
+    height: 21px;
+    background: var(--tv-danger);
+    box-shadow: 0 0 0 2px var(--tv-bar);
+    color: var(--tv-btn-text);
+    line-height: 21px;
+  }
 
   /* Primitivos das telas do celular. */
   :is(.admin-territory, .workspace-territory) .tv-m-title {

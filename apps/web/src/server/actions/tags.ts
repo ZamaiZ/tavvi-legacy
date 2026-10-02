@@ -15,6 +15,10 @@ export async function createTagAction(
   })
 }
 
+export async function listTagsAction(restaurantId: unknown): Promise<ActionResult<TagDTO[]>> {
+  return runAction(() => dal.listTags(restaurantId))
+}
+
 export async function updateTagAction(input: unknown): Promise<ActionResult> {
   return runAction(async () => {
     revalidateRestaurant(await dal.updateTag(input))

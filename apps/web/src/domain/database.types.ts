@@ -419,6 +419,7 @@ export type Database = {
           last_seen_at: string | null
           public_token: string
           restaurant_id: string
+          table_number: number | null
         }
         Insert: {
           created_at?: string
@@ -428,6 +429,7 @@ export type Database = {
           last_seen_at?: string | null
           public_token: string
           restaurant_id: string
+          table_number?: number | null
         }
         Update: {
           created_at?: string
@@ -437,6 +439,7 @@ export type Database = {
           last_seen_at?: string | null
           public_token?: string
           restaurant_id?: string
+          table_number?: number | null
         }
         Relationships: [
           {
@@ -444,6 +447,61 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_calls: {
+        Row: {
+          created_at: string
+          id: string
+          restaurant_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          table_number: number
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          restaurant_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          table_number: number
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          restaurant_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          table_number?: number
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_calls_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_calls_tag_id_restaurant_id_fkey"
+            columns: ["tag_id", "restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "menu_tags"
+            referencedColumns: ["id", "restaurant_id"]
+          },
+          {
+            foreignKeyName: "service_calls_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -912,6 +970,23 @@ export type Database = {
         Args: { p_feedback_id: string; p_key: string }
         Returns: undefined
       }
+      request_service_call: {
+        Args: { p_key: string; p_token: string; p_allow_create?: boolean }
+        Returns: { call_id: string; table_number: number; status: string; created: boolean }[]
+      }
+      resolve_service_call: {
+        Args: { p_call_id: string }
+        Returns: {
+          call_id: string
+          restaurant_id: string
+          tag_id: string
+          table_number: number
+          status: string
+          created_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+        }[]
+      }
       record_audit: {
         Args: {
           p_action: string
@@ -933,6 +1008,7 @@ export type Database = {
         Returns: {
           restaurant_slug: string
           tag_label: string
+          table_number: number | null
         }[]
       }
       restaurant_id_from_storage_path: {
@@ -1112,4 +1188,3 @@ export const Constants = {
     },
   },
 } as const
-

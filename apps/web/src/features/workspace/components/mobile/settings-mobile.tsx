@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LuArrowLeftRight, LuBell, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette } from 'react-icons/lu'
+import { LuArrowLeftRight, LuBell, LuChevronRight, LuContact, LuLogOut, LuMoon, LuPalette, LuQrCode } from 'react-icons/lu'
 import { useSignOut } from '@/components/shell/account-panel'
 import { PwaInstallAction } from '@/components/pwa/pwa-install-action'
 import { NotificationCenterSheet } from '@/features/notifications/components/notification-center-sheet'
@@ -58,6 +58,11 @@ export function SettingsMobile() {
           <Link href={`${root}/contato`} className="tv-mlink" onClick={stack(`${root}/contato`)}>
             <span className="tv-mlink-icon is-gold" aria-hidden="true"><LuContact /></span>
             <span className="tv-mlink-copy"><span>Contato</span><small>Informações públicas do restaurante</small></span>
+            <LuChevronRight aria-hidden="true" />
+          </Link>
+          <Link href={`${root}/plaquinhas`} className="tv-mlink" onClick={stack(`${root}/plaquinhas`)}>
+            <span className="tv-mlink-icon is-gold" aria-hidden="true"><LuQrCode /></span>
+            <span className="tv-mlink-copy"><span>Plaquinhas</span><small>Números das mesas e links dos QR codes</small></span>
             <LuChevronRight aria-hidden="true" />
           </Link>
         </div>

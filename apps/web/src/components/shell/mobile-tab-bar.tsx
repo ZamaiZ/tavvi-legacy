@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { LuBookOpen, LuCircleUserRound, LuConciergeBell, LuMail, LuMessageSquareText, LuSettings, LuStore, LuUsers } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import type { MobileTab } from './navigation.types'
+import { useCallArrivalShake } from './use-call-arrival-shake'
 
 const icons = {
   mail: LuMail,
@@ -33,11 +34,13 @@ export function isMobileTabActive(pathname: string, tab: MobileTab) {
 
 // Tab bar do iOS no celular, do console e do painel. Cada aba navega; a
 // Conta do console abre o sheet de conta sem trocar de tela.
-export function MobileTabBar({ tabs, account }: {
+export function MobileTabBar({ tabs, account, callsArrivalKey = 0 }: {
   tabs: MobileTab[]
   account?: { open: boolean; buttonRef: Ref<HTMLButtonElement>; onOpen: () => void; badge?: number }
+  callsArrivalKey?: number
 }) {
   const pathname = toExternalPath(usePathname())
+  const serviceTabRef = useCallArrivalShake<HTMLAnchorElement>(callsArrivalKey)
   const count = tabs.length + (account ? 1 : 0)
   return (
     <nav className="tv-tabbar" aria-label="Navegação principal" style={{ '--tv-tab-count': count } as CSSProperties}>
@@ -46,7 +49,7 @@ export function MobileTabBar({ tabs, account }: {
         const active = isMobileTabActive(pathname, tab)
         const badge = tab.badge && tab.badge > 0 ? tab.badge : null
         return (
-          <Link key={tab.key} href={tab.href} aria-current={active ? 'page' : undefined} className={`tv-tabbar-item${active ? ' is-active' : ''}`}>
+          <Link ref={tab.key === 'service' ? serviceTabRef : undefined} key={tab.key} href={tab.href} aria-current={active ? 'page' : undefined} className={`tv-tabbar-item${active ? ' is-active' : ''}${tab.key === 'service' && badge ? ' has-call-pending' : ''}`}>
             <span className="tv-tabbar-icon">
               <Icon aria-hidden="true" />
               {badge ? <span className="tv-tabbar-badge">{badge > 99 ? '99+' : badge}<span className="sr-only"> pendentes</span></span> : null}

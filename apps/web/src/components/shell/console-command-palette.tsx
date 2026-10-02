@@ -7,16 +7,20 @@ import type { IconType } from 'react-icons'
 import { LuBookOpen, LuContact, LuMail, LuMessageSquareText, LuPalette, LuPlus, LuSearch, LuStore, LuUsers, LuCircleUserRound, LuSettings } from 'react-icons/lu'
 import { toExternalPath } from '@/lib/route-paths'
 import { getActiveConsoleLeaf, type ConsoleIcon, type ConsoleLeaf } from './console-config'
+import { getNavIcon } from './navigation-icons'
 import { useProgressNavigate } from './navigation-progress'
 
 const icons: Record<ConsoleIcon, IconType> = {
   mail: LuMail,
   store: LuStore,
+  restaurant: getNavIcon('restaurant'),
   menu: LuBookOpen,
   palette: LuPalette,
   contact: LuContact,
   team: LuUsers,
   feedback: LuMessageSquareText,
+  tag: getNavIcon('tag'),
+  bell: getNavIcon('bell'),
 }
 
 type PaletteRow =

@@ -11,6 +11,7 @@ import { publicMediaUrl } from '@/lib/media-url'
 import { getCurrentUser } from '@/server/dal/auth'
 import { countUnreadFeedbackForShell } from '@/server/dal/feedback'
 import { countUnreadNotificationsSafe } from '@/server/dal/notifications'
+import { countPendingServiceCallsForShell } from '@/server/dal/service-calls'
 import { getMyDisplayName } from '@/server/dal/profile'
 import { listMyRestaurants } from '@/server/dal/restaurant-read'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
@@ -22,13 +23,14 @@ export async function RestaurantShell({ restaurantId, children }: { restaurantId
   // Só o papel, o nome e os restaurantes da pessoa, e só para montar a
   // casca. A autorização de verdade é de cada página, e depois da DAL, e
   // depois da RLS.
-  const [workspace, user, restaurants, displayName, unreadNotifications, unreadFeedback] = await Promise.all([
+  const [workspace, user, restaurants, displayName, unreadNotifications, unreadFeedback, pendingServiceCalls] = await Promise.all([
     getRestaurantWorkspace(restaurantId),
     getCurrentUser(),
     listMyRestaurants(),
     getMyDisplayName(),
     countUnreadNotificationsSafe(),
     countUnreadFeedbackForShell(restaurantId),
+    countPendingServiceCallsForShell(restaurantId),
   ])
   if (!workspace) notFound()
   const cookieStore = await cookies()
@@ -53,6 +55,7 @@ export async function RestaurantShell({ restaurantId, children }: { restaurantId
     })),
     unreadNotifications,
     unreadFeedback,
+    pendingServiceCalls,
   })
 
   return (

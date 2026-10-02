@@ -15,7 +15,7 @@ export default async function Page({
   if (!resolved) notFound()
 
   const query = new URLSearchParams()
-  if (resolved.tagLabel) query.set('mesa', resolved.tagLabel)
+  if (resolved.tableNumber !== null) query.set('tag', token)
   const search = query.toString()
 
   // `(site)` não tem loading.tsx, então nada foi transmitido ainda e o

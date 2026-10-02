@@ -54,6 +54,7 @@
 .tv-sidebar-link.is-active > svg { color: var(--tv-gold-text); }
 .tv-sidebar-link > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; }
 .tv-sidebar-link > small { color: var(--tv-text-3); font-size: 11px; font-weight: 450; }
+.tv-sidebar-link.has-call-pending > small { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 999px; background: var(--tv-danger); box-shadow: 0 0 0 2px var(--tv-side); color: var(--tv-btn-text); font-size: 11px; font-variant-numeric: tabular-nums; font-weight: 750; line-height: 1; }
 
 .tv-sidebar-footer { margin-top: auto; display: flex; flex-direction: column; }
 .tv-sidebar-collapse-bottom { display: none; }
@@ -75,6 +76,7 @@
 .tv-sidebar:not(.is-expanded) .tv-sidebar-link > small,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account-copy,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account > svg { display: none; }
+.tv-sidebar:not(.is-expanded) .tv-sidebar-link.has-call-pending > small { position: absolute; top: 0; right: 0; display: grid; }
 .tv-sidebar:not(.is-expanded) .tv-sidebar-search,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-link,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account { padding: 0; justify-content: center; }

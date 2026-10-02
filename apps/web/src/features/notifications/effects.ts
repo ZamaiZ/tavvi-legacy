@@ -1,4 +1,5 @@
 import type { NotificationDTO, NotificationTerritory } from '@/domain/notification'
+import { playServiceCallSoundIfEnabled } from '@/features/calls/call-sound'
 
 export type NotificationEffectContext = {
   territory: NotificationTerritory
@@ -28,6 +29,12 @@ export function onNotificationInserted(notification: NotificationDTO, context: N
     case 'team_member_joined': {
       if (context.territory !== 'painel' || notification.restaurantId !== context.restaurantId) return
       if (isUnder(context.pathname, `/restaurantes/${context.restaurantId}/equipe`)) context.refresh()
+      return
+    }
+    case 'service_call_received': {
+      if (context.territory !== 'painel') return
+      playServiceCallSoundIfEnabled()
+      if (notification.restaurantId === context.restaurantId && isUnder(context.pathname, `/restaurantes/${context.restaurantId}/chamados`)) context.refresh()
       return
     }
     case 'restaurant_joined': {

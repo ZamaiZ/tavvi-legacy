@@ -7,6 +7,8 @@ export type NavIconName =
   | 'contact'
   | 'team'
   | 'feedback'
+  | 'tag'
+  | 'bell'
 
 export type NavLeaf = {
   kind: 'leaf'

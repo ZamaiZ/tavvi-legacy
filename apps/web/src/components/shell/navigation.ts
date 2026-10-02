@@ -72,6 +72,13 @@ export function getRestaurantNavigation(
     children.push(
       {
         kind: 'leaf',
+        href: `${root}/plaquinhas`,
+        label: 'Plaquinhas',
+        icon: 'tag',
+        description: 'Associe cada plaquinha a uma mesa',
+      },
+      {
+        kind: 'leaf',
         href: `${root}/feedbacks`,
         label: 'Feedbacks',
         icon: 'feedback',
@@ -104,6 +111,14 @@ export function getRestaurantNavigation(
       },
     )
   }
+
+  children.push({
+    kind: 'leaf',
+    href: `${root}/chamados`,
+    label: 'Chamados',
+    icon: 'bell',
+    description: 'Chamados de atendimento por mesa',
+  })
 
   return [
     {

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
 import type { IconType } from 'react-icons'
-import { LuBellRing, LuCheck, LuCheckCheck, LuMessageSquareText, LuStore, LuUserPlus } from 'react-icons/lu'
+import { LuBell, LuBellRing, LuCheck, LuCheckCheck, LuMessageSquareText, LuStore, LuUserPlus } from 'react-icons/lu'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import type { NotificationAction, NotificationDTO, NotificationKind } from '@/domain/notification'
@@ -21,6 +21,7 @@ const KIND_ICONS: Record<NotificationKind, IconType> = {
   feedback_received: LuMessageSquareText,
   team_member_joined: LuUserPlus,
   restaurant_joined: LuStore,
+  service_call_received: LuBell,
   test: LuBellRing,
 }
 
@@ -28,6 +29,7 @@ const KIND_ACTIONS: Partial<Record<NotificationKind, NotificationAction[]>> = {
   feedback_received: [{ id: 'open', label: 'Ver feedback', style: 'primary', kind: 'navigate' }],
   team_member_joined: [{ id: 'open', label: 'Ver equipe', style: 'primary', kind: 'navigate' }],
   restaurant_joined: [{ id: 'open', label: 'Abrir restaurante', style: 'primary', kind: 'navigate' }],
+  service_call_received: [{ id: 'open', label: 'Ver chamado', style: 'primary', kind: 'navigate' }],
 }
 
 const cardEnter = {

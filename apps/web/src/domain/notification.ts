@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { internalPathSchema, timestampSchema, uuidSchema } from './common'
 
-export const NOTIFICATION_KINDS = ['feedback_received', 'team_member_joined', 'restaurant_joined', 'test'] as const
+export const NOTIFICATION_KINDS = ['feedback_received', 'team_member_joined', 'restaurant_joined', 'service_call_received', 'test'] as const
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number]
 
 export type NotificationTerritory = 'admin' | 'painel'

@@ -16,6 +16,7 @@ import { getRestaurantRevalidationTarget } from './revalidation-target'
 import { createUserClient } from './_client'
 import {
   currentTerritory,
+  ConflictError,
   requireMember,
   requirePlatformAdmin,
   requireRestaurantAdmin,
@@ -33,7 +34,7 @@ export async function createTag(
   input: unknown,
 ): Promise<RevalidationTarget & { tag: TagDTO }> {
   const data = createTagSchema.parse(input)
-  await requirePlatformAdmin()
+  await requireRestaurantAdmin(data.restaurantId)
 
   const supabase = await db()
 
@@ -47,8 +48,9 @@ export async function createTag(
         restaurant_id: data.restaurantId,
         public_token: publicToken,
         label: data.label ?? null,
+        table_number: data.tableNumber,
       })
-      .select('id, public_token, label, is_active, last_seen_at')
+      .select('id, public_token, label, table_number, is_active, last_seen_at')
       .single()
 
     if (!error && row) {
@@ -64,6 +66,7 @@ export async function createTag(
           id: row.id as string,
           publicToken: row.public_token as string,
           label: row.label as string | null,
+          tableNumber: row.table_number as number | null,
           isActive: row.is_active as boolean,
           lastSeenAt: row.last_seen_at as string | null,
         },
@@ -71,7 +74,13 @@ export async function createTag(
     }
 
     // 23505 e violacao de unique: so nesse caso vale tentar outro token.
-    if (error && error.code !== '23505') {
+    if (error?.code === '23505') {
+      if (error.message.includes('menu_tags_active_table_number_key')) {
+        throw new ConflictError('Já existe uma plaquinha ativa para essa mesa.')
+      }
+      continue
+    }
+    if (error) {
       throw new Error(`Não foi possível criar a plaquinha: ${error.message}`)
     }
   }
@@ -86,7 +95,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
   const supabase = await db()
   const { data, error } = await supabase
     .from('menu_tags')
-    .select('id, public_token, label, is_active, last_seen_at')
+    .select('id, public_token, label, table_number, is_active, last_seen_at')
     .eq('restaurant_id', id)
     .order('created_at')
 
@@ -98,6 +107,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
     id: row.id as string,
     publicToken: row.public_token as string,
     label: row.label as string | null,
+    tableNumber: row.table_number as number | null,
     isActive: row.is_active as boolean,
     lastSeenAt: row.last_seen_at as string | null,
   }))
@@ -121,10 +131,13 @@ export async function updateTag(input: unknown): Promise<RevalidationTarget> {
   // recusaria a alteracao de qualquer forma.
   const { error } = await supabase
     .from('menu_tags')
-    .update({ label: data.label ?? null, is_active: data.isActive })
+    .update({ table_number: data.tableNumber, is_active: data.isActive })
     .eq('id', data.tagId)
 
   if (error) {
+    if (error.code === '23505' && error.message.includes('menu_tags_active_table_number_key')) {
+      throw new ConflictError('Já existe uma plaquinha ativa para essa mesa.')
+    }
     throw new Error(`Não foi possível salvar a plaquinha: ${error.message}`)
   }
 
@@ -179,5 +192,6 @@ export async function resolveTag(
   return {
     restaurantSlug: data[0].restaurant_slug as string,
     tagLabel: data[0].tag_label as string | null,
+    tableNumber: data[0].table_number as number | null,
   }
 }

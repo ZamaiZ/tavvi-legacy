@@ -13,6 +13,8 @@ import { onNotificationInserted, onNotificationRemoved } from '@/features/notifi
 import { NotificationsContext, useNotificationsController } from '@/features/notifications/notifications-provider'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 import { ACTIVE_PANEL_RESTAURANT_COOKIE, toExternalPath } from '@/lib/route-paths'
+import { countPendingServiceCallsAction } from '@/server/actions/service-calls'
+import { useServiceCallsRealtime } from '@/features/calls/use-service-calls-realtime'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -92,6 +94,28 @@ export function ConsoleShell({
   const adjustUnreadFeedback = useCallback((delta: number) => {
     setUnreadFeedback((value) => Math.max(0, value + delta))
   }, [])
+  const [pendingServiceCalls, setPendingServiceCalls] = useState(counts.pendingServiceCalls ?? 0)
+  const [serverPendingServiceCalls, setServerPendingServiceCalls] = useState(counts.pendingServiceCalls ?? 0)
+  const pendingServiceCallsRef = useRef(counts.pendingServiceCalls ?? 0)
+  const [callsArrivalKey, setCallsArrivalKey] = useState(0)
+  if ((counts.pendingServiceCalls ?? 0) !== serverPendingServiceCalls) {
+    setServerPendingServiceCalls(counts.pendingServiceCalls ?? 0)
+    setPendingServiceCalls(counts.pendingServiceCalls ?? 0)
+    pendingServiceCallsRef.current = counts.pendingServiceCalls ?? 0
+  }
+  const refreshPendingServiceCalls = useCallback(async () => {
+    const restaurantId = config.restaurant?.restaurantId
+    if (!restaurantId) return
+    const result = await countPendingServiceCallsAction({ restaurantId })
+    if (result.ok) {
+      if (result.data > pendingServiceCallsRef.current) setCallsArrivalKey((key) => key + 1)
+      pendingServiceCallsRef.current = result.data
+      setPendingServiceCalls(result.data)
+    }
+    else console.error('[chamados] contagem da navegação', result.error)
+  }, [config.restaurant?.restaurantId])
+  const onServiceCallsRealtime = useCallback(() => { void refreshPendingServiceCalls() }, [refreshPendingServiceCalls])
+  useServiceCallsRealtime(config.restaurant?.restaurantId ?? '', onServiceCallsRealtime)
   const shellCounts = useMemo(() => ({ unreadFeedback, adjustUnreadFeedback }), [unreadFeedback, adjustUnreadFeedback])
 
   // Console = território admin; casca de restaurante = painel.
@@ -145,6 +169,7 @@ export function ConsoleShell({
   const mobileTabs = (config.mobileTabs ?? []).map((tab) => {
     if (tab.key === 'invites') return { ...tab, badge: counts.pendingInvites }
     if (tab.key === 'feedback') return { ...tab, badge: unreadFeedback }
+    if (tab.key === 'service') return { ...tab, badge: pendingServiceCalls }
     // Ajustes do painel abriga a central: o badge é o das notificações.
     if (tab.key === 'settings') return { ...tab, badge: notifications.unreadCount }
     return tab
@@ -187,7 +212,7 @@ export function ConsoleShell({
               label: leaf.label,
               description: leaf.sub,
               icon: leaf.icon,
-              count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : undefined,
+              count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : leaf.key === 'bell' ? pendingServiceCalls || undefined : undefined,
             }))}
             mode={mode}
             identity={config.sidebar}
@@ -201,6 +226,7 @@ export function ConsoleShell({
             mobileChrome={surface === 'console' ? 'none' : 'header'}
             switcher={config.restaurant ? { restaurants: config.restaurant.restaurants, currentId: config.restaurant.restaurantId } : undefined}
             accountBadge={notifications.unreadCount > 0}
+            callsArrivalKey={callsArrivalKey}
             pendingHref={pendingPageHref}
             onNavigate={setPendingPageHref}
           />
@@ -211,6 +237,7 @@ export function ConsoleShell({
           {mobileTabs.length > 0 ? (
             <MobileTabBar
               tabs={mobileTabs}
+              callsArrivalKey={callsArrivalKey}
               account={surface === 'console' ? { open: accountSheetOpen, buttonRef: accountTabRef, onOpen: () => setAccountSheetOpen(true), badge: notifications.unreadCount } : undefined}
             />
           ) : null}
