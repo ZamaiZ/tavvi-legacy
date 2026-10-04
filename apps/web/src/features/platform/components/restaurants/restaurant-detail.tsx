@@ -43,7 +43,7 @@ export function RestaurantDetail({ restaurant, rootDomain, members, standalone =
           <span>{detail.domain}/</span>
           <input aria-label="Endereço público" value={detail.slug} disabled={detail.pending} onChange={(event) => detail.setSlug(event.target.value)} />
         </label>
-        <p className="tv-detail-help">O cardápio fica em {detail.domain}/{detail.slug || '…'}. As plaquinhas continuam funcionando depois da troca, porque elas apontam para um código próprio e não para o endereço. Links compartilhados diretamente é que deixam de funcionar.</p>
+        <p className="tv-detail-help">O cardápio fica em {detail.domain}/{detail.slug || '…'}. Os identificadores continuam funcionando depois da troca, porque eles apontam para um código próprio e não para o endereço. Links compartilhados diretamente é que deixam de funcionar.</p>
         {detail.slugError ? <span role="alert" className="tv-field-error">{detail.slugError}</span> : null}
         <button type="button" className="tv-save-slug" disabled={!detail.canSaveSlug || detail.pending} onClick={detail.saveSlug}>{detail.savingSlug ? 'Alterando…' : 'Alterar endereço'}</button>
       </section>

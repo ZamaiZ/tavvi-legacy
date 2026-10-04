@@ -27,7 +27,7 @@ async function db() {
 }
 
 // `{ tag }` aninhado, e não `TagDTO & RevalidationTarget`: as duas formas têm
-// campo `id`, e uma interseção faria o id da plaquinha e o do restaurante
+// campo `id`, e uma interseção faria o id do identificador e o do restaurante
 // disputarem a mesma chave — exatamente o tipo de armadilha silenciosa que
 // esta fase existe para tirar do caminho.
 export async function createTag(
@@ -76,16 +76,16 @@ export async function createTag(
     // 23505 e violacao de unique: so nesse caso vale tentar outro token.
     if (error?.code === '23505') {
       if (error.message.includes('menu_tags_active_table_number_key')) {
-        throw new ConflictError('Já existe uma plaquinha ativa para essa mesa.')
+        throw new ConflictError('Já existe um identificador ativo para essa mesa.')
       }
       continue
     }
     if (error) {
-      throw new Error(`Não foi possível criar a plaquinha: ${error.message}`)
+      throw new Error(`Não foi possível criar o identificador: ${error.message}`)
     }
   }
 
-  throw new Error('Não foi possível gerar a plaquinha. Tente de novo.')
+  throw new Error('Não foi possível gerar o identificador. Tente de novo.')
 }
 
 export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
@@ -100,7 +100,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
     .order('created_at')
 
   if (error) {
-    throw new Error(`Não foi possível listar plaquinhas: ${error.message}`)
+    throw new Error(`Não foi possível listar identificadores: ${error.message}`)
   }
 
   return (data ?? []).map((row) => ({
@@ -123,7 +123,7 @@ export async function updateTag(input: unknown): Promise<RevalidationTarget> {
     .eq('id', data.tagId)
     .single()
 
-  if (lookupError || !row) throw new Error('Plaquinha não encontrada')
+  if (lookupError || !row) throw new Error('Identificador não encontrado')
   const restaurantId = row.restaurant_id as string
   await requireRestaurantAdmin(restaurantId)
 
@@ -136,9 +136,9 @@ export async function updateTag(input: unknown): Promise<RevalidationTarget> {
 
   if (error) {
     if (error.code === '23505' && error.message.includes('menu_tags_active_table_number_key')) {
-      throw new ConflictError('Já existe uma plaquinha ativa para essa mesa.')
+      throw new ConflictError('Já existe um identificador ativo para essa mesa.')
     }
-    throw new Error(`Não foi possível salvar a plaquinha: ${error.message}`)
+    throw new Error(`Não foi possível salvar o identificador: ${error.message}`)
   }
 
   return getRestaurantRevalidationTarget(restaurantId)
@@ -150,7 +150,7 @@ export async function deleteTag(tagId: unknown): Promise<RevalidationTarget> {
 
   const supabase = await db()
 
-  // O restaurante da plaquinha é lido ANTES do delete: depois, a linha não
+  // O restaurante do identificador é lido ANTES do delete: depois, a linha não
   // existe mais e não haveria de onde tirar o alvo da revalidação.
   const { data: row, error: lookupError } = await supabase
     .from('menu_tags')
@@ -158,12 +158,12 @@ export async function deleteTag(tagId: unknown): Promise<RevalidationTarget> {
     .eq('id', id)
     .single()
 
-  if (lookupError || !row) throw new Error('Plaquinha não encontrada')
+  if (lookupError || !row) throw new Error('Identificador não encontrado')
   const revalidationTarget = await getRestaurantRevalidationTarget(row.restaurant_id as string)
 
   const { error } = await supabase.from('menu_tags').delete().eq('id', id)
   if (error) {
-    throw new Error(`Não foi possível remover a plaquinha: ${error.message}`)
+    throw new Error(`Não foi possível remover o identificador: ${error.message}`)
   }
 
   await recordAudit({

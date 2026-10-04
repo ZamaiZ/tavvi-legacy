@@ -18,7 +18,7 @@ export function hashInviteTokenForDb(token: string): string {
 }
 
 // Base32 sem I, L, O e U: sao os caracteres que se confundem com 1, 1, 0 e
-// V ao ditar por telefone ou reimprimir uma plaquinha gasta.
+// V ao ditar por telefone ou reimprimir um identificador gasto.
 const TAG_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 export function generateTagToken(): string {

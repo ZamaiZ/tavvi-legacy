@@ -31,7 +31,7 @@ export default function Page() {
           O cardápio está na mesa
         </h1>
         <p className="mt-4 text-body text-muted-foreground">
-          Encoste o celular na plaquinha sobre sua mesa, ou aponte a câmera
+          Encoste o celular no identificador sobre sua mesa, ou aponte a câmera
           para o QR code. O cardápio abre sozinho — não precisa instalar nada.
         </p>
 

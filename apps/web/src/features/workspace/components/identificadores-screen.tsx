@@ -7,7 +7,7 @@ import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import type { TagDTO } from '@/domain/tag'
 import { createTagAction, updateTagAction } from '@/server/actions/tags'
 
-export function PlaquinhasScreen({ restaurantId, initialTags }: { restaurantId: string; initialTags: TagDTO[] }) {
+export function IdentificadoresScreen({ restaurantId, initialTags }: { restaurantId: string; initialTags: TagDTO[] }) {
   const [tags, setTags] = useState(initialTags)
   const [drafts, setDrafts] = useState<Record<string, string>>(() => Object.fromEntries(initialTags.map((tag) => [tag.id, tag.tableNumber?.toString() ?? ''])))
   const [newNumber, setNewNumber] = useState('')
@@ -25,8 +25,8 @@ export function PlaquinhasScreen({ restaurantId, initialTags }: { restaurantId: 
         setTags((current) => [...current, result.data].sort((a, b) => (a.tableNumber ?? Number.MAX_SAFE_INTEGER) - (b.tableNumber ?? Number.MAX_SAFE_INTEGER)))
         setDrafts((current) => ({ ...current, [result.data.id]: String(result.data.tableNumber ?? '') }))
         setNewNumber('')
-        setMessage('Plaquinha criada. Copie o link para gerar o QR code.')
-      } catch { setMessage('Falha de conexão ao criar a plaquinha. Tente novamente.') }
+        setMessage('Identificador criado. Copie o link para gerar o QR code.')
+      } catch { setMessage('Falha de conexão ao criar o identificador. Tente novamente.') }
     })
   }
 
@@ -50,8 +50,8 @@ export function PlaquinhasScreen({ restaurantId, initialTags }: { restaurantId: 
         const result = await updateTagAction({ tagId: tag.id, tableNumber: tag.tableNumber, isActive: !tag.isActive })
         if (!result.ok) { setMessage(result.error); return }
         setTags((current) => current.map((item) => item.id === tag.id ? { ...item, isActive: !item.isActive } : item))
-        setMessage(tag.isActive ? 'Plaquinha desativada.' : 'Plaquinha ativada.')
-      } catch { setMessage('Falha de conexão ao atualizar a plaquinha. Tente novamente.') }
+        setMessage(tag.isActive ? 'Identificador desativado.' : 'Identificador ativado.')
+      } catch { setMessage('Falha de conexão ao atualizar o identificador. Tente novamente.') }
     })
   }
 
@@ -68,19 +68,19 @@ export function PlaquinhasScreen({ restaurantId, initialTags }: { restaurantId: 
   return (
     <div className="tv-tags-page">
       <MobileNavBar backHref={`/restaurantes/${restaurantId}/ajustes`} backLabel="Ajustes" />
-      <PageHeader eyebrow="Atendimento" title="Plaquinhas" description="Associe os QR codes às mesas e copie os links para preparar cada placa." />
+      <PageHeader eyebrow="Atendimento" title="Identificadores" description="Associe os QR codes às mesas e copie os links para preparar cada identificador." />
       <section className="tv-tags-create" aria-labelledby="tv-tags-create-title">
-        <div><h2 id="tv-tags-create-title">Nova plaquinha</h2><p>O link é único e permanece igual quando você altera o número da mesa.</p></div>
+        <div><h2 id="tv-tags-create-title">Novo identificador</h2><p>O link é único e permanece igual quando você altera o número da mesa.</p></div>
         <label>Número da mesa<input type="number" min="1" step="1" inputMode="numeric" value={newNumber} onChange={(event) => setNewNumber(event.target.value)} /></label>
-        <button type="button" disabled={busy} onClick={create}><LuPlus aria-hidden="true" /> Criar plaquinha</button>
+        <button type="button" disabled={busy} onClick={create}><LuPlus aria-hidden="true" /> Criar identificador</button>
       </section>
       <p className="tv-tags-message" role="status" aria-live="polite">{message}</p>
-      {tags.length === 0 ? <div className="tv-tags-empty"><LuQrCode aria-hidden="true" /><strong>Nenhuma plaquinha cadastrada</strong><span>Crie uma plaquinha para começar a associar mesas.</span></div> : (
-        <section className="tv-tags-list" aria-label="Plaquinhas do restaurante">
+      {tags.length === 0 ? <div className="tv-tags-empty"><LuQrCode aria-hidden="true" /><strong>Nenhum identificador cadastrado</strong><span>Crie um identificador para começar a associar mesas.</span></div> : (
+        <section className="tv-tags-list" aria-label="Identificadores do restaurante">
           {tags.map((tag) => <article className="tv-tag-card" key={tag.id}>
             <div className="tv-tag-heading"><span className="tv-tag-icon"><LuQrCode aria-hidden="true" /></span><div><strong>{tag.tableNumber ? `Mesa ${tag.tableNumber}` : 'Mesa sem número'}</strong><span>{tag.isActive ? 'Ativa' : 'Desativada'}{tag.lastSeenAt ? ` · Acessada ${new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(tag.lastSeenAt))}` : ''}</span></div></div>
-            <div className="tv-tag-controls"><label>Número da mesa<input aria-label={`Número da mesa para plaquinha ${tag.id}`} type="number" min="1" step="1" inputMode="numeric" value={drafts[tag.id] ?? ''} onChange={(event) => setDrafts((current) => ({ ...current, [tag.id]: event.target.value }))} /></label><button type="button" disabled={busy} onClick={() => save(tag)}><LuSave aria-hidden="true" /> Salvar</button><button type="button" disabled={busy} onClick={() => toggle(tag)}>{tag.isActive ? 'Desativar' : 'Ativar'}</button><button type="button" className="is-copy" onClick={() => void copy(tag)}>{copied === tag.id ? <LuCheck aria-hidden="true" /> : <LuCopy aria-hidden="true" />}{copied === tag.id ? 'Copiado' : 'Copiar link'}</button></div>
-            {!tag.tableNumber ? <p className="tv-tag-warning">Defina o número antes de usar esta plaquinha para chamar a equipe.</p> : null}
+            <div className="tv-tag-controls"><label>Número da mesa<input aria-label={`Número da mesa para o identificador ${tag.id}`} type="number" min="1" step="1" inputMode="numeric" value={drafts[tag.id] ?? ''} onChange={(event) => setDrafts((current) => ({ ...current, [tag.id]: event.target.value }))} /></label><button type="button" disabled={busy} onClick={() => save(tag)}><LuSave aria-hidden="true" /> Salvar</button><button type="button" disabled={busy} onClick={() => toggle(tag)}>{tag.isActive ? 'Desativar' : 'Ativar'}</button><button type="button" className="is-copy" onClick={() => void copy(tag)}>{copied === tag.id ? <LuCheck aria-hidden="true" /> : <LuCopy aria-hidden="true" />}{copied === tag.id ? 'Copiado' : 'Copiar link'}</button></div>
+            {!tag.tableNumber ? <p className="tv-tag-warning">Defina o número antes de usar este identificador para chamar a equipe.</p> : null}
           </article>)}
         </section>
       )}

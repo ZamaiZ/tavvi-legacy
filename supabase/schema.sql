@@ -110,7 +110,7 @@ as $fn$
 $fn$;
 
 -- =====================================================================
--- 0003 — Tenancy: restaurantes, vinculos, convites e plaquinhas
+-- 0003 — Tenancy: restaurantes, vinculos, convites e identificadores
 --
 -- Rode DEPOIS do 0002. Idempotente: pode rodar de novo sem quebrar.
 -- =====================================================================
@@ -182,9 +182,9 @@ create table if not exists public.invites (
 
 create index if not exists invites_restaurant_idx on public.invites (restaurant_id);
 
--- A plaquinha fisica. O token fica em texto puro de proposito: ele esta
+-- O identificador fisico. O token fica em texto puro de proposito: ele esta
 -- impresso num QR pendurado na parede, nao e segredo, e guardar so o hash
--- impediria reimprimir a plaquinha depois.
+-- impediria reimprimir o identificador depois.
 create table if not exists public.menu_tags (
   id uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references public.restaurants (id) on delete cascade,
@@ -276,7 +276,7 @@ create trigger restaurants_guard_privileged
   for each row execute function public.restaurants_guard_privileged_columns();
 
 -- O token gravado no NFC e o restaurante de origem nunca mudam: a
--- plaquinha e hardware, e reatribui-la seria trocar o significado de um
+-- identificador e hardware, e reatribui-lo seria trocar o significado de um
 -- objeto fisico que ja esta na parede de alguem.
 create or replace function public.menu_tags_guard_immutable_columns()
 returns trigger
@@ -286,10 +286,10 @@ set search_path = ''
 as $fn$
 begin
   if new.public_token is distinct from old.public_token then
-    raise exception 'public_token da plaquinha e imutavel' using errcode = '42501';
+    raise exception 'public_token do identificador e imutavel' using errcode = '42501';
   end if;
   if new.restaurant_id is distinct from old.restaurant_id then
-    raise exception 'restaurant_id da plaquinha e imutavel' using errcode = '42501';
+    raise exception 'restaurant_id do identificador e imutavel' using errcode = '42501';
   end if;
   return new;
 end;
@@ -675,7 +675,7 @@ create policy invites_update_admin on public.invites
 
 -- menu_tags ------------------------------------------------------------
 -- Anonimo nao enxerga NADA aqui. A resolucao de /t/{token} passa pela
--- funcao resolve_menu_tag do 0007, o que impede enumerar as plaquinhas
+-- funcao resolve_menu_tag do 0007, o que impede enumerar os identificadores
 -- de todos os restaurantes.
 drop policy if exists menu_tags_select_member on public.menu_tags;
 create policy menu_tags_select_member on public.menu_tags
@@ -823,7 +823,7 @@ create policy audit_log_select_admin on public.audit_log
 -- acesso acontece exclusivamente por check_rate_limit.
 
 -- =====================================================================
--- 0007 — Operacoes privilegiadas: convite e plaquinha
+-- 0007 — Operacoes privilegiadas: convite e identificador
 --
 -- Rode DEPOIS do 0006. Idempotente.
 --
@@ -911,8 +911,8 @@ begin
 end;
 $fn$;
 
--- Resolve a plaquinha sem dar a anonimos qualquer leitura sobre menu_tags,
--- o que permitiria enumerar as plaquinhas de todos os restaurantes.
+-- Resolve o identificador sem dar a anonimos qualquer leitura sobre menu_tags,
+-- o que permitiria enumerar os identificadores de todos os restaurantes.
 drop function if exists public.resolve_menu_tag(text);
 create function public.resolve_menu_tag(p_token text)
 returns table (restaurant_slug text, tag_label text)
@@ -1302,7 +1302,7 @@ create policy menu_item_media_delete on public.menu_item_media
   for delete to authenticated
   using (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin());
 
--- A plaquinha é objeto físico do restaurante. Trocar o rótulo ou desligá-la é
+-- O identificador é objeto físico do restaurante. Trocar o rótulo ou desligá-lo é
 -- decisão de administração, não de quem está no salão.
 drop policy if exists menu_tags_update_member on public.menu_tags;
 create policy menu_tags_update_member on public.menu_tags
@@ -1761,7 +1761,7 @@ grant execute on function public.is_slug_available(text) to authenticated;
 -- Rode DEPOIS do 0013. Idempotente: pode rodar de novo sem quebrar.
 --
 -- O 0011 trocou `is_member` por `is_restaurant_admin` nas quatro tabelas do
--- cardápio e nas plaquinhas, e ESQUECEU de `storage.objects`. O resultado é
+-- cardápio e nos identificadores, e ESQUECEU de `storage.objects`. O resultado é
 -- uma falha aberta numa camada só: pela aplicação o caminho está fechado,
 -- porque `createUploadTicket` exige administrador e sem ticket não sai URL
 -- assinada — mas garçom, caixa e atendente têm um JWT `authenticated` válido
@@ -3321,7 +3321,7 @@ grant execute on function public.send_test_notification(text, text) to authentic
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0034 — Chamados de atendimento associados a plaquinhas/mesas
+-- 0034 — Chamados de atendimento associados a identificadores/mesas
 -- =====================================================================
 
 alter table public.menu_tags

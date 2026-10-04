@@ -72,10 +72,10 @@ export function getRestaurantNavigation(
     children.push(
       {
         kind: 'leaf',
-        href: `${root}/plaquinhas`,
-        label: 'Plaquinhas',
+        href: `${root}/identificadores`,
+        label: 'Identificadores',
         icon: 'tag',
-        description: 'Associe cada plaquinha a uma mesa',
+        description: 'Associe cada identificador a uma mesa',
       },
       {
         kind: 'leaf',

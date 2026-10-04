@@ -14,7 +14,7 @@ function canGoBack(): boolean {
 }
 
 // Aparece sempre, para nada pular de lugar depois da hidratação. Sem
-// histórico (aba nova, link aberto pela plaquinha NFC, app instalado, que
+// histórico (aba nova, link aberto pelo identificador NFC, app instalado, que
 // não tem botão de voltar do navegador), não há para onde voltar, e a saída
 // é o destino da ação principal.
 export function NotFoundBackButton({

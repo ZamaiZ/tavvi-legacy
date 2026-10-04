@@ -29,7 +29,7 @@ export async function requestServiceCall(input: unknown): Promise<ServiceCallReq
   })
   if (error) {
     if (error.message === 'service_call_unavailable') {
-      throw new UserFacingError('Esta plaquinha não está disponível para chamados.')
+      throw new UserFacingError('Este identificador não está disponível para chamados.')
     }
     if (error.message === 'service_call_limited') {
       throw new UserFacingError('Esta mesa já realizou vários chamados recentemente. Tente novamente mais tarde.')

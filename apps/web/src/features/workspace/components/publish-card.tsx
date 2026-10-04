@@ -10,7 +10,7 @@ import { PanelConfirm } from './panel-confirm'
 
 const STATUS_LABEL: Record<RestaurantStatus, string> = { active: 'No ar', draft: 'Rascunho', suspended: 'Suspenso' }
 const STATUS_DESCRIPTION: Record<RestaurantStatus, string> = {
-  active: 'Quem encostar o celular na plaquinha vê o cardápio.',
+  active: 'Quem encostar o celular no identificador vê o cardápio.',
   draft: 'Só você vê. Publique quando terminar de montar.',
   suspended: 'Fale com o administrador da plataforma.',
 }

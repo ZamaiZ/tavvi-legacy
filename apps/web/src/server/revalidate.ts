@@ -14,7 +14,7 @@ export type RevalidationTarget = { id: string; slug: string }
 // Até a Fase 4 havia trinta e seis chamadas de `revalidatePath('/')` — o
 // caminho de ORIGEM. Nenhuma delas revalidava `/painel/**` nem `/[slug]`; a
 // única rota que elas invalidavam era `app/(site)/page.tsx`, a página que diz
-// para encostar o celular na plaquinha. O sintoma era o painel não atualizar
+// para encostar o celular no identificador. O sintoma era o painel não atualizar
 // depois de salvar, e o cardápio público envelhecer depois de publicar.
 //
 // Esta é a ÚNICA exceção à regra "rotas são externas" que vale no projeto.

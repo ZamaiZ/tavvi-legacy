@@ -9,9 +9,9 @@ export default async function Page({
   const { token } = await params
   const resolved = await resolveTag(token)
 
-  // Token desconhecido, plaquinha desativada e restaurante fora do ar dão
+  // Token desconhecido, identificador desativado e restaurante fora do ar dão
   // exatamente a mesma 404 (a variante "restaurante" do cardápio).
-  // Distinguir os casos revelaria quais plaquinhas existem.
+  // Distinguir os casos revelaria quais identificadores existem.
   if (!resolved) notFound()
 
   const query = new URLSearchParams()

@@ -60,9 +60,9 @@ export function SettingsMobile() {
             <span className="tv-mlink-copy"><span>Contato</span><small>Informações públicas do restaurante</small></span>
             <LuChevronRight aria-hidden="true" />
           </Link>
-          <Link href={`${root}/plaquinhas`} className="tv-mlink" onClick={stack(`${root}/plaquinhas`)}>
+          <Link href={`${root}/identificadores`} className="tv-mlink" onClick={stack(`${root}/identificadores`)}>
             <span className="tv-mlink-icon is-gold" aria-hidden="true"><LuQrCode /></span>
-            <span className="tv-mlink-copy"><span>Plaquinhas</span><small>Números das mesas e links dos QR codes</small></span>
+            <span className="tv-mlink-copy"><span>Identificadores</span><small>Números das mesas e links dos QR codes</small></span>
             <LuChevronRight aria-hidden="true" />
           </Link>
         </div>

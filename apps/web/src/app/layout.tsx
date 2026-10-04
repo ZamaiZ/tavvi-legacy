@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import '../features/workspace/styles/plaquinhas.css'
+import '../features/workspace/styles/identificadores.css'
 import '../features/calls/styles/calls.css'
 import '../features/account/styles/account.css'
 import '../features/feedback/styles/feedback.css'

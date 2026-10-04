@@ -4,7 +4,7 @@ import { plainTextSchema, uuidSchema } from './common'
 // Base32 sem caracteres ambíguos (sem I, L, O, U), 16 caracteres.
 export const tagTokenSchema = z
   .string()
-  .regex(/^[0-9A-HJKMNP-TV-Z]{16}$/, { error: 'Plaquinha inválida' })
+  .regex(/^[0-9A-HJKMNP-TV-Z]{16}$/, { error: 'Identificador inválido' })
 
 export const createTagSchema = z.object({
   restaurantId: uuidSchema,

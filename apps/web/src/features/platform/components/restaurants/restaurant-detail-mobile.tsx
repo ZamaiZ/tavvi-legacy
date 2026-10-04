@@ -55,7 +55,7 @@ export function RestaurantDetailMobile({ restaurant, members, detail }: {
       <div className="tv-group">
         <label className="tv-rd-slug"><span className="tv-mono">{detail.domain}/</span><input aria-label="Endereço público" value={detail.slug} autoCapitalize="none" autoCorrect="off" spellCheck={false} disabled={detail.pending} onChange={(event) => detail.setSlug(event.target.value)} /></label>
       </div>
-      <p className="tv-group-note">O cardápio fica em {detail.domain}/{detail.slug}. As plaquinhas continuam funcionando depois da troca, porque elas apontam para um código próprio e não para o endereço. Links compartilhados diretamente é que deixam de funcionar.</p>
+      <p className="tv-group-note">O cardápio fica em {detail.domain}/{detail.slug}. Os identificadores continuam funcionando depois da troca, porque eles apontam para um código próprio e não para o endereço. Links compartilhados diretamente é que deixam de funcionar.</p>
       {detail.slugError ? <p role="alert" className="tv-group-error">{detail.slugError}</p> : null}
       <button type="button" className="tv-m-pill is-primary tv-rd-save" disabled={!detail.canSaveSlug || detail.pending} onClick={detail.saveSlug}>{detail.savingSlug ? 'Alterando…' : 'Alterar endereço'}</button>
 

@@ -29,7 +29,7 @@ O painel já fornece a paleta, os controles e o cabeçalho adequados. O trabalho
 
 Usar os tokens existentes do território privado, entre eles `--tv-bg`, `--tv-surface`, `--tv-surface-2`, `--tv-line`, `--tv-text`, `--tv-text-2`, `--tv-gold`, `--tv-gold-text`, `--tv-gold-soft`, `--tv-ok`, `--tv-ok-soft` e `--tv-fresh`, com seus equivalentes de modo escuro. Preservar a fonte `--tv-font`, o `PageHeader`, a linguagem de ícones lineares e os raios já empregados no painel. A cor dourada identifica pendência e a ação principal; o verde identifica conclusão. O texto sobre botão dourado usa `--tv-hero-ink`, já preparado para essa superfície. Som e metadados permanecem neutros.
 
-Não introduzir fotos, ilustrações grandes, fontes serifadas, gradientes novos, cartões de métricas sem dados ou animação contínua. O aspecto premium deve continuar coerente com Cardápio, Plaquinhas e as demais telas do painel.
+Não introduzir fotos, ilustrações grandes, fontes serifadas, gradientes novos, cartões de métricas sem dados ou animação contínua. O aspecto premium deve continuar coerente com Cardápio, Identificadores e as demais telas do painel.
 
 ### Escala sugerida
 

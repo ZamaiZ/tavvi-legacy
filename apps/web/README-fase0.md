@@ -53,7 +53,7 @@ Cria dois donos e dois restaurantes, consulta o banco como cada um e desfaz tudo
 
 ### Dados de exemplo
 
-`supabase/seed/dados-de-exemplo.sql` cria um restaurante de demonstração com categorias, itens, variações e uma plaquinha. A última linha do arquivo, comentada, apaga tudo.
+`supabase/seed/dados-de-exemplo.sql` cria um restaurante de demonstração com categorias, itens, variações e um identificador. A última linha do arquivo, comentada, apaga tudo.
 
 ## Antes de publicar
 
@@ -83,7 +83,7 @@ Itens obrigatórios, nenhum deles opcional:
 
 ## O que a Fase 0 deixa pronto
 
-- **Pedido e comunicação com o estabelecimento:** o item tem identidade estável e a plaquinha já carrega contexto de mesa em `label`. Pedido vira tabela nova apontando para o que já existe, não remodelagem.
+- **Pedido e comunicação com o estabelecimento:** o item tem identidade estável e o identificador já carrega contexto de mesa em `label`. Pedido vira tabela nova apontando para o que já existe, não remodelagem.
 - **Equipe e franquia:** `memberships` já é N↔N e `manager` já existe no enum. Falta apenas política e interface.
 - **Vídeo em serviço dedicado:** `src/server/dal/media.ts` é a interface; trocar o provedor não toca no resto.
 - **Novo território:** a derivação vive em `src/server/territory.ts`. Um quarto subdomínio é uma entrada a mais nesse mapa.

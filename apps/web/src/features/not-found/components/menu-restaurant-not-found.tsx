@@ -4,7 +4,7 @@ import { defaultProtocol, originFor } from '@/server/territory'
 import { nfStep } from './nf-step'
 import { NotFoundBackButton } from './not-found-back-button'
 
-// Restaurante inexistente, em rascunho, suspenso ou removido, e plaquinha
+// Restaurante inexistente, em rascunho, suspenso ou removido, e identificador
 // desconhecida, caem todos aqui, com o mesmo texto, para não revelar que o
 // restaurante existe. Mesma linguagem da página raiz do domínio público.
 export function MenuRestaurantNotFound() {
@@ -16,7 +16,7 @@ export function MenuRestaurantNotFound() {
         <p className="tv-nf-code" style={nfStep(1)} aria-hidden="true">404</p>
         <h1 className="tv-nf-title tv-nf-step" style={nfStep(2)}>Cardápio não encontrado</h1>
         <p className="tv-nf-text tv-nf-step" style={nfStep(3)}>
-          Este endereço não leva a nenhum restaurante. Confira o link ou aproxime o celular da plaquinha da mesa de novo.
+          Este endereço não leva a nenhum restaurante. Confira o link ou aproxime o celular do identificador da mesa de novo.
         </p>
         <div className="tv-nf-actions tv-nf-step" style={nfStep(4)}>
           <Link href="/" className="tv-nf-primary">Ir para o início</Link>

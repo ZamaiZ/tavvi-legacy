@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from 'cn'
 
 // Texto que o dono precisa levar para outro lugar — endereço público, link de
-// convite, token de plaquinha — com RETORNO VISÍVEL ao copiar.
+// convite, token de identificador — com RETORNO VISÍVEL ao copiar.
 //
 // Até a Fase 5 esses três apareciam como texto morto: o link de convite volta
 // UMA vez e o administrador copiava às cegas, sem saber se pegou.
