@@ -7,7 +7,7 @@ Tavvi is a pnpm workspace with a Next.js web application, a small Express servic
 - `apps/web`: Next.js application. Authenticated admin and restaurant-panel flows use Supabase SSR with separate host-only cookies; public menus and forms do not create an Auth session.
 - `apps/backend`: Express health endpoint and server-only Web Push delivery endpoint.
 - `packages/theme-core`: shared panel palette calculations.
-- `supabase`: local project configuration, one clean-install migration, and the manual first-admin bootstrap SQL.
+- `supabase`: local project configuration, a clean-install baseline with incremental migrations, and the manual first-admin bootstrap SQL.
 
 ## Local setup
 
@@ -26,6 +26,6 @@ pnpm ngrok
 
 ## Supabase setup
 
-The migration in `supabase/migrations/` builds the current web schema for a new, empty Supabase project. Do not apply it over a database with data. Configure the local Supabase project with the CLI, apply the migration, create the first administrator using `supabase/seed/bootstrap-admin.sql` after creating that account, then set `APP_SERVER_KEY` in the database with `public.set_app_server_key`.
+`supabase/migrations/0001_web_baseline.sql` builds the current web schema for a new, empty Supabase project. Do not apply it over a database with data. Later numbered migrations are incremental updates for installations that already have the baseline. Configure the local Supabase project with the CLI, apply the appropriate migration, create the first administrator using `supabase/seed/bootstrap-admin.sql` after creating that account, then set `APP_SERVER_KEY` in the database with `public.set_app_server_key`.
 
 See [monorepo deployment](docs/deployment/monorepo.md) for environment variables, Web Push setup, and the clean database bootstrap procedure.

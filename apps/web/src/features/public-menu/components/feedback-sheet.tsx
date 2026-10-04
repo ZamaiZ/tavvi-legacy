@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
-import { LuCamera, LuCircleCheck, LuImagePlus, LuX } from 'react-icons/lu'
+import { LuCamera, LuCircleCheck, LuImagePlus, LuSend, LuX } from 'react-icons/lu'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Spinner } from '@/components/ui/spinner'
 import { FEEDBACK_MAX_LENGTH, FEEDBACK_MAX_PHOTOS, FEEDBACK_MIN_LENGTH } from '@/domain/feedback'
@@ -222,11 +222,11 @@ export function FeedbackSheet({
         aria-busy={sending || undefined}
         // Mesmos motivos de menu-details.tsx: as cores e as fontes do tema
         // precisam vir explícitas, porque o portal sai da árvore do `.menu`.
-        className={`menu max-h-[85dvh] overflow-y-auto ${ALL_THEME_FONT_VARIABLES}`}
+        className={`menu menu-sheet menu-feedback-sheet min-h-0 overflow-hidden ${ALL_THEME_FONT_VARIABLES}`}
         style={{ background: 'var(--m-base)', color: 'var(--m-ink)' }}
       >
         {phase === 'sent' ? (
-          <div className="menu-feedback-done" role="status">
+          <div className="menu-feedback-done menu-feedback-scroll" role="status">
             <LuCircleCheck aria-hidden="true" className="menu-feedback-done-icon" />
             <SheetTitle className="menu-display text-[1.375rem] font-semibold" style={{ color: 'var(--m-ink)' }}>
               Obrigado!
@@ -240,141 +240,145 @@ export function FeedbackSheet({
           </div>
         ) : (
           <form onSubmit={submit} noValidate className="menu-feedback">
-            <SheetHeader className="p-0">
-              <SheetTitle className="menu-display text-[1.25rem] font-semibold" style={{ color: 'var(--m-ink)' }}>
-                Deixe seu feedback
-              </SheetTitle>
-              <SheetDescription style={{ color: 'var(--m-muted)' }}>
-                Anônimo: o restaurante não vê quem você é.
-              </SheetDescription>
-            </SheetHeader>
+            <div className="menu-feedback-scroll">
+              <SheetHeader className="p-0">
+                <SheetTitle className="menu-display text-[1.25rem] font-semibold" style={{ color: 'var(--m-ink)' }}>
+                  Deixe seu feedback
+                </SheetTitle>
+                <SheetDescription style={{ color: 'var(--m-muted)' }}>
+                  Anônimo: o restaurante não vê quem você é.
+                </SheetDescription>
+              </SheetHeader>
 
-            <fieldset disabled={sending} className="menu-feedback-fields">
-              <label htmlFor="feedback-body" className="sr-only">Seu feedback</label>
-              {/* Sem foco automático: no celular ele abriria o teclado
-                  antes de a pessoa decidir escrever. */}
-              <textarea
-                id="feedback-body"
-                className="menu-block menu-feedback-text"
-                rows={5}
-                maxLength={FEEDBACK_MAX_LENGTH}
-                placeholder="Conte o que achou…"
-                value={body}
-                aria-invalid={error ? true : undefined}
-                aria-describedby="feedback-count"
-                onChange={(event) => {
-                  setBody(event.target.value)
-                  setError(null)
-                }}
-              />
-              <span id="feedback-count" className="menu-feedback-count">
-                {body.length} / {FEEDBACK_MAX_LENGTH}
-              </span>
+              <fieldset disabled={sending} className="menu-feedback-fields">
+                <label htmlFor="feedback-body" className="sr-only">Seu feedback</label>
+                {/* Sem foco automático: no celular ele abriria o teclado
+                    antes de a pessoa decidir escrever. */}
+                <textarea
+                  id="feedback-body"
+                  className="menu-block menu-feedback-text"
+                  rows={5}
+                  maxLength={FEEDBACK_MAX_LENGTH}
+                  placeholder="Conte o que achou…"
+                  value={body}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby="feedback-count"
+                  onChange={(event) => {
+                    setBody(event.target.value)
+                    setError(null)
+                  }}
+                />
+                <span id="feedback-count" className="menu-feedback-count">
+                  {body.length} / {FEEDBACK_MAX_LENGTH}
+                </span>
 
-              <span className="menu-feedback-label">Fotos (opcional, até 3)</span>
-              <div className="menu-feedback-buttons">
-                {coarse ? (
+                <span className="menu-feedback-label">Fotos (opcional, até 3)</span>
+                <div className="menu-feedback-buttons">
+                  {coarse ? (
+                    <button
+                      type="button"
+                      className="menu-block menu-feedback-pick"
+                      disabled={busy || full}
+                      onClick={() => cameraRef.current?.click()}
+                    >
+                      <LuCamera aria-hidden="true" />
+                      Tirar foto
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className="menu-block menu-feedback-pick"
                     disabled={busy || full}
-                    onClick={() => cameraRef.current?.click()}
+                    onClick={() => galleryRef.current?.click()}
                   >
-                    <LuCamera aria-hidden="true" />
-                    Tirar foto
+                    <LuImagePlus aria-hidden="true" />
+                    {coarse ? 'Galeria' : 'Escolher fotos'}
                   </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="menu-block menu-feedback-pick"
-                  disabled={busy || full}
-                  onClick={() => galleryRef.current?.click()}
-                >
-                  <LuImagePlus aria-hidden="true" />
-                  {coarse ? 'Galeria' : 'Escolher fotos'}
-                </button>
-              </div>
-              <input
-                ref={cameraRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden="true"
-                onChange={(event) => void addFiles(event.currentTarget)}
-              />
-              <input
-                ref={galleryRef}
-                type="file"
-                accept={GALLERY_ACCEPT}
-                multiple
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden="true"
-                onChange={(event) => void addFiles(event.currentTarget)}
-              />
-
-              {processing ? (
-                <p className="menu-feedback-note" role="status">
-                  <Spinner className="size-3.5" aria-hidden="true" />
-                  Preparando a foto…
-                </p>
-              ) : null}
-              {photoNotice ? <p className="menu-feedback-note is-error" role="alert">{photoNotice}</p> : null}
-
-              {photos.length > 0 ? (
-                <ul className="menu-feedback-thumbs">
-                  {photos.map((photo, index) => (
-                    <li key={photo.key} className="menu-feedback-thumb">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.preview} alt={`Foto ${index + 1}`} />
-                      <button
-                        type="button"
-                        aria-label={`Remover foto ${index + 1}`}
-                        disabled={busy}
-                        onClick={() => removePhoto(photo.key)}
-                      >
-                        <LuX aria-hidden="true" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-
-              <input
-                ref={trapRef}
-                type="text"
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden="true"
-                className="menu-feedback-trap"
-                defaultValue=""
-              />
-            </fieldset>
-
-            {error ? <p className="menu-feedback-note is-error" role="alert">{error}</p> : null}
-
-            {confirmDiscard ? (
-              <div className="menu-block menu-feedback-confirm" role="alertdialog" aria-label="Descartar o feedback?">
-                <p>Descartar o feedback?</p>
-                <div>
-                  <button type="button" onClick={() => setConfirmDiscard(false)}>Continuar escrevendo</button>
-                  <button type="button" className="is-danger" onClick={close}>Descartar</button>
                 </div>
-              </div>
-            ) : (
-              <button
-                type="submit"
-                className="menu-block menu-feedback-primary"
-                disabled={busy}
-                aria-busy={sending || undefined}
-              >
-                {sending ? <Spinner className="size-4" aria-hidden="true" /> : null}
-                {sending ? 'Enviando…' : 'Enviar feedback'}
-              </button>
-            )}
+                <input
+                  ref={cameraRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  onChange={(event) => void addFiles(event.currentTarget)}
+                />
+                <input
+                  ref={galleryRef}
+                  type="file"
+                  accept={GALLERY_ACCEPT}
+                  multiple
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  onChange={(event) => void addFiles(event.currentTarget)}
+                />
+
+                {processing ? (
+                  <p className="menu-feedback-note" role="status">
+                    <Spinner className="size-3.5" aria-hidden="true" />
+                    Preparando a foto…
+                  </p>
+                ) : null}
+                {photoNotice ? <p className="menu-feedback-note is-error" role="alert">{photoNotice}</p> : null}
+
+                {photos.length > 0 ? (
+                  <ul className="menu-feedback-thumbs">
+                    {photos.map((photo, index) => (
+                      <li key={photo.key} className="menu-feedback-thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.preview} alt={`Foto ${index + 1}`} />
+                        <button
+                          type="button"
+                          aria-label={`Remover foto ${index + 1}`}
+                          disabled={busy}
+                          onClick={() => removePhoto(photo.key)}
+                        >
+                          <LuX aria-hidden="true" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                <input
+                  ref={trapRef}
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="menu-feedback-trap"
+                  defaultValue=""
+                />
+              </fieldset>
+            </div>
+
+            <div className="menu-feedback-actions">
+              {error ? <p className="menu-feedback-note is-error" role="alert">{error}</p> : null}
+              {confirmDiscard ? (
+                <div className="menu-block menu-feedback-confirm" role="alertdialog" aria-label="Descartar o feedback?">
+                  <p>Descartar o feedback?</p>
+                  <div>
+                    <button type="button" onClick={() => setConfirmDiscard(false)}>Continuar escrevendo</button>
+                    <button type="button" className="is-danger" onClick={close}>Descartar</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  className="menu-block menu-feedback-primary"
+                  disabled={busy}
+                  aria-busy={sending || undefined}
+                >
+                  {sending ? <Spinner className="size-4" aria-hidden="true" /> : null}
+                  {!sending ? <LuSend aria-hidden="true" className="size-4" /> : null}
+                  {sending ? 'Enviando…' : 'Enviar feedback'}
+                </button>
+              )}
+            </div>
           </form>
         )}
       </SheetContent>

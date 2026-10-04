@@ -2,384 +2,404 @@
    variáveis que `resolveTheme` produz, e é isso que permite oito temas
    compartilharem uma folha só. */
 
-.menu {
-  position: relative;
-  /* O anel de foco da base (base.css) na cor do tema. */
-  --tv-ring-color: var(--m-accent);
-  background: var(--m-base);
-  color: var(--m-ink);
-  font-family: var(--m-font-text);
-  min-height: 100dvh;
-}
-
-.menu-call { position: absolute; z-index: 30; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.menu-call-button { min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 999px; background: var(--m-accent); color: var(--m-on-accent); box-shadow: 0 8px 30px color-mix(in oklab, var(--m-ink) 22%, transparent); font: inherit; font-size: .875rem; font-weight: 650; cursor: pointer; }
-.menu-call-button svg { width: 18px; height: 18px; }
-.menu-call-button:disabled { cursor: default; opacity: .84; }
-.menu-call-button:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 3px; }
-.menu-call-status { max-width: min(88vw, 380px); margin: 0; padding: 0 12px; color: var(--m-ink); font-size: .75rem; text-align: right; text-shadow: 0 1px 8px var(--m-base); }
-.menu-call-spin { animation: menu-call-spin 900ms linear infinite; }
-@keyframes menu-call-spin { to { rotate: 360deg; } }
-@media (prefers-reduced-motion: reduce) { .menu-call-spin { animation: none; } }
-
-.menu-display {
-  font-family: var(--m-font-display);
-}
-.menu-muted {
-  color: var(--m-muted);
-}
-.menu-accent {
-  color: var(--m-accent);
-}
-.menu-line {
-  border-color: var(--m-line);
-}
-.menu-block {
-  border-radius: var(--m-radius-block);
-}
-.menu-photo {
-  border-radius: var(--m-radius-photo);
-  object-fit: cover;
-}
-
-/* ---------------------------------------------------------------------
-   O FEED — Fase 4
-
-   Os dois eixos são `scroll-snap` NATIVO aninhado. Não há JavaScript de
-   gesto em lugar nenhum: o navegador já sabe fazer inércia, e imitar isso à
-   mão é onde esse tipo de interface costuma engasgar.
-
-   A regra, sem exceção:
-     horizontal = onde estou no cardápio
-     vertical   = o que tem nesta parada
-   --------------------------------------------------------------------- */
-
-.menu-feed {
-  display: flex;
-  height: 100dvh;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  /* Sem isto, chegar ao fim do feed puxa a página inteira atrás. */
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-}
-.menu-feed::-webkit-scrollbar {
-  display: none;
-}
-
-.menu-column {
-  position: relative;
-  flex: 0 0 100%;
-  height: 100dvh;
-  scroll-snap-align: start;
-  /* `always` impede o deslize rápido de pular três pratos de uma vez. */
-  scroll-snap-stop: always;
-}
-
-/* O rolador vertical é ABSOLUTO dentro da coluna, e o rodapé fica de fora
-   dele. É isso que faz nome e preço não se moverem quando a mídia troca —
-   `position: sticky` dentro do rolador dependeria da ordem dos filhos e
-   escorregaria no fim da lista. */
-.menu-screens {
-  position: absolute;
-  inset: 0;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior-y: contain;
-  scrollbar-width: none;
-}
-.menu-screens::-webkit-scrollbar {
-  display: none;
-}
-
-.menu-screen {
-  position: relative;
-  height: 100dvh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  background: var(--m-base);
-}
-
-/* A tela inicial cresce com o conteúdo: em aparelho baixo ou em
-   paisagem, a coluna rola na vertical em vez de cortar a lista. */
-.menu-screen.is-cover {
-  height: auto;
-  min-height: 100dvh;
-}
-
-.menu-contact {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--m-chip);
-  color: var(--m-ink);
-}
-.menu-contact svg {
-  width: 20px;
-  height: 20px;
-}
-.menu-contact:focus-visible,
-.menu-action:focus-visible {
-  outline: 2px solid var(--m-accent);
-  outline-offset: 2px;
-}
-
-.menu-action {
-  width: 100%;
-  min-height: 56px;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 0;
-  background: var(--m-chip);
-  color: var(--m-ink);
-  font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-}
-.menu-action-icon {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  display: grid;
-  place-items: center;
-  border-radius: calc(var(--m-radius-block) * 0.75);
-  background: color-mix(in oklab, var(--m-accent) 14%, transparent);
-  color: var(--m-accent);
-}
-.menu-action-icon.is-brand {
-  background: var(--m-base);
-}
-.menu-action-icon svg {
-  width: 18px;
-  height: 18px;
-}
-.menu-action-label {
-  min-width: 0;
-  flex: 1;
-}
-.menu-action-chevron {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  color: var(--m-muted);
-}
-
-/* O véu. É ele que torna o contraste MEDÍVEL: o que está atrás é foto de
-   prato, que é imprevisível, e o que fica atrás do texto é esta cor, que é
-   conhecida. Os pisos de contraste do tema valem porque este gradiente
-   existe — o alpha da faixa de texto é alto o bastante para o fundo efetivo
-   ser `--m-base` dentro de uma tolerância conhecida. */
-.menu-veil {
-  background: linear-gradient(
-    to top,
-    var(--m-veil) 0%,
-    var(--m-veil) 42%,
-    color-mix(in oklab, var(--m-base) 55%, transparent) 68%,
-    transparent 100%
-  );
-}
-
-/* O véu do TOPO é outro gradiente, e não o de baixo virado. Reusar o do
-   rodapé no trilho produz uma faixa opaca que termina em corte reto no meio
-   da foto — foi o primeiro desenho, e ficou péssimo.
-
-   Aqui ele é mais curto e mais suave: escurece só o suficiente para o nome
-   da categoria ser lido sobre qualquer foto, e some antes de virar tarja. */
-.menu-veil-top {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--m-base) 72%, transparent) 0%,
-    color-mix(in oklab, var(--m-base) 45%, transparent) 45%,
-    transparent 100%
-  );
-}
-
-/* O botão e os chips do trilho flutuam sobre a foto. Fundo translúcido do
-   próprio tema com desfoque atrás: é o que os separa da imagem sem precisar
-   de borda dura, que é o que dava cara de caixinha empilhada. */
-.menu-chip {
-  background: color-mix(in oklab, var(--m-base) 55%, transparent);
-  color: var(--m-ink);
-  border-radius: 999px;
-}
-@supports (backdrop-filter: blur(1px)) {
-  .menu-chip {
-    background: color-mix(in oklab, var(--m-base) 38%, transparent);
-    backdrop-filter: blur(12px) saturate(1.2);
+   .menu {
+    position: relative;
+    /* O anel de foco da base (base.css) na cor do tema. */
+    --tv-ring-color: var(--m-accent);
+    background: var(--m-base);
+    color: var(--m-ink);
+    font-family: var(--m-font-text);
+    min-height: 100dvh;
+    --menu-call-footer-height: 0px;
   }
-}
-
-/* ---------------------------------------------------------------------
-   O TRILHO COLAPSÁVEL — Fase 5
-
-   Conserta três defeitos do primeiro desenho: a seta de voltar não existia
-   na primeira tela; o último chip era fatiado por uma borda reta; e tudo
-   abria expandido, ocupando a faixa sobre a foto.
-   --------------------------------------------------------------------- */
-
-/* Os chips continuam OCUPANDO espaço quando fechados, e apenas somem. Animar
-   a largura do contêiner seria o caminho "certo", e é justamente o que
-   engasga: `width: auto` não é animável, e as alternativas com `max-width`
-   saltam. Como o trilho flutua sobre a foto e o véu já cobre a faixa inteira,
-   espaço invisível aqui não custa nada visualmente — e `inert` resolve o que
-   importa de verdade, que é foco e toque. */
-.menu-rail-item {
-  opacity: 0;
-  transform: translateX(-8px);
-  transition:
-    opacity 180ms var(--tv-ease),
-    transform 180ms var(--tv-ease);
-  /* O escalonamento: cada chip entra 40ms depois do anterior. */
-  transition-delay: calc(var(--i) * 40ms);
-}
-
-.menu-rail[data-open='true'] .menu-rail-item {
-  opacity: 1;
-  transform: none;
-}
-
-/* Fechar é rápido e junto. Escalonar a saída faria o trilho parecer lento
-   justamente quando a pessoa já decidiu que não quer mais ele ali. */
-.menu-rail[data-open='false'] .menu-rail-item {
-  transition-delay: 0ms;
-}
-
-.menu-rail[data-open='false'] .menu-rail-list {
-  pointer-events: none;
-}
-
-/* O chip deixa de ser cortado por uma linha reta e se dissolve — e isso
-   avisa que há mais para o lado, coisa que uma borda dura não diz. Só na
-   direita: à esquerda fica a pílula, e não há o que esmaecer. */
-.menu-rail-list {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    black 0,
-    black calc(100% - 28px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    black 0,
-    black calc(100% - 28px),
-    transparent 100%
-  );
-}
-
-/* Quem pediu menos movimento continua com o snap — ele não é animação, é
-   onde a rolagem para. O que sai é a rolagem suave, o autoplay do vídeo, que
-   é decidido no componente, e o escalonamento do trilho. */
-@media (prefers-reduced-motion: reduce) {
-  .menu-feed,
+  
+  .menu[data-has-service-call="true"] { --menu-call-footer-height: calc(68px + env(safe-area-inset-bottom)); }
+  .menu-call { position: fixed; z-index: 40; inset-inline: 0; bottom: 0; box-sizing: border-box; height: var(--menu-call-footer-height); padding: 10px 16px env(safe-area-inset-bottom); display: flex; justify-content: center; border-top: 1px solid var(--m-line); background: color-mix(in oklab, var(--m-base) 92%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+  .menu-call-inner { width: 100%; max-width: 688px; }
+  .menu-call-button { width: 100%; min-height: 48px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: var(--m-radius-block); background: var(--m-accent); color: var(--m-on-accent); box-shadow: 0 4px 16px color-mix(in oklab, var(--m-ink) 14%, transparent); font: inherit; font-size: .9375rem; font-weight: 650; cursor: pointer; }
+  .menu-call-button svg { width: 18px; height: 18px; }
+  .menu-call-button:disabled { cursor: default; opacity: .84; }
+  .menu-call-button:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 3px; }
+  .menu-call-spin { animation: menu-call-spin 900ms linear infinite; }
+  @keyframes menu-call-spin { to { rotate: 360deg; } }
+  @media (prefers-reduced-motion: reduce) { .menu-call-spin { animation: none; } }
+  body:has(.menu-call) [data-slot="toast-viewport"][data-offset="call-footer"] { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  
+  .menu-display {
+    font-family: var(--m-font-display);
+  }
+  .menu-muted {
+    color: var(--m-muted);
+  }
+  .menu-accent {
+    color: var(--m-accent);
+  }
+  .menu-line {
+    border-color: var(--m-line);
+  }
+  .menu-block {
+    border-radius: var(--m-radius-block);
+  }
+  .menu-photo {
+    border-radius: var(--m-radius-photo);
+    object-fit: cover;
+  }
+  
+  /* ---------------------------------------------------------------------
+     O FEED — Fase 4
+  
+     Os dois eixos são `scroll-snap` NATIVO aninhado. Não há JavaScript de
+     gesto em lugar nenhum: o navegador já sabe fazer inércia, e imitar isso à
+     mão é onde esse tipo de interface costuma engasgar.
+  
+     A regra, sem exceção:
+       horizontal = onde estou no cardápio
+       vertical   = o que tem nesta parada
+     --------------------------------------------------------------------- */
+  
+  .menu-feed {
+    display: flex;
+    height: calc(100dvh - var(--menu-call-footer-height));
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    /* Sem isto, chegar ao fim do feed puxa a página inteira atrás. */
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .menu-feed::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .menu-column {
+    position: relative;
+    flex: 0 0 100%;
+    height: calc(100dvh - var(--menu-call-footer-height));
+    scroll-snap-align: start;
+    /* `always` impede o deslize rápido de pular três pratos de uma vez. */
+    scroll-snap-stop: always;
+  }
+  
+  /* O rolador vertical é ABSOLUTO dentro da coluna, e o rodapé fica de fora
+     dele. É isso que faz nome e preço não se moverem quando a mídia troca —
+     `position: sticky` dentro do rolador dependeria da ordem dos filhos e
+     escorregaria no fim da lista. */
   .menu-screens {
-    scroll-behavior: auto;
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
   }
-
+  .menu-screens::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .menu-screen {
+    position: relative;
+    height: calc(100dvh - var(--menu-call-footer-height));
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: var(--m-base);
+  }
+  
+  /* A tela inicial cresce com o conteúdo: em aparelho baixo ou em
+     paisagem, a coluna rola na vertical em vez de cortar a lista. */
+  .menu-screen.is-cover {
+    height: auto;
+    min-height: calc(100dvh - var(--menu-call-footer-height));
+  }
+  
+  .menu-contact {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--m-chip);
+    color: var(--m-ink);
+  }
+  .menu-contact svg {
+    width: 20px;
+    height: 20px;
+  }
+  .menu-contact:focus-visible,
+  .menu-action:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
+  }
+  
+  .menu-action {
+    width: 100%;
+    min-height: 56px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 0;
+    background: var(--m-chip);
+    color: var(--m-ink);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .menu-action-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: grid;
+    place-items: center;
+    border-radius: calc(var(--m-radius-block) * 0.75);
+    background: color-mix(in oklab, var(--m-accent) 14%, transparent);
+    color: var(--m-accent);
+  }
+  .menu-action-icon.is-brand {
+    background: var(--m-base);
+  }
+  .menu-action-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .menu-action-label {
+    min-width: 0;
+    flex: 1;
+  }
+  .menu-action-chevron {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: var(--m-muted);
+  }
+  
+  /* O véu. É ele que torna o contraste MEDÍVEL: o que está atrás é foto de
+     prato, que é imprevisível, e o que fica atrás do texto é esta cor, que é
+     conhecida. Os pisos de contraste do tema valem porque este gradiente
+     existe — o alpha da faixa de texto é alto o bastante para o fundo efetivo
+     ser `--m-base` dentro de uma tolerância conhecida. */
+  .menu-veil {
+    background: linear-gradient(
+      to top,
+      var(--m-veil) 0%,
+      var(--m-veil) 42%,
+      color-mix(in oklab, var(--m-base) 55%, transparent) 68%,
+      transparent 100%
+    );
+  }
+  
+  /* O véu do TOPO é outro gradiente, e não o de baixo virado. Reusar o do
+     rodapé no trilho produz uma faixa opaca que termina em corte reto no meio
+     da foto — foi o primeiro desenho, e ficou péssimo.
+  
+     Aqui ele é mais curto e mais suave: escurece só o suficiente para o nome
+     da categoria ser lido sobre qualquer foto, e some antes de virar tarja. */
+  .menu-veil-top {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--m-base) 72%, transparent) 0%,
+      color-mix(in oklab, var(--m-base) 45%, transparent) 45%,
+      transparent 100%
+    );
+  }
+  
+  /* O botão e os chips do trilho flutuam sobre a foto. Fundo translúcido do
+     próprio tema com desfoque atrás: é o que os separa da imagem sem precisar
+     de borda dura, que é o que dava cara de caixinha empilhada. */
+  .menu-chip {
+    background: color-mix(in oklab, var(--m-base) 55%, transparent);
+    color: var(--m-ink);
+    border-radius: 999px;
+  }
+  @supports (backdrop-filter: blur(1px)) {
+    .menu-chip {
+      background: color-mix(in oklab, var(--m-base) 38%, transparent);
+      backdrop-filter: blur(12px) saturate(1.2);
+    }
+  }
+  
+  /* ---------------------------------------------------------------------
+     O TRILHO COLAPSÁVEL — Fase 5
+  
+     Conserta três defeitos do primeiro desenho: a seta de voltar não existia
+     na primeira tela; o último chip era fatiado por uma borda reta; e tudo
+     abria expandido, ocupando a faixa sobre a foto.
+     --------------------------------------------------------------------- */
+  
+  /* Os chips continuam OCUPANDO espaço quando fechados, e apenas somem. Animar
+     a largura do contêiner seria o caminho "certo", e é justamente o que
+     engasga: `width: auto` não é animável, e as alternativas com `max-width`
+     saltam. Como o trilho flutua sobre a foto e o véu já cobre a faixa inteira,
+     espaço invisível aqui não custa nada visualmente — e `inert` resolve o que
+     importa de verdade, que é foco e toque. */
   .menu-rail-item {
-    transition: none;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition:
+      opacity 180ms var(--tv-ease),
+      transform 180ms var(--tv-ease);
+    /* O escalonamento: cada chip entra 40ms depois do anterior. */
+    transition-delay: calc(var(--i) * 40ms);
+  }
+  
+  .menu-rail[data-open='true'] .menu-rail-item {
+    opacity: 1;
+    transform: none;
+  }
+  
+  /* Fechar é rápido e junto. Escalonar a saída faria o trilho parecer lento
+     justamente quando a pessoa já decidiu que não quer mais ele ali. */
+  .menu-rail[data-open='false'] .menu-rail-item {
     transition-delay: 0ms;
   }
-}
-
-/* Esqueleto do cardápio público (antes do tema chegar). */
-.menu-loading { --ml-bg: #F7F5F0; --ml-block: rgba(23,21,15,.07); --ml-shine: rgba(255,255,255,.55); min-height: 100dvh; background: var(--ml-bg); }
-@media (prefers-color-scheme: dark) { .menu-loading { --ml-bg: #121110; --ml-block: rgba(255,255,255,.07); --ml-shine: rgba(255,255,255,.06); } }
-.menu-loading-cover { height: 34dvh; background: var(--ml-block); }
-.menu-loading-body { max-width: 720px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
-.menu-loading-line, .menu-loading-icons > span, .menu-loading-list > span, .menu-loading-cover { position: relative; overflow: hidden; }
-.menu-loading-line { display: block; height: 14px; width: 80%; border-radius: 7px; background: var(--ml-block); }
-.menu-loading-line.is-title { height: 30px; width: 60%; border-radius: 10px; }
-.menu-loading-line.is-short { width: 40%; }
-.menu-loading-icons { margin-top: 8px; display: flex; gap: 10px; }
-.menu-loading-icons > span { width: 44px; height: 44px; border-radius: 50%; background: var(--ml-block); }
-.menu-loading-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-.menu-loading-list > span { height: 56px; border-radius: 14px; background: var(--ml-block); }
-.menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, var(--ml-shine), transparent); animation: menu-loading-shine 1.4s infinite; translate: -100% 0; }
-@keyframes menu-loading-shine { to { translate: 100% 0; } }
-@media (prefers-reduced-motion: reduce) { .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { animation: none; } }
-
-/* ---------------------------------------------------------------------
-   FEEDBACK ANÔNIMO — folha aberta pela tela inicial. Só variáveis do
-   tema, como o resto desta folha.
-   --------------------------------------------------------------------- */
-.menu-feedback { padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
-.menu-feedback-fields { min-width: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; border: 0; }
-.menu-feedback-text { width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--m-line); background: var(--m-chip); color: var(--m-ink); font: inherit; font-size: 16px; line-height: 1.45; resize: vertical; }
-.menu-feedback-text::placeholder { color: var(--m-muted); }
-.menu-feedback-text:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 1px; }
-.menu-feedback-text[aria-invalid="true"] { border-color: var(--m-accent); }
-.menu-feedback-count { align-self: flex-end; color: var(--m-muted); font-size: .75rem; }
-.menu-feedback-label { color: var(--m-muted); font-size: .8125rem; font-weight: 500; }
-.menu-feedback-buttons { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; }
-.menu-feedback-pick { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--m-chip); color: var(--m-ink); font: inherit; font-size: .875rem; font-weight: 500; cursor: pointer; }
-.menu-feedback-pick svg { width: 18px; height: 18px; }
-.menu-feedback-pick:disabled { cursor: default; opacity: .5; }
-.menu-feedback-thumbs { margin: 0; padding: 0; display: flex; gap: 8px; list-style: none; }
-.menu-feedback-thumb { position: relative; width: 72px; height: 72px; overflow: hidden; border-radius: var(--m-radius-photo); background: var(--m-chip); }
-.menu-feedback-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
-.menu-feedback-thumb button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 999px; background: color-mix(in oklab, var(--m-base) 72%, transparent); color: var(--m-ink); cursor: pointer; }
-.menu-feedback-thumb button svg { width: 14px; height: 14px; }
-.menu-feedback-note { margin: 0; display: flex; align-items: center; gap: 6px; color: var(--m-muted); font-size: .8125rem; line-height: 1.4; }
-.menu-feedback-note.is-error { color: var(--m-ink); font-weight: 600; }
-.menu-feedback-primary { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--m-accent); color: var(--m-on-accent); font: inherit; font-size: .9375rem; font-weight: 600; cursor: pointer; }
-.menu-feedback-primary:disabled { cursor: progress; opacity: .75; }
-.menu-feedback-primary:focus-visible, .menu-feedback-pick:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 2px; }
-.menu-feedback-confirm { padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--m-chip); }
-.menu-feedback-confirm p { margin: 0; font-weight: 600; }
-.menu-feedback-confirm div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.menu-feedback-confirm button { min-height: 44px; border: 1px solid var(--m-line); border-radius: var(--m-radius-block); background: transparent; color: var(--m-ink); font: inherit; font-weight: 500; cursor: pointer; }
-.menu-feedback-confirm button.is-danger { border-color: transparent; background: var(--m-accent); color: var(--m-on-accent); }
-.menu-feedback-done { padding: 32px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-.menu-feedback-done-icon { width: 40px; height: 40px; color: var(--m-accent); }
-.menu-feedback-done .menu-feedback-primary { align-self: stretch; margin-top: 12px; }
-/* Fora da tela e fora da ordem do Tab: só robô preenche. */
-.menu-feedback-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-
-/* ---------------------------------------------------------------------
-   TOQUE E HOVER (spec 2026-10-01-transicoes-interativas). O fundo do chip
-   ganha um pouco da tinta do tema: 6% no hover, 10% no press. Só
-   variáveis do tema, como o resto desta folha. A transição de cor e
-   opacidade vem da base (base.css); o press entra seco e solta devagar.
-   --------------------------------------------------------------------- */
-.menu-action-chevron { transition: translate var(--tv-dur-2) var(--tv-ease); }
-.menu-dish-more { color: var(--m-muted); }
-@media (hover: hover) {
-  .menu-contact:hover,
-  .menu-action:hover,
-  .menu-feedback-pick:hover:not(:disabled),
-  .menu-feedback-confirm button:not(.is-danger):hover { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 6%); }
-  .menu-action:hover .menu-action-chevron { translate: 2px 0; }
-  .menu-chip:hover { background: color-mix(in oklab, var(--m-base) 72%, transparent); }
-  .menu-feedback-primary:hover:not(:disabled),
-  .menu-feedback-confirm button.is-danger:hover { opacity: .9; }
-  .menu-feedback-thumb button:hover { background: color-mix(in oklab, var(--m-base) 90%, transparent); }
-  .menu-dish-more:hover { color: var(--m-ink); }
-}
-.menu-contact:active,
-.menu-action:active,
-.menu-feedback-pick:active:not(:disabled),
-.menu-feedback-confirm button:not(.is-danger):active { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 10%); transition-duration: 0s; }
-.menu-chip:active { background: color-mix(in oklab, var(--m-base) 80%, transparent); transition-duration: 0s; }
-.menu-feedback-primary:active:not(:disabled),
-.menu-feedback-confirm button.is-danger:active { opacity: .8; transition-duration: 0s; }
-.menu-dish-more:active { color: var(--m-ink); transition-duration: 0s; }
-
-/* O texto do feedback fica fora do anel da base (campo de texto): o
-   transparente em repouso deixa o anel dele animar também. */
-@media (forced-colors: none) {
-  .menu-feedback-text { outline: 2px solid transparent; outline-offset: 3px; }
-}
-
-/* A pílula do trilho troca o ícone num cruzamento, e não de uma vez. */
-.menu-rail-toggle-icon { display: grid; }
-.menu-rail-toggle-icon > svg { grid-area: 1 / 1; transition: opacity var(--tv-dur-3) var(--tv-ease), rotate var(--tv-dur-3) var(--tv-ease); }
-[aria-expanded="true"] > .menu-rail-toggle-icon > .is-closed { opacity: 0; rotate: -90deg; }
-[aria-expanded="false"] > .menu-rail-toggle-icon > .is-open { opacity: 0; rotate: 90deg; }
+  
+  .menu-rail[data-open='false'] .menu-rail-list {
+    pointer-events: none;
+  }
+  
+  /* O chip deixa de ser cortado por uma linha reta e se dissolve — e isso
+     avisa que há mais para o lado, coisa que uma borda dura não diz. Só na
+     direita: à esquerda fica a pílula, e não há o que esmaecer. */
+  .menu-rail-list {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black 0,
+      black calc(100% - 28px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      black 0,
+      black calc(100% - 28px),
+      transparent 100%
+    );
+  }
+  
+  /* Quem pediu menos movimento continua com o snap — ele não é animação, é
+     onde a rolagem para. O que sai é a rolagem suave, o autoplay do vídeo, que
+     é decidido no componente, e o escalonamento do trilho. */
+  @media (prefers-reduced-motion: reduce) {
+    .menu-feed,
+    .menu-screens {
+      scroll-behavior: auto;
+    }
+  
+    .menu-rail-item {
+      transition: none;
+      transition-delay: 0ms;
+    }
+  }
+  
+  /* Esqueleto do cardápio público (antes do tema chegar). */
+  .menu-loading { --ml-bg: #F7F5F0; --ml-block: rgba(23,21,15,.07); --ml-shine: rgba(255,255,255,.55); min-height: 100dvh; background: var(--ml-bg); }
+  @media (prefers-color-scheme: dark) { .menu-loading { --ml-bg: #121110; --ml-block: rgba(255,255,255,.07); --ml-shine: rgba(255,255,255,.06); } }
+  .menu-loading-cover { height: 34dvh; background: var(--ml-block); }
+  .menu-loading-body { max-width: 720px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .menu-loading-line, .menu-loading-icons > span, .menu-loading-list > span, .menu-loading-cover { position: relative; overflow: hidden; }
+  .menu-loading-line { display: block; height: 14px; width: 80%; border-radius: 7px; background: var(--ml-block); }
+  .menu-loading-line.is-title { height: 30px; width: 60%; border-radius: 10px; }
+  .menu-loading-line.is-short { width: 40%; }
+  .menu-loading-icons { margin-top: 8px; display: flex; gap: 10px; }
+  .menu-loading-icons > span { width: 44px; height: 44px; border-radius: 50%; background: var(--ml-block); }
+  .menu-loading-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .menu-loading-list > span { height: 56px; border-radius: 14px; background: var(--ml-block); }
+  .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, var(--ml-shine), transparent); animation: menu-loading-shine 1.4s infinite; translate: -100% 0; }
+  @keyframes menu-loading-shine { to { translate: 100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { animation: none; } }
+  
+  /* ---------------------------------------------------------------------
+     FEEDBACK ANÔNIMO — folha aberta pela tela inicial. Só variáveis do
+     tema, como o resto desta folha.
+     --------------------------------------------------------------------- */
+  .menu-sheet { min-height: 0; --tv-ring-color: var(--m-accent); font-family: var(--m-font-text); }
+  /* O popup inferior do Sheet usa `data-[side=bottom]:h-auto`. Esse seletor
+     tem especificidade maior que uma classe simples e anulava a altura do
+     formulário; com fotos, o conteúdo crescia e empurrava as ações para fora
+     da tela. Fixamos a altura no próprio popup e deixamos só o miolo rolar. */
+  [data-slot="sheet-content"].menu-feedback-sheet[data-side="bottom"] {
+    position: fixed;
+    height: min(95dvh, 900px);
+    max-height: 95dvh;
+    overflow: hidden;
+  }
+  .menu-feedback { min-width: 0; min-height: 0; flex: 1 1 0%; overflow: hidden; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+  .menu-feedback-scroll { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px 20px 16px; }
+  .menu-feedback > .menu-feedback-scroll { display: flex; flex-direction: column; gap: 16px; }
+  .menu-feedback-actions { min-width: 0; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--m-line); background: var(--m-base); }
+  .menu-feedback-fields { min-width: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; border: 0; }
+  .menu-feedback-text { width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--m-line); background: var(--m-chip); color: var(--m-ink); font: inherit; font-size: 16px; line-height: 1.45; resize: vertical; }
+  .menu-feedback-text::placeholder { color: var(--m-muted); }
+  .menu-feedback-text:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 1px; }
+  .menu-feedback-text[aria-invalid="true"] { border-color: var(--m-accent); }
+  .menu-feedback-count { align-self: flex-end; color: var(--m-muted); font-size: .75rem; }
+  .menu-feedback-label { color: var(--m-muted); font-size: .8125rem; font-weight: 500; }
+  .menu-feedback-buttons { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; }
+  .menu-feedback-pick { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--m-chip); color: var(--m-ink); font: inherit; font-size: .875rem; font-weight: 500; cursor: pointer; }
+  .menu-feedback-pick svg { width: 18px; height: 18px; }
+  .menu-feedback-pick:disabled { cursor: default; opacity: .5; }
+  .menu-feedback-thumbs { margin: 0; padding: 0; display: flex; gap: 8px; list-style: none; }
+  .menu-feedback-thumb { position: relative; width: 72px; height: 72px; overflow: hidden; border-radius: var(--m-radius-photo); background: var(--m-chip); }
+  .menu-feedback-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .menu-feedback-thumb button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 999px; background: color-mix(in oklab, var(--m-base) 72%, transparent); color: var(--m-ink); cursor: pointer; }
+  .menu-feedback-thumb button svg { width: 14px; height: 14px; }
+  .menu-feedback-note { margin: 0; display: flex; align-items: center; gap: 6px; color: var(--m-muted); font-size: .8125rem; line-height: 1.4; }
+  .menu-feedback-note.is-error { color: var(--m-ink); font-weight: 600; }
+  .menu-feedback-primary { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--m-accent); color: var(--m-on-accent); font: inherit; font-size: .9375rem; font-weight: 600; cursor: pointer; }
+  .menu-feedback-primary:disabled { cursor: progress; opacity: .75; }
+  .menu-feedback-primary:focus-visible, .menu-feedback-pick:focus-visible { outline: 2px solid var(--m-accent); outline-offset: 2px; }
+  .menu-feedback-confirm { padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--m-chip); }
+  .menu-feedback-confirm p { margin: 0; font-weight: 600; }
+  .menu-feedback-confirm div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .menu-feedback-confirm button { min-height: 44px; border: 1px solid var(--m-line); border-radius: var(--m-radius-block); background: transparent; color: var(--m-ink); font: inherit; font-weight: 500; cursor: pointer; }
+  .menu-feedback-confirm button.is-danger { border-color: transparent; background: var(--m-accent); color: var(--m-on-accent); }
+  .menu-feedback-done { padding: 32px 20px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .menu-feedback-done-icon { width: 40px; height: 40px; color: var(--m-accent); }
+  .menu-feedback-done .menu-feedback-primary { align-self: stretch; margin-top: 12px; }
+  /* Fora da tela e fora da ordem do Tab: só robô preenche. */
+  .menu-feedback-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  
+  /* ---------------------------------------------------------------------
+     TOQUE E HOVER (spec 2026-10-01-transicoes-interativas). O fundo do chip
+     ganha um pouco da tinta do tema: 6% no hover, 10% no press. Só
+     variáveis do tema, como o resto desta folha. A transição de cor e
+     opacidade vem da base (base.css); o press entra seco e solta devagar.
+     --------------------------------------------------------------------- */
+  .menu-action-chevron { transition: translate var(--tv-dur-2) var(--tv-ease); }
+  .menu-dish-more { color: var(--m-muted); }
+  @media (hover: hover) {
+    .menu-call-button:hover:not(:disabled) { filter: brightness(.94); }
+    .menu-contact:hover,
+    .menu-action:hover,
+    .menu-feedback-pick:hover:not(:disabled),
+    .menu-feedback-confirm button:not(.is-danger):hover { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 6%); }
+    .menu-action:hover .menu-action-chevron { translate: 2px 0; }
+    .menu-chip:hover { background: color-mix(in oklab, var(--m-base) 72%, transparent); }
+    .menu-feedback-primary:hover:not(:disabled),
+    .menu-feedback-confirm button.is-danger:hover { opacity: .9; }
+    .menu-feedback-thumb button:hover { background: color-mix(in oklab, var(--m-base) 90%, transparent); }
+    .menu-dish-more:hover { color: var(--m-ink); }
+  }
+  .menu-contact:active,
+  .menu-action:active,
+  .menu-feedback-pick:active:not(:disabled),
+  .menu-feedback-confirm button:not(.is-danger):active { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 10%); transition-duration: 0s; }
+  .menu-chip:active { background: color-mix(in oklab, var(--m-base) 80%, transparent); transition-duration: 0s; }
+  .menu-feedback-primary:active:not(:disabled),
+  .menu-feedback-confirm button.is-danger:active { opacity: .8; transition-duration: 0s; }
+  .menu-call-button:active:not(:disabled) { filter: brightness(.86); transition-duration: 0s; }
+  .menu-dish-more:active { color: var(--m-ink); transition-duration: 0s; }
+  
+  /* O texto do feedback fica fora do anel da base (campo de texto): o
+     transparente em repouso deixa o anel dele animar também. */
+  @media (forced-colors: none) {
+    .menu-feedback-text { outline: 2px solid transparent; outline-offset: 3px; }
+  }
+  
+  /* A pílula do trilho troca o ícone num cruzamento, e não de uma vez. */
+  .menu-rail-toggle-icon { display: grid; }
+  .menu-rail-toggle-icon > svg { grid-area: 1 / 1; transition: opacity var(--tv-dur-3) var(--tv-ease), rotate var(--tv-dur-3) var(--tv-ease); }
+  [aria-expanded="true"] > .menu-rail-toggle-icon > .is-closed { opacity: 0; rotate: -90deg; }
+  [aria-expanded="false"] > .menu-rail-toggle-icon > .is-open { opacity: 0; rotate: 90deg; }
+  

@@ -26,8 +26,6 @@ export async function getRealtimeTokenAction(): Promise<ActionResult<RealtimeSes
   return runAction(() => dal.realtimeSession())
 }
 
-// "Enviar notificação de teste": o banco grava pelo disparador; o push sai
-// depois da resposta, como em qualquer outra notificação.
 export async function sendTestNotificationAction(input: unknown): Promise<ActionResult<void>> {
   return runAction(async () => {
     await dal.sendTestNotification(input)

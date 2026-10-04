@@ -21,15 +21,12 @@ export async function setBrandImageAction(
   })
 }
 
-// Autoriza o envio de um arquivo do item (existente ou por criar). Não
-// grava no banco, então não revalida nada.
 export async function createItemUploadTicketAction(
   input: unknown,
 ): Promise<ActionResult<{ itemId: string; path: string; signedUrl: string }>> {
   return runAction(() => dal.createItemUploadTicket(input))
 }
 
-// Sobras de um salvamento que não chegou ao banco.
 export async function discardItemUploadsAction(input: unknown): Promise<ActionResult> {
   return runAction(() => dal.discardItemUploads(input))
 }

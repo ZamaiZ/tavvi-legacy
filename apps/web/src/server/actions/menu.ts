@@ -5,10 +5,6 @@ import * as saveDal from '@/server/dal/menu-item-save'
 import { revalidateRestaurant } from '@/server/revalidate'
 import { runAction, type ActionResult } from './result'
 
-// Todas estas chamavam `revalidatePath('/')` — o caminho de ORIGEM, que o
-// proxy reescreve. A doc empacotada do Next manda passar o DESTINO, e é o
-// que `revalidateRestaurant` faz. Ver `@/server/revalidate`.
-
 export async function createCategoriesAction(
   input: unknown,
 ): Promise<ActionResult<{ ids: string[] }>> {

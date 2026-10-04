@@ -15,9 +15,6 @@ export type CepLookupOutcome =
   | { kind: 'found'; address: CepLookup }
   | { kind: 'unavailable'; message: string }
 
-// Consulta, não mutação. Passa por action porque o formulário é componente
-// de cliente, e porque o servidor dá tempo limite, limite de chamadas e a
-// mensagem exata de cada falha.
 export async function lookupCepAction(cep: unknown): Promise<ActionResult<CepLookupOutcome>> {
   return runAction(async () => {
     const digits = cepInputSchema.parse(cep)

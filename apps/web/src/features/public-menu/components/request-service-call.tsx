@@ -2,38 +2,54 @@
 
 import { useState, useTransition } from 'react'
 import { LuBell, LuCheck, LuLoaderCircle } from 'react-icons/lu'
+import { toast } from '@/components/ui/toast'
 import { requestServiceCallAction } from '@/server/actions/service-calls'
 
 export function RequestServiceCall({ token }: { token: string }) {
   const [busy, startTransition] = useTransition()
-  const [message, setMessage] = useState('')
   const [sent, setSent] = useState(false)
 
   function request() {
     if (busy) return
-    setMessage('')
     startTransition(async () => {
       try {
         const result = await requestServiceCallAction({ token })
         if (!result.ok) {
-          setMessage(result.error)
+          toast.add({
+            type: 'error',
+            title: 'Chamado não enviado',
+            description: result.error,
+            priority: 'high',
+          })
           return
         }
         setSent(true)
-        setMessage(`A equipe foi avisada sobre a mesa ${result.data.tableNumber}. Aguarde atendimento.`)
+        toast.add({
+          type: result.data.created ? 'success' : 'info',
+          title: result.data.created ? 'Chamado enviado' : 'Chamado já está na fila',
+          description: result.data.created
+            ? `A equipe foi avisada sobre a mesa ${result.data.tableNumber}. Aguarde por aqui.`
+            : `A equipe já foi avisada sobre a mesa ${result.data.tableNumber}. Seu chamado continua na fila.`,
+        })
       } catch {
-        setMessage('Falha de conexão. Verifique a internet e tente novamente.')
+        toast.add({
+          type: 'error',
+          title: 'Falha de conexão',
+          description: 'Confira sua internet e tente chamar a equipe novamente.',
+          priority: 'high',
+        })
       }
     })
   }
 
   return (
-    <div className="menu-call" role="group" aria-label="Solicitar atendimento">
-      <button type="button" className="menu-call-button" onClick={request} disabled={busy} aria-describedby="menu-call-status">
-        {busy ? <LuLoaderCircle aria-hidden="true" className="menu-call-spin" /> : sent ? <LuCheck aria-hidden="true" /> : <LuBell aria-hidden="true" />}
-        {busy ? 'Chamando…' : sent ? 'Chamar novamente' : 'Chamar a equipe'}
-      </button>
-      <p id="menu-call-status" className="menu-call-status" aria-live="polite">{message}</p>
-    </div>
+    <footer className="menu-call" role="group" aria-label="Solicitar atendimento">
+      <div className="menu-call-inner">
+        <button type="button" className="menu-call-button" onClick={request} disabled={busy}>
+          {busy ? <LuLoaderCircle aria-hidden="true" className="menu-call-spin" /> : sent ? <LuCheck aria-hidden="true" /> : <LuBell aria-hidden="true" />}
+          {busy ? 'Chamando…' : sent ? 'Chamar novamente' : 'Chamar a equipe'}
+        </button>
+      </div>
+    </footer>
   )
 }

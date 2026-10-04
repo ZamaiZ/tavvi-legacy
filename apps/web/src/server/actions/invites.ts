@@ -10,14 +10,8 @@ export async function createPlatformInviteAction(
   input: unknown,
 ): Promise<ActionResult<{ id: string; link: string }>> {
   return runAction(async () => {
-    // A autorização acontece DENTRO da DAL. Não basta a página ter
-    // verificado: a action é um endpoint POST público por construção e pode
-    // ser chamada direto, sem passar por tela nenhuma.
     const invite = await dal.createPlatformInvite(input)
-    // Convite de plataforma não tem restaurante: só a lista do console muda.
     revalidateLists()
-    // O link volta UMA vez. Quem chamar precisa mostrar agora; nem o banco
-    // nem esta action conseguem produzi-lo de novo.
     return invite
   })
 }

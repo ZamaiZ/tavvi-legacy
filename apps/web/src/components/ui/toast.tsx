@@ -146,8 +146,11 @@ type ToastPlacement = "top" | "bottom"
 // superfícies (Tavvi Mobile.dc.html, hasToastA e hasToastB). Toasts só
 // existem no cliente, depois de uma ação, então ler a tela aqui não diverge
 // da hidratação: no servidor e no primeiro render não há toast.
-function currentToastPlacement(): { placement: ToastPlacement; offset: "header" | "edge" } {
+function currentToastPlacement(): { placement: ToastPlacement; offset: "header" | "edge" | "call-footer" } {
   if (typeof window === "undefined" || !window.matchMedia("(max-width: 767px)").matches) {
+    if (typeof window !== "undefined" && document.querySelector(".menu-call")) {
+      return { placement: "bottom", offset: "call-footer" }
+    }
     return { placement: "bottom", offset: "edge" }
   }
   // O painel e a lista de restaurantes têm cabeçalho fixo de 48 px; o

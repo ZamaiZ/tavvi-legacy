@@ -33,6 +33,7 @@ export default async function Page({
     <div
       data-menu={theme.presetId}
       data-density={theme.density}
+      data-has-service-call={tagToken ? 'true' : undefined}
       className={`menu relative overflow-hidden ${ALL_THEME_FONT_VARIABLES}`}
     >
       <MenuFeed menu={menu} presetId={theme.presetId} tagToken={tagToken} />

@@ -47,7 +47,7 @@ end;
 $fn$;
 
 -- =====================================================================
--- 0002 â€” Identidade: perfis e administradores da plataforma
+-- 0002 — Identidade: perfis e administradores da plataforma
 --
 -- Rode DEPOIS do 0001. Idempotente: pode rodar de novo sem quebrar.
 -- =====================================================================
@@ -110,7 +110,7 @@ as $fn$
 $fn$;
 
 -- =====================================================================
--- 0003 â€” Tenancy: restaurantes, vinculos, convites e plaquinhas
+-- 0003 — Tenancy: restaurantes, vinculos, convites e plaquinhas
 --
 -- Rode DEPOIS do 0002. Idempotente: pode rodar de novo sem quebrar.
 -- =====================================================================
@@ -301,7 +301,7 @@ create trigger menu_tags_guard_immutable
   for each row execute function public.menu_tags_guard_immutable_columns();
 
 -- =====================================================================
--- 0004 â€” Cardapio: categorias, itens, variacoes e midia
+-- 0004 — Cardapio: categorias, itens, variacoes e midia
 --
 -- Rode DEPOIS do 0003. Idempotente: pode rodar de novo sem quebrar.
 --
@@ -452,7 +452,7 @@ as $fn$
 $fn$;
 
 -- =====================================================================
--- 0005 â€” Infraestrutura: rate limit e log de auditoria
+-- 0005 — Infraestrutura: rate limit e log de auditoria
 --
 -- Rode DEPOIS do 0004. Idempotente: pode rodar de novo sem quebrar.
 --
@@ -567,7 +567,7 @@ grant execute on function public.record_audit(text, text, uuid, uuid, jsonb, ine
   to authenticated;
 
 -- =====================================================================
--- 0006 â€” Row Level Security: a ultima linha de defesa
+-- 0006 — Row Level Security: a ultima linha de defesa
 --
 -- Rode DEPOIS do 0005. Idempotente: cada politica e removida antes de ser
 -- recriada, entao rodar de novo apenas reescreve as mesmas regras.
@@ -823,7 +823,7 @@ create policy audit_log_select_admin on public.audit_log
 -- acesso acontece exclusivamente por check_rate_limit.
 
 -- =====================================================================
--- 0007 â€” Operacoes privilegiadas: convite e plaquinha
+-- 0007 — Operacoes privilegiadas: convite e plaquinha
 --
 -- Rode DEPOIS do 0006. Idempotente.
 --
@@ -940,7 +940,7 @@ grant execute on function public.redeem_invite(text) to authenticated;
 grant execute on function public.resolve_menu_tag(text) to anon, authenticated;
 
 -- =====================================================================
--- 0008 â€” Storage: buckets de midia e fronteira por prefixo de caminho
+-- 0008 — Storage: buckets de midia e fronteira por prefixo de caminho
 --
 -- Rode DEPOIS do 0007. Idempotente.
 -- =====================================================================
@@ -1017,7 +1017,7 @@ create policy menu_media_delete_member on storage.objects
   );
 
 -- =====================================================================
--- 0009 â€” Listagem de membros com e-mail
+-- 0009 — Listagem de membros com e-mail
 --
 -- Rode DEPOIS do 0008. Idempotente: pode rodar de novo sem quebrar.
 --
@@ -1063,7 +1063,7 @@ $fn$;
 grant execute on function public.list_restaurant_members(uuid) to authenticated;
 
 -- =====================================================================
--- 0010 â€” Capa do video
+-- 0010 — Capa do video
 --
 -- Rode DEPOIS do 0009. Idempotente: pode rodar de novo sem quebrar.
 --
@@ -1090,27 +1090,27 @@ end
 $guard$;
 
 -- =====================================================================
--- 0011 â€” PapÃ©is: quatro em vez de dois, e escrita sÃ³ do administrador
+-- 0011 — Papéis: quatro em vez de dois, e escrita só do administrador
 --
 -- Rode DEPOIS do 0010. Idempotente: pode rodar de novo sem quebrar.
 --
--- A ORDEM AQUI NÃƒO Ã‰ ESTILO, Ã‰ REQUISITO. O tipo antigo tem dependentes:
--- polÃ­ticas que chamam is_owner, e trÃªs funÃ§Ãµes cuja assinatura cita
+-- A ORDEM AQUI NÃO Ã‰ ESTILO, Ã‰ REQUISITO. O tipo antigo tem dependentes:
+-- políticas que chamam is_owner, e três funções cuja assinatura cita
 -- membership_role. Derrubar o tipo antes deles falha; derrubar is_owner
--- antes das polÃ­ticas falha. A sequÃªncia Ã©: polÃ­ticas, funÃ§Ãµes, tipo.
+-- antes das políticas falha. A sequência é: políticas, funções, tipo.
 --
--- Por que tipo novo e nÃ£o `alter type add value`: Postgres acrescenta valor
+-- Por que tipo novo e não `alter type add value`: Postgres acrescenta valor
 -- a enum mas NUNCA remove. 'owner' e 'manager' ficariam de lixo permanente,
--- e todo CASE no cÃ³digo teria que tratar valores impossÃ­veis para sempre.
--- Com zero restaurantes no ar, converter Ã© barato.
+-- e todo CASE no código teria que tratar valores impossíveis para sempre.
+-- Com zero restaurantes no ar, converter é barato.
 -- =====================================================================
 
--- ---------- 1. as polÃ­ticas que citam is_owner ----------
+-- ---------- 1. as políticas que citam is_owner ----------
 drop policy if exists restaurants_update  on public.restaurants;
 drop policy if exists memberships_delete  on public.memberships;
 drop policy if exists invites_select      on public.invites;
 
--- ---------- 2. as funÃ§Ãµes que citam o tipo antigo ----------
+-- ---------- 2. as funções que citam o tipo antigo ----------
 drop function if exists public.is_owner(uuid);
 drop function if exists public.preview_invite(text);
 drop function if exists public.redeem_invite(text);
@@ -1129,18 +1129,18 @@ begin
 end
 $enum$;
 
--- ---------- 4. a conversÃ£o das colunas ----------
--- Esta Ã© a ÃšNICA parte nÃ£o idempotente por natureza, e ela Ã© perigosa por um
--- motivo que nÃ£o Ã© Ã³bvio: o schema.sql deste projeto concatena TODAS as
+-- ---------- 4. a conversão das colunas ----------
+-- Esta é a ÃšNICA parte não idempotente por natureza, e ela é perigosa por um
+-- motivo que não é óbvio: o schema.sql deste projeto concatena TODAS as
 -- migrations, e o 0001 recria `membership_role` toda vez que roda. Numa
--- segunda execuÃ§Ã£o do schema completo, o tipo antigo volta a existir â€”
--- Ã³rfÃ£o, sem coluna nenhuma usando â€” e uma condiÃ§Ã£o ingÃªnua do tipo "se o
--- tipo existe, converta" dispararia a conversÃ£o de novo.
+-- segunda execução do schema completo, o tipo antigo volta a existir —
+-- órfão, sem coluna nenhuma usando — e uma condição ingênua do tipo "se o
+-- tipo existe, converta" dispararia a conversão de novo.
 --
--- Por isso a condiÃ§Ã£o olha a COLUNA, nÃ£o o tipo. E o ELSE preserva o valor
+-- Por isso a condição olha a COLUNA, não o tipo. E o ELSE preserva o valor
 -- em vez de assumir 'admin'. Sem essas duas linhas, rodar o schema.sql duas
--- vezes promoveria todo garÃ§om, caixa e atendente a administrador, em
--- silÃªncio, sem erro nenhum na saÃ­da.
+-- vezes promoveria todo garçom, caixa e atendente a administrador, em
+-- silêncio, sem erro nenhum na saída.
 do $conv$
 begin
   if exists (
@@ -1154,9 +1154,9 @@ begin
       and a.attname = 'role'
       and t.typname = 'membership_role'
   ) then
-    -- 'owner' e 'manager' viram ambos 'admin': hoje sÃ³ existem donos, e
-    -- rebaixar alguÃ©m numa migraÃ§Ã£o seria tirar acesso sem aviso. O `else`
-    -- devolve o valor como estÃ¡, que Ã© o que torna uma segunda passagem
+    -- 'owner' e 'manager' viram ambos 'admin': hoje só existem donos, e
+    -- rebaixar alguém numa migração seria tirar acesso sem aviso. O `else`
+    -- devolve o valor como está, que é o que torna uma segunda passagem
     -- inofensiva.
     alter table public.memberships
       alter column role type public.member_role
@@ -1177,13 +1177,13 @@ begin
 end
 $conv$;
 
--- Fora do bloco, e sem condiÃ§Ã£o: varre o tipo antigo sempre que ele existir,
--- inclusive o Ã³rfÃ£o que o 0001 recria a cada geraÃ§Ã£o do schema.sql. Se
--- alguma coluna ainda o usasse, este comando falharia â€” e falhar aqui Ã© o
--- comportamento certo, porque significaria que a conversÃ£o acima nÃ£o rodou.
+-- Fora do bloco, e sem condição: varre o tipo antigo sempre que ele existir,
+-- inclusive o órfão que o 0001 recria a cada geração do schema.sql. Se
+-- alguma coluna ainda o usasse, este comando falharia — e falhar aqui é o
+-- comportamento certo, porque significaria que a conversão acima não rodou.
 drop type if exists public.membership_role;
 
--- ---------- 5. as funÃ§Ãµes de papel ----------
+-- ---------- 5. as funções de papel ----------
 create or replace function public.is_restaurant_admin(rid uuid)
 returns boolean
 language sql
@@ -1199,10 +1199,10 @@ as $fn$
   );
 $fn$;
 
--- Alimenta a camada de interface: Ã© ela que decide se o botÃ£o aparece.
--- Devolve NULO para quem nÃ£o Ã© membro, o que Ã© diferente de um papel sem
--- poder â€” e a diferenÃ§a importa na tela: nÃ£o-membro nem enxerga o
--- restaurante; garÃ§om enxerga e nÃ£o edita.
+-- Alimenta a camada de interface: é ela que decide se o botão aparece.
+-- Devolve NULO para quem não é membro, o que é diferente de um papel sem
+-- poder — e a diferença importa na tela: não-membro nem enxerga o
+-- restaurante; garçom enxerga e não edita.
 create or replace function public.my_role(rid uuid)
 returns public.member_role
 language sql
@@ -1217,7 +1217,7 @@ $fn$;
 grant execute on function public.is_restaurant_admin(uuid) to authenticated;
 grant execute on function public.my_role(uuid) to authenticated;
 
--- ---------- 6. as polÃ­ticas derrubadas, de volta ----------
+-- ---------- 6. as políticas derrubadas, de volta ----------
 create policy restaurants_update on public.restaurants
   for update to authenticated
   using (public.is_restaurant_admin(id) or public.is_platform_admin())
@@ -1231,13 +1231,13 @@ create policy invites_select on public.invites
   for select to authenticated
   using (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin());
 
--- ---------- 7. a escrita do cardÃ¡pio passa a exigir administrador ----------
--- ESTE Ã© o buraco que a fase fecha. Estas polÃ­ticas diziam is_member, e
--- is_member significa "trabalha aqui", nÃ£o "pode editar". Enquanto sÃ³ existia
--- dono, membro e dono eram a mesma pessoa e ninguÃ©m notava.
+-- ---------- 7. a escrita do cardápio passa a exigir administrador ----------
+-- ESTE é o buraco que a fase fecha. Estas políticas diziam is_member, e
+-- is_member significa "trabalha aqui", não "pode editar". Enquanto só existia
+-- dono, membro e dono eram a mesma pessoa e ninguém notava.
 --
--- A LEITURA continua sendo de qualquer membro: as polÃ­ticas *_select_member
--- ficam como estÃ£o e nÃ£o sÃ£o tocadas aqui.
+-- A LEITURA continua sendo de qualquer membro: as políticas *_select_member
+-- ficam como estão e não são tocadas aqui.
 drop policy if exists menu_categories_insert on public.menu_categories;
 create policy menu_categories_insert on public.menu_categories
   for insert to authenticated
@@ -1302,8 +1302,8 @@ create policy menu_item_media_delete on public.menu_item_media
   for delete to authenticated
   using (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin());
 
--- A plaquinha Ã© objeto fÃ­sico do restaurante. Trocar o rÃ³tulo ou desligÃ¡-la Ã©
--- decisÃ£o de administraÃ§Ã£o, nÃ£o de quem estÃ¡ no salÃ£o.
+-- A plaquinha é objeto físico do restaurante. Trocar o rótulo ou desligá-la é
+-- decisão de administração, não de quem está no salão.
 drop policy if exists menu_tags_update_member on public.menu_tags;
 create policy menu_tags_update_member on public.menu_tags
   for update to authenticated
@@ -1311,10 +1311,10 @@ create policy menu_tags_update_member on public.menu_tags
   with check (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin());
 
 -- ---------- 8. o gatilho de status, mais preciso ----------
--- Slug e deleted_at continuam fechados. O status ganha trÃªs casos: o
+-- Slug e deleted_at continuam fechados. O status ganha três casos: o
 -- administrador do restaurante move entre rascunho e ativo; entrar ou sair de
--- suspenso continua exclusivo da plataforma. SuspensÃ£o que o suspenso desfaz
--- nÃ£o Ã© suspensÃ£o.
+-- suspenso continua exclusivo da plataforma. Suspensão que o suspenso desfaz
+-- não é suspensão.
 create or replace function public.restaurants_guard_privileged_columns()
 returns trigger
 language plpgsql
@@ -1323,8 +1323,8 @@ set search_path = ''
 as $fn$
 begin
   -- auth.uid() nulo significa acesso DIRETO ao banco: SQL Editor, psql ou
-  -- funÃ§Ã£o SECURITY DEFINER. Todos jÃ¡ sÃ£o privilegiados por definiÃ§Ã£o, e
-  -- trÃ¡fego da aplicaÃ§Ã£o nunca chega aqui com uid nulo.
+  -- função SECURITY DEFINER. Todos já são privilegiados por definição, e
+  -- tráfego da aplicação nunca chega aqui com uid nulo.
   if (select auth.uid()) is null or public.is_platform_admin() then
     return new;
   end if;
@@ -1356,7 +1356,7 @@ create trigger restaurants_guard_privileged
   before update on public.restaurants
   for each row execute function public.restaurants_guard_privileged_columns();
 
--- ---------- 9. o restaurante nunca fica Ã³rfÃ£o ----------
+-- ---------- 9. o restaurante nunca fica órfão ----------
 create or replace function public.memberships_guard_last_admin()
 returns trigger
 language plpgsql
@@ -1366,7 +1366,7 @@ as $fn$
 declare
   v_remaining int;
 begin
-  -- SÃ³ interessa quando um vÃ­nculo de ADMINISTRADOR estÃ¡ deixando de ser um.
+  -- Só interessa quando um vínculo de ADMINISTRADOR está deixando de ser um.
   if old.role <> 'admin' then
     if tg_op = 'DELETE' then return old; else return new; end if;
   end if;
@@ -1374,8 +1374,8 @@ begin
     return new;
   end if;
 
-  -- RemoÃ§Ã£o em cascata do restaurante inteiro passa direto: a linha-pai jÃ¡
-  -- saiu nesta transaÃ§Ã£o. Sem esta saÃ­da, apagar um restaurante travaria no
+  -- Remoção em cascata do restaurante inteiro passa direto: a linha-pai já
+  -- saiu nesta transação. Sem esta saída, apagar um restaurante travaria no
   -- primeiro administrador encontrado.
   if not exists (select 1 from public.restaurants r where r.id = old.restaurant_id) then
     return old;
@@ -1401,11 +1401,11 @@ create trigger memberships_guard_last_admin
   before delete or update on public.memberships
   for each row execute function public.memberships_guard_last_admin();
 
--- ---------- 10. as trÃªs funÃ§Ãµes derrubadas, de volta ----------
--- IdÃªnticas Ã s do 0007 e do 0009, com membership_role trocado por member_role
--- e nada mais. A FORMA delas muda no 0012; aqui elas sÃ³ precisam voltar a
--- existir, para cada migraÃ§Ã£o continuar vÃ¡lida isoladamente â€” o SQL Editor
--- nÃ£o guarda estado e elas sÃ£o aplicadas Ã  mÃ£o, uma de cada vez.
+-- ---------- 10. as três funções derrubadas, de volta ----------
+-- Idênticas às do 0007 e do 0009, com membership_role trocado por member_role
+-- e nada mais. A FORMA delas muda no 0012; aqui elas só precisam voltar a
+-- existir, para cada migração continuar válida isoladamente — o SQL Editor
+-- não guarda estado e elas são aplicadas à mão, uma de cada vez.
 
 create function public.preview_invite(p_token text)
 returns table (restaurant_name text, invite_role public.member_role)
@@ -1502,31 +1502,31 @@ grant execute on function public.redeem_invite(text) to authenticated;
 grant execute on function public.list_restaurant_members(uuid) to authenticated;
 
 -- =====================================================================
--- 0012 â€” Convite de plataforma: o restaurante nasce do resgate
+-- 0012 — Convite de plataforma: o restaurante nasce do resgate
 --
 -- Rode DEPOIS do 0011. Idempotente: pode rodar de novo sem quebrar.
 --
--- restaurant_id anulÃ¡vel passa a ter SIGNIFICADO:
+-- restaurant_id anulável passa a ter SIGNIFICADO:
 --   nulo        -> convite de plataforma. Resgatar CRIA um restaurante.
---   preenchido  -> convite de equipe. Resgatar sÃ³ insere o vÃ­nculo.
+--   preenchido  -> convite de equipe. Resgatar só insere o vínculo.
 --
 -- Duas tabelas separadas foram consideradas e recusadas: duplicariam o
--- manejo de token, que Ã© a parte sensÃ­vel. A diferenÃ§a real Ã© uma coluna.
+-- manejo de token, que é a parte sensível. A diferença real é uma coluna.
 -- =====================================================================
 
 alter table public.invites alter column restaurant_id drop not null;
 
--- Convite sem restaurante SEMPRE cria um administrador. NÃ£o existe convite de
--- plataforma que produza garÃ§om: nÃ£o haveria restaurante para ele servir.
+-- Convite sem restaurante SEMPRE cria um administrador. Não existe convite de
+-- plataforma que produza garçom: não haveria restaurante para ele servir.
 alter table public.invites drop constraint if exists invites_platform_role;
 alter table public.invites add constraint invites_platform_role
   check (restaurant_id is not null or role = 'admin');
 
--- ---------- polÃ­ticas ----------
--- Repare que a forma simples basta, e por quÃª: is_restaurant_admin(null)
--- devolve FALSO, porque `restaurant_id = null` nunca Ã© verdadeiro num EXISTS.
--- EntÃ£o um administrador de restaurante tentando inserir um convite de
--- plataforma cai em `falso or falso` e Ã© recusado, sem precisar de CASE.
+-- ---------- políticas ----------
+-- Repare que a forma simples basta, e por quê: is_restaurant_admin(null)
+-- devolve FALSO, porque `restaurant_id = null` nunca é verdadeiro num EXISTS.
+-- Então um administrador de restaurante tentando inserir um convite de
+-- plataforma cai em `falso or falso` e é recusado, sem precisar de CASE.
 drop policy if exists invites_insert_admin on public.invites;
 drop policy if exists invites_insert on public.invites;
 create policy invites_insert on public.invites
@@ -1545,13 +1545,13 @@ create policy invites_update on public.invites
   using (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin())
   with check (public.is_restaurant_admin(restaurant_id) or public.is_platform_admin());
 
--- ---------- preview: agora diz de que TIPO Ã© o convite ----------
+-- ---------- preview: agora diz de que TIPO é o convite ----------
 -- Continua devolvendo ZERO linhas para token desconhecido, vencido, revogado
--- OU jÃ¡ usado. As quatro situaÃ§Ãµes sÃ£o indistinguÃ­veis de fora, o que impede
+-- OU já usado. As quatro situações são indistinguíveis de fora, o que impede
 -- descobrir que um convite existe.
 --
--- `left join` porque convite de plataforma nÃ£o tem restaurante: com join
--- interno ele sumiria do resultado e a tela diria "convite invÃ¡lido" para um
+-- `left join` porque convite de plataforma não tem restaurante: com join
+-- interno ele sumiria do resultado e a tela diria "convite inválido" para um
 -- convite perfeitamente bom.
 drop function if exists public.preview_invite(text);
 create function public.preview_invite(p_token text)
@@ -1579,7 +1579,7 @@ $fn$;
 
 -- ---------- resgate de equipe: agora EXIGE restaurante ----------
 -- Sem esta linha, um convite de plataforma resgatado por aqui marcaria o
--- convite como usado e nÃ£o criaria restaurante nenhum â€” queimando o convite e
+-- convite como usado e não criaria restaurante nenhum — queimando o convite e
 -- deixando a pessoa sem nada.
 drop function if exists public.redeem_invite(text);
 create function public.redeem_invite(p_token text)
@@ -1600,9 +1600,9 @@ begin
 
   select u.email into v_email from auth.users u where u.id = v_uid;
 
-  -- A corrida entre dois cliques simultÃ¢neos no mesmo link Ã© resolvida aqui
-  -- pelo prÃ³prio Postgres: sÃ³ uma transaÃ§Ã£o encontra redeemed_at ainda nulo.
-  -- Sem lock na aplicaÃ§Ã£o, sem janela entre checar e gravar.
+  -- A corrida entre dois cliques simultâneos no mesmo link é resolvida aqui
+  -- pelo próprio Postgres: só uma transação encontra redeemed_at ainda nulo.
+  -- Sem lock na aplicação, sem janela entre checar e gravar.
   update public.invites i
      set redeemed_at = now(),
          redeemed_by = v_uid
@@ -1632,10 +1632,10 @@ end;
 $fn$;
 
 -- ---------- resgate de plataforma: cria o restaurante ----------
--- Esta funÃ§Ã£o Ã© o coraÃ§Ã£o da fase. Ela roda com privilÃ©gio elevado, o que
--- significa que o INSERT em restaurants passa mesmo com a polÃ­tica
--- restaurants_insert_admin fechada. Ã‰ DELIBERADO: a polÃ­tica continua negando
--- para todo mundo, e o Ãºnico caminho que cria restaurante Ã© este. NinguÃ©m
+-- Esta função é o coração da fase. Ela roda com privilégio elevado, o que
+-- significa que o INSERT em restaurants passa mesmo com a política
+-- restaurants_insert_admin fechada. Ã‰ DELIBERADO: a política continua negando
+-- para todo mundo, e o único caminho que cria restaurante é este. Ninguém
 -- ganha o direito de criar; ganha o direito de resgatar.
 drop function if exists public.redeem_platform_invite(text, text, text);
 create function public.redeem_platform_invite(
@@ -1682,14 +1682,14 @@ begin
     returning id into v_restaurant_id;
   exception
     when unique_violation then
-      -- Erro DISTINTO do opaco acima, e isso Ã© seguro: quem chegou atÃ© aqui
-      -- jÃ¡ provou ter um convite vÃ¡lido, entÃ£o "endereÃ§o em uso" nÃ£o revela
-      -- nada a quem estivesse sondando. E como a exceÃ§Ã£o desfaz a transaÃ§Ã£o
-      -- inteira, o resgate volta atrÃ¡s junto: o convite CONTINUA VALENDO e a
+      -- Erro DISTINTO do opaco acima, e isso é seguro: quem chegou até aqui
+      -- já provou ter um convite válido, então "endereço em uso" não revela
+      -- nada a quem estivesse sondando. E como a exceção desfaz a transação
+      -- inteira, o resgate volta atrás junto: o convite CONTINUA VALENDO e a
       -- pessoa tenta outro nome.
-      raise exception 'Este endereÃ§o jÃ¡ estÃ¡ em uso.' using errcode = 'P0001';
+      raise exception 'Este endereço já está em uso.' using errcode = 'P0001';
     when check_violation then
-      raise exception 'Este endereÃ§o nÃ£o Ã© permitido.' using errcode = 'P0001';
+      raise exception 'Este endereço não é permitido.' using errcode = 'P0001';
   end;
 
   insert into public.memberships (restaurant_id, user_id, role)
@@ -1713,7 +1713,7 @@ grant execute on function public.redeem_invite(text) to authenticated;
 grant execute on function public.redeem_platform_invite(text, text, text) to authenticated;
 
 -- =====================================================================
--- 0013 â€” Segmento do restaurante e disponibilidade de endereÃ§o
+-- 0013 — Segmento do restaurante e disponibilidade de endereço
 --
 -- Rode DEPOIS do 0012. Idempotente: pode rodar de novo sem quebrar.
 -- =====================================================================
@@ -1724,17 +1724,17 @@ alter table public.restaurants drop constraint if exists restaurants_segment_len
 alter table public.restaurants add constraint restaurants_segment_length
   check (segment is null or char_length(segment) between 2 and 60);
 
--- O assistente precisa dizer "este endereÃ§o estÃ¡ livre" enquanto a pessoa
--- digita, e ela ainda nÃ£o Ã© membro de nada â€” a polÃ­tica de SELECT em
--- restaurants sÃ³ a deixaria ver os ativos. DaÃ­ SECURITY DEFINER.
+-- O assistente precisa dizer "este endereço está livre" enquanto a pessoa
+-- digita, e ela ainda não é membro de nada — a política de SELECT em
+-- restaurants só a deixaria ver os ativos. Daí SECURITY DEFINER.
 --
--- Isto Ã© um orÃ¡culo de existÃªncia, e Ã© aceitÃ¡vel: o endereÃ§o Ã© uma URL
--- pÃºblica, e visitÃ¡-la jÃ¡ responde a mesma pergunta. O limite de tentativas
--- fica na DAL, no balde que a Fase 0 jÃ¡ definiu.
+-- Isto é um oráculo de existência, e é aceitável: o endereço é uma URL
+-- pública, e visitá-la já responde a mesma pergunta. O limite de tentativas
+-- fica na DAL, no balde que a Fase 0 já definiu.
 --
--- Devolve falso tambÃ©m para endereÃ§o que o CHECK recusaria, para a tela nunca
+-- Devolve falso também para endereço que o CHECK recusaria, para a tela nunca
 -- dizer "livre" sobre algo que o banco vai rejeitar no fim. A lista de
--- reservadas Ã© a MESMA do restaurants_slug_not_reserved, no 0003: se uma
+-- reservadas é a MESMA do restaurants_slug_not_reserved, no 0003: se uma
 -- mudar, a outra precisa mudar junto.
 drop function if exists public.is_slug_available(text);
 create function public.is_slug_available(p_slug text)
@@ -1756,23 +1756,23 @@ $fn$;
 grant execute on function public.is_slug_available(text) to authenticated;
 
 -- =====================================================================
--- 0014 â€” Escrita no storage tambÃ©m exige administrador
+-- 0014 — Escrita no storage também exige administrador
 --
 -- Rode DEPOIS do 0013. Idempotente: pode rodar de novo sem quebrar.
 --
 -- O 0011 trocou `is_member` por `is_restaurant_admin` nas quatro tabelas do
--- cardÃ¡pio e nas plaquinhas, e ESQUECEU de `storage.objects`. O resultado Ã©
--- uma falha aberta numa camada sÃ³: pela aplicaÃ§Ã£o o caminho estÃ¡ fechado,
--- porque `createUploadTicket` exige administrador e sem ticket nÃ£o sai URL
--- assinada â€” mas garÃ§om, caixa e atendente tÃªm um JWT `authenticated` vÃ¡lido
+-- cardápio e nas plaquinhas, e ESQUECEU de `storage.objects`. O resultado é
+-- uma falha aberta numa camada só: pela aplicação o caminho está fechado,
+-- porque `createUploadTicket` exige administrador e sem ticket não sai URL
+-- assinada — mas garçom, caixa e atendente têm um JWT `authenticated` válido
 -- e podem falar com o storage sem passar pelo app.
 --
--- A regra do produto Ã© "criar, editar e remover mÃ­dia Ã© do administrador", e
--- mÃ­dia inclui o ARQUIVO, nÃ£o sÃ³ a linha que aponta para ele. Uma RLS mais
--- frouxa que a DAL inverte o desenho de trÃªs camadas: a Ãºltima linha de
+-- A regra do produto é "criar, editar e remover mídia é do administrador", e
+-- mídia inclui o ARQUIVO, não só a linha que aponta para ele. Uma RLS mais
+-- frouxa que a DAL inverte o desenho de três camadas: a última linha de
 -- defesa passa a ser a mais fraca.
 --
--- A leitura NÃƒO muda: o cardÃ¡pio Ã© pÃºblico, e continua pÃºblico.
+-- A leitura NÃO muda: o cardápio é público, e continua público.
 -- =====================================================================
 
 drop policy if exists menu_media_insert_member on storage.objects;
@@ -1781,8 +1781,8 @@ create policy menu_media_insert_member on storage.objects
   with check (
     bucket_id in ('menu-images', 'menu-videos')
     -- O prefixo do caminho Ã‰ a fronteira do inquilino, verificada pelo
-    -- banco. Quem nÃ£o administra aquele restaurante nÃ£o escreve na pasta
-    -- dele, independentemente do que a aplicaÃ§Ã£o mande.
+    -- banco. Quem não administra aquele restaurante não escreve na pasta
+    -- dele, independentemente do que a aplicação mande.
     and public.is_restaurant_admin(public.restaurant_id_from_storage_path(name))
   );
 
@@ -1977,14 +1977,14 @@ grant execute on function public.get_platform_admin_invite(uuid) to authenticate
 grant execute on function public.rotate_platform_admin_invite(uuid, bytea) to authenticated;
 
 -- =====================================================================
--- 0023 â€” Marca de "Primeiros passos" concluÃ­dos
+-- 0023 — Marca de "Primeiros passos" concluídos
 --
--- O cabeÃ§alho do cardÃ¡pio mostra "Primeiros passos" sÃ³ enquanto esta coluna
--- for nula. Quem grava Ã© `completeOnboardingAction`, ao concluir ou pular o
+-- O cabeçalho do cardápio mostra "Primeiros passos" só enquanto esta coluna
+-- for nula. Quem grava é `completeOnboardingAction`, ao concluir ou pular o
 -- assistente.
 --
 -- A coluna nasce com DEFAULT now() e o default sai em seguida: assim as
--- linhas que jÃ¡ existem ficam marcadas (o assistente Ã© para quem acabou de
+-- linhas que já existem ficam marcadas (o assistente é para quem acabou de
 -- chegar) sem disparar os gatilhos de UPDATE, e as novas nascem nulas.
 -- =====================================================================
 
@@ -2052,15 +2052,15 @@ grant execute on function public.rotate_platform_admin_invite(uuid, bytea) to au
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0026 â€” Nome do perfil obrigatÃ³rio
+-- 0026 — Nome do perfil obrigatório
 --
 -- Rode DEPOIS do 0025. Idempotente: pode rodar de novo sem quebrar.
 --
--- AtÃ© aqui nenhum cadastro mandava `display_name` nos metadados, e todo
+-- Até aqui nenhum cadastro mandava `display_name` nos metadados, e todo
 -- perfil nascia com o nome nulo. O cadastro passa a enviar o nome; o gatilho
 -- garante um valor mesmo quando a conta nasce por outro caminho (painel do
--- Supabase, API direta): o nome informado, senÃ£o a parte do e-mail antes do
--- @, senÃ£o "UsuÃ¡rio".
+-- Supabase, API direta): o nome informado, senão a parte do e-mail antes do
+-- @, senão "Usuário".
 -- =====================================================================
 
 create or replace function public.handle_new_user()
@@ -2076,7 +2076,7 @@ begin
     coalesce(
       nullif(btrim(left(btrim(new.raw_user_meta_data ->> 'display_name'), 80)), ''),
       nullif(left(split_part(new.email, '@', 1), 80), ''),
-      'UsuÃ¡rio'
+      'Usuário'
     )
   )
   on conflict (id) do nothing;
@@ -2084,13 +2084,13 @@ begin
 end;
 $fn$;
 
--- Perfis que jÃ¡ existem: a mesma regra do gatilho, sÃ³ onde o nome estÃ¡
+-- Perfis que já existem: a mesma regra do gatilho, só onde o nome está
 -- vazio ou passa do limite.
 update public.profiles p
    set display_name = coalesce(
          nullif(btrim(left(btrim(p.display_name), 80)), ''),
          nullif(left(split_part(u.email, '@', 1), 80), ''),
-         'UsuÃ¡rio'
+         'Usuário'
        )
   from auth.users u
  where u.id = p.id
@@ -2107,21 +2107,21 @@ alter table public.profiles add constraint profiles_display_name_length
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0027 â€” GravaÃ§Ã£o atÃ´mica do item do cardÃ¡pio
+-- 0027 — Gravação atômica do item do cardápio
 --
 -- Rode DEPOIS do 0026. Idempotente: `create or replace`.
 --
--- AtÃ© aqui, salvar um item eram vÃ¡rias chamadas: o item, cada variaÃ§Ã£o, o
--- registro de cada mÃ­dia, a ordem, o enquadramento. Uma falha no meio
--- deixava o item pela metade â€” o caso clÃ¡ssico era o vÃ­deo acima de 15 s,
--- recusado sÃ³ DEPOIS de o item nascer.
+-- Até aqui, salvar um item eram várias chamadas: o item, cada variação, o
+-- registro de cada mídia, a ordem, o enquadramento. Uma falha no meio
+-- deixava o item pela metade — o caso clássico era o vídeo acima de 15 s,
+-- recusado só DEPOIS de o item nascer.
 --
--- Agora o navegador valida e sobe os arquivos antes, e esta funÃ§Ã£o grava
--- tudo numa transaÃ§Ã£o: o item existe completo, ou nÃ£o existe.
+-- Agora o navegador valida e sobe os arquivos antes, e esta função grava
+-- tudo numa transação: o item existe completo, ou não existe.
 --
--- SECURITY INVOKER: roda com as permissÃµes de quem chamou. As polÃ­ticas de
+-- SECURITY INVOKER: roda com as permissões de quem chamou. As políticas de
 -- RLS de menu_items, menu_item_variants e menu_item_media (0011) continuam
--- sendo a autorizaÃ§Ã£o; nada aqui as contorna.
+-- sendo a autorização; nada aqui as contorna.
 -- =====================================================================
 
 create or replace function public.save_menu_item(p_payload jsonb)
@@ -2151,21 +2151,21 @@ declare
   v_removed jsonb;
 begin
   if v_mode is null or v_mode not in ('create', 'update') then
-    raise exception 'OperaÃ§Ã£o invÃ¡lida.' using errcode = 'P0001';
+    raise exception 'Operação inválida.' using errcode = 'P0001';
   end if;
 
-  -- PreÃ§o. Com variaÃ§Ãµes, o do item Ã© DERIVADO: o menor entre elas. NinguÃ©m
-  -- o vÃª nem o edita; ele sÃ³ existe para quem ordena ou filtra por preÃ§o.
+  -- Preço. Com variações, o do item é DERIVADO: o menor entre elas. Ninguém
+  -- o vê nem o edita; ele só existe para quem ordena ou filtra por preço.
   if v_pricing ->> 'mode' = 'variants' then
     if jsonb_array_length(v_variants) = 0 then
-      raise exception 'Adicione ao menos uma variaÃ§Ã£o.' using errcode = 'P0001';
+      raise exception 'Adicione ao menos uma variação.' using errcode = 'P0001';
     end if;
     select min((value ->> 'priceCents')::integer) into v_price
       from jsonb_array_elements(v_variants);
   else
     v_price := (v_pricing ->> 'basePriceCents')::integer;
     if v_price is null then
-      raise exception 'Informe o preÃ§o.' using errcode = 'P0001';
+      raise exception 'Informe o preço.' using errcode = 'P0001';
     end if;
   end if;
 
@@ -2193,7 +2193,7 @@ begin
       from public.menu_items mi
      where mi.id = v_item and mi.restaurant_id = v_restaurant;
     if not found then
-      raise exception 'Item nÃ£o encontrado.' using errcode = 'P0001';
+      raise exception 'Item não encontrado.' using errcode = 'P0001';
     end if;
 
     update public.menu_items mi set
@@ -2213,7 +2213,7 @@ begin
     where mi.id = v_item;
   end if;
 
-  -- VariaÃ§Ãµes. A ordem da lista Ã© a posiÃ§Ã£o.
+  -- Variações. A ordem da lista é a posição.
   if v_pricing ->> 'mode' = 'variants' then
     if exists (
       select 1
@@ -2224,7 +2224,7 @@ begin
             where mv.id = (v ->> 'id')::uuid and mv.item_id = v_item
          )
     ) then
-      raise exception 'VariaÃ§Ã£o nÃ£o pertence a este item.' using errcode = 'P0001';
+      raise exception 'Variação não pertence a este item.' using errcode = 'P0001';
     end if;
 
     delete from public.menu_item_variants mv
@@ -2259,7 +2259,7 @@ begin
     delete from public.menu_item_variants where item_id = v_item;
   end if;
 
-  -- MÃ­dia. A ordem da lista Ã© a ordem das telas; a primeira Ã© a capa.
+  -- Mídia. A ordem da lista é a ordem das telas; a primeira é a capa.
   if exists (
     select 1
       from jsonb_array_elements(v_media) m
@@ -2269,15 +2269,15 @@ begin
           where mm.id = (m ->> 'id')::uuid and mm.item_id = v_item
        )
   ) then
-    raise exception 'MÃ­dia nÃ£o pertence a este item.' using errcode = 'P0001';
+    raise exception 'Mídia não pertence a este item.' using errcode = 'P0001';
   end if;
 
   select count(*) into v_new_media from jsonb_array_elements(v_media) m where m ->> 'source' = 'new';
   v_total := jsonb_array_length(v_media);
-  -- O teto vale quando algo Ã© ACRESCENTADO. Itens antigos acima de 6 seguem
-  -- vÃ¡lidos enquanto nada novo entra, como sempre foi.
+  -- O teto vale quando algo é ACRESCENTADO. Itens antigos acima de 6 seguem
+  -- válidos enquanto nada novo entra, como sempre foi.
   if v_new_media > 0 and v_total > 6 then
-    raise exception 'O prato ficaria com % telas; o limite Ã© 6.', v_total using errcode = 'P0001';
+    raise exception 'O prato ficaria com % telas; o limite é 6.', v_total using errcode = 'P0001';
   end if;
 
   with removed as (
@@ -2310,7 +2310,7 @@ begin
       if left(v_entry ->> 'storagePath', length(v_prefix)) <> v_prefix
          or (v_entry ->> 'posterPath' is not null
              and left(v_entry ->> 'posterPath', length(v_prefix)) <> v_prefix) then
-        raise exception 'Caminho de arquivo invÃ¡lido.' using errcode = 'P0001';
+        raise exception 'Caminho de arquivo inválido.' using errcode = 'P0001';
       end if;
 
       insert into public.menu_item_media (
@@ -2343,23 +2343,23 @@ grant execute on function public.save_menu_item(jsonb) to authenticated;
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0029 â€” NotificaÃ§Ãµes genÃ©ricas, chave de servidor e push pelo disparador
+-- 0029 — Notificações genéricas, chave de servidor e push pelo disparador
 --
 -- Schema do produto web. Aplicada apenas em projetos vazios.
 --
--- app_server_keys: o hash da chave que sÃ³ o servidor do Next conhece
--- (APP_SERVER_KEY). FunÃ§Ãµes de escopo estreito a exigem; ela nÃ£o ignora
+-- app_server_keys: o hash da chave que só o servidor do Next conhece
+-- (APP_SERVER_KEY). Funções de escopo estreito a exigem; ela não ignora
 -- RLS nem abre mais nada. A service_role continua fora (ver 0007).
 --
--- notifications: uma linha por destinatÃ¡rio e por territÃ³rio. Nasce sÃ³
+-- notifications: uma linha por destinatário e por território. Nasce só
 -- pelo dispatch_notification, que calcula quem recebe a partir dos
--- parÃ¢metros. O gatilho de broadcast entrega em tempo real no canal
+-- parâmetros. O gatilho de broadcast entrega em tempo real no canal
 -- privado notifications:<territory>:<user_id>.
 --
 -- Substitui o push_events legado: o resgate de convite passa a chamar o
 -- disparador, e o push sai de claim_notification_pushes.
 --
--- Depois de aplicar: Realtime â†’ Settings â†’ desligar "Allow public access",
+-- Depois de aplicar: Realtime → Settings → desligar "Allow public access",
 -- e rodar select public.set_app_server_key('<APP_SERVER_KEY>'); no editor
 -- de SQL (docs/deployment/monorepo.md).
 -- =====================================================================
@@ -2374,8 +2374,8 @@ create table if not exists public.app_server_keys (
 alter table public.app_server_keys enable row level security;
 revoke all on public.app_server_keys from public, anon, authenticated;
 
--- Roda pelo editor de SQL do Supabase, nunca pela aplicaÃ§Ã£o: recebe a
--- chave em claro uma vez e guarda sÃ³ o hash.
+-- Roda pelo editor de SQL do Supabase, nunca pela aplicação: recebe a
+-- chave em claro uma vez e guarda só o hash.
 create or replace function public.set_app_server_key(p_key text)
 returns void
 language plpgsql
@@ -2398,7 +2398,7 @@ revoke all on function public.set_app_server_key(text) from public, anon, authen
 
 -- Recebe a chave EM CLARO e calcula o hash aqui dentro, pelo mesmo motivo
 -- do preview_invite (0007): aceitar o hash faria um vazamento do banco
--- entregar algo diretamente utilizÃ¡vel.
+-- entregar algo diretamente utilizável.
 create or replace function public.check_app_server_key(p_key text)
 returns boolean
 language sql
@@ -2448,7 +2448,7 @@ create index if not exists notifications_feedback_idx
 alter table public.notifications enable row level security;
 revoke all on public.notifications from public, anon, authenticated;
 grant select on public.notifications to authenticated;
--- A pessoa sÃ³ marca como lida. TÃ­tulo, corpo, destino e dono nÃ£o mudam.
+-- A pessoa só marca como lida. Título, corpo, destino e dono não mudam.
 grant update (read_at) on public.notifications to authenticated;
 
 drop policy if exists notifications_select_own on public.notifications;
@@ -2463,10 +2463,10 @@ create policy notifications_update_own on public.notifications
   with check (user_id = (select auth.uid()));
 
 -- ---------- disparador ----------
--- Calcula os destinatÃ¡rios a partir dos parÃ¢metros e grava uma linha por
--- pessoa. NinguÃ©m de fora chama: sÃ³ funÃ§Ãµes security definer e gatilhos.
--- TÃ­tulo e corpo sÃ£o cortados aqui, para um nome de restaurante longo
--- nunca derrubar a operaÃ§Ã£o que disparou o aviso.
+-- Calcula os destinatários a partir dos parâmetros e grava uma linha por
+-- pessoa. Ninguém de fora chama: só funções security definer e gatilhos.
+-- Título e corpo são cortados aqui, para um nome de restaurante longo
+-- nunca derrubar a operação que disparou o aviso.
 drop function if exists public.dispatch_notification(
   text, text, text, text, text, text, uuid, public.member_role[], uuid[], uuid, jsonb
 );
@@ -2497,7 +2497,7 @@ begin
       raise exception 'notification_audience' using detail = p_audience;
     end if;
     if p_audience = 'restaurant_roles' and coalesce(cardinality(p_roles), 0) = 0 then
-      raise exception 'notification_audience' using detail = 'restaurant_roles sem papÃ©is';
+      raise exception 'notification_audience' using detail = 'restaurant_roles sem papéis';
     end if;
   elsif p_audience = 'platform_admins' then
     if p_territory is distinct from 'admin' then
@@ -2531,7 +2531,7 @@ begin
       from public.profiles p
      where p_audience = 'users'
        and p.id = any (p_user_ids)
-       -- No painel, aviso sobre um restaurante sÃ³ vai para quem Ã© dele.
+       -- No painel, aviso sobre um restaurante só vai para quem é dele.
        and (
          p_territory = 'admin'
          or p_restaurant_id is null
@@ -2558,7 +2558,7 @@ revoke all on function public.dispatch_notification(
 ) from public, anon, authenticated;
 
 -- ---------- tempo real ----------
--- O tempo real Ã© um extra. Falhar nele nÃ£o pode desfazer a gravaÃ§Ã£o que
+-- O tempo real é um extra. Falhar nele não pode desfazer a gravação que
 -- disparou o aviso (um feedback publicado, um convite resgatado).
 create or replace function public.notifications_broadcast()
 returns trigger
@@ -2592,10 +2592,10 @@ create trigger notifications_broadcast
   after insert or update or delete on public.notifications
   for each row execute function public.notifications_broadcast();
 
--- Cada pessoa escuta sÃ³ os prÃ³prios dois canais. A referÃªncia do zamai.os
--- usava `extension = 'broadcast'` sozinho, o que deixava qualquer usuÃ¡rio
--- logado assinar o canal de outro. Sem polÃ­tica de INSERT: o navegador nÃ£o
--- publica nesses tÃ³picos. A RLS de realtime.messages jÃ¡ vem ligada; rodar
+-- Cada pessoa escuta só os próprios dois canais. A referência do zamai.os
+-- usava `extension = 'broadcast'` sozinho, o que deixava qualquer usuário
+-- logado assinar o canal de outro. Sem política de INSERT: o navegador não
+-- publica nesses tópicos. A RLS de realtime.messages já vem ligada; rodar
 -- ENABLE aqui falharia com 42501.
 drop policy if exists notifications_receive_own_topic on realtime.messages;
 create policy notifications_receive_own_topic on realtime.messages
@@ -2609,10 +2609,10 @@ create policy notifications_receive_own_topic on realtime.messages
   );
 
 -- ---------- push ----------
--- Reivindica UMA vez as notificaÃ§Ãµes recentes ainda sem push e devolve os
--- aparelhos de cada destinatÃ¡rio no mesmo territÃ³rio. `skip locked` impede
--- duas chamadas simultÃ¢neas de pegarem a mesma linha. Endpoint e chaves nÃ£o
--- mandam push sem a chave privada VAPID, que sÃ³ o servidor tem.
+-- Reivindica UMA vez as notificações recentes ainda sem push e devolve os
+-- aparelhos de cada destinatário no mesmo território. `skip locked` impede
+-- duas chamadas simultâneas de pegarem a mesma linha. Endpoint e chaves não
+-- mandam push sem a chave privada VAPID, que só o servidor tem.
 drop function if exists public.claim_notification_pushes(text);
 create function public.claim_notification_pushes(p_key text)
 returns table (
@@ -2638,8 +2638,8 @@ begin
   end if;
 
   -- Limpeza oportunista, como em check_rate_limit (0005): em cerca de 1%
-  -- das chamadas, apaga o que passou de 90 dias e dÃ¡ por perdido o push
-  -- que ninguÃ©m reivindicou em 10 minutos.
+  -- das chamadas, apaga o que passou de 90 dias e dá por perdido o push
+  -- que ninguém reivindicou em 10 minutos.
   if random() < 0.01 then
     delete from public.notifications n where n.created_at < now() - interval '90 days';
     update public.notifications n
@@ -2672,8 +2672,8 @@ begin
 end;
 $fn$;
 
--- O push de um feedback parte do territÃ³rio pÃºblico, sem sessÃ£o. A
--- prune_push_subscriptions do 0024 exige sessÃ£o; esta exige a chave.
+-- O push de um feedback parte do território público, sem sessão. A
+-- prune_push_subscriptions do 0024 exige sessão; esta exige a chave.
 drop function if exists public.server_prune_push_subscriptions(text, text[]);
 create function public.server_prune_push_subscriptions(p_key text, p_endpoints text[])
 returns void
@@ -2696,9 +2696,9 @@ revoke all on function public.server_prune_push_subscriptions(text, text[]) from
 grant execute on function public.claim_notification_pushes(text) to anon, authenticated;
 grant execute on function public.server_prune_push_subscriptions(text, text[]) to anon, authenticated;
 
--- ---------- resgate de convite â†’ disparador ----------
--- O mesmo sinal do convite resgatado: um convite resgatado NESTA transaÃ§Ã£o pela pessoa
--- da membership (redeemed_at = now() Ã© o instante da transaÃ§Ã£o).
+-- ---------- resgate de convite → disparador ----------
+-- O mesmo sinal do convite resgatado: um convite resgatado NESTA transação pela pessoa
+-- da membership (redeemed_at = now() é o instante da transação).
 
 create or replace function public.memberships_notify()
 returns trigger
@@ -2715,7 +2715,7 @@ begin
     from public.restaurants r where r.id = new.restaurant_id;
   select u.email::text into v_email
     from auth.users u where u.id = new.user_id;
-  v_email := coalesce(v_email, 'AlguÃ©m');
+  v_email := coalesce(v_email, 'Alguém');
 
   begin
     if exists (
@@ -2739,12 +2739,12 @@ begin
          and i.redeemed_at = now()
          and i.restaurant_id = new.restaurant_id
     ) then
-      -- Os mesmos rÃ³tulos de MEMBER_ROLE_LABELS (domain/invite.ts), em minÃºsculas.
+      -- Os mesmos rótulos de MEMBER_ROLE_LABELS (domain/invite.ts), em minúsculas.
       v_role_label := case new.role
         when 'admin' then 'administrador'
         when 'cashier' then 'caixa'
         when 'attendant' then 'atendente'
-        when 'waiter' then 'garÃ§om'
+        when 'waiter' then 'garçom'
         else 'membro'
       end;
       perform public.dispatch_notification(
@@ -2778,16 +2778,16 @@ create trigger memberships_notify
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0030 â€” Feedback anÃ´nimo do cardÃ¡pio
+-- 0030 — Feedback anônimo do cardápio
 --
 -- Rode DEPOIS do 0029 (usa check_app_server_key e dispatch_notification).
 -- Idempotente.
 --
--- O cliente nÃ£o tem conta. Por isso nada aqui Ã© liberado ao anon por
--- polÃ­tica de tabela: o envio passa por begin_feedback e publish_feedback,
--- que exigem a chave do servidor (APP_SERVER_KEY). A escrita anÃ´nima no
--- bucket sÃ³ vale para um caminho reservado por um rascunho de menos de 15
--- minutos. SÃ³ administradores do restaurante leem.
+-- O cliente não tem conta. Por isso nada aqui é liberado ao anon por
+-- política de tabela: o envio passa por begin_feedback e publish_feedback,
+-- que exigem a chave do servidor (APP_SERVER_KEY). A escrita anônima no
+-- bucket só vale para um caminho reservado por um rascunho de menos de 15
+-- minutos. Só administradores do restaurante leem.
 -- =====================================================================
 
 create table if not exists public.restaurant_feedback (
@@ -2831,7 +2831,7 @@ alter table public.restaurant_feedback_photos enable row level security;
 revoke all on public.restaurant_feedback from public, anon, authenticated;
 revoke all on public.restaurant_feedback_photos from public, anon, authenticated;
 grant select, delete on public.restaurant_feedback to authenticated;
--- O admin sÃ³ marca como lido/nÃ£o lido. Texto e fotos do cliente nÃ£o mudam.
+-- O admin só marca como lido/não lido. Texto e fotos do cliente não mudam.
 grant update (read_at) on public.restaurant_feedback to authenticated;
 grant select on public.restaurant_feedback_photos to authenticated;
 
@@ -2859,9 +2859,9 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
--- A escrita anÃ´nima sÃ³ alcanÃ§a um caminho reservado por begin_feedback,
+-- A escrita anônima só alcança um caminho reservado por begin_feedback,
 -- num rascunho de menos de 15 minutos. A assinatura do envio
--- (createSignedUploadUrl) passa por esta polÃ­tica.
+-- (createSignedUploadUrl) passa por esta política.
 create or replace function public.feedback_photo_upload_allowed(p_name text)
 returns boolean
 language sql
@@ -2903,10 +2903,10 @@ create policy feedback_photos_delete on storage.objects
     and public.is_restaurant_admin(public.restaurant_id_from_storage_path(name))
   );
 
--- ---------- comeÃ§ar ----------
+-- ---------- começar ----------
 -- Valida, aplica o teto do restaurante, cria o rascunho e reserva os
 -- caminhos das fotos. Devolve uma linha por foto (ou uma, sem caminho,
--- quando nÃ£o hÃ¡ fotos). Qualquer recusa desfaz tudo.
+-- quando não há fotos). Qualquer recusa desfaz tudo.
 drop function if exists public.begin_feedback(text, text, text, jsonb);
 create function public.begin_feedback(p_key text, p_slug text, p_body text, p_photos jsonb)
 returns table (feedback_id uuid, storage_path text, photo_position smallint)
@@ -2938,7 +2938,7 @@ begin
     raise exception 'feedback_unavailable';
   end if;
 
-  -- Tira caracteres de controle (menos a quebra de linha) e espaÃ§os nas pontas.
+  -- Tira caracteres de controle (menos a quebra de linha) e espaços nas pontas.
   v_body := btrim(regexp_replace(coalesce(p_body, ''), '[\x01-\x09\x0B-\x1F\x7F]', '', 'g'));
   if char_length(v_body) < 3 or char_length(v_body) > 1000 then
     raise exception 'feedback_invalid' using detail = 'texto';
@@ -2948,7 +2948,7 @@ begin
     raise exception 'feedback_invalid' using detail = 'fotos';
   end if;
 
-  -- Teto do restaurante, rascunhos incluÃ­dos: Ã© a barreira que nÃ£o depende
+  -- Teto do restaurante, rascunhos incluídos: é a barreira que não depende
   -- do IP, que pode ser falsificado.
   select count(*) into v_count from public.restaurant_feedback f
    where f.restaurant_id = v_restaurant_id and f.created_at > now() - interval '1 hour';
@@ -2976,7 +2976,7 @@ begin
       v_width := (v_photo ->> 'width')::integer;
       v_height := (v_photo ->> 'height')::integer;
     exception when others then
-      raise exception 'feedback_invalid' using detail = 'dimensÃµes';
+      raise exception 'feedback_invalid' using detail = 'dimensões';
     end;
     if v_ext is null or v_width is null or v_height is null
        or v_width not between 1 and 1920 or v_height not between 1 and 1920 then
@@ -3060,15 +3060,15 @@ begin
   select r.name into v_restaurant_name
     from public.restaurants r where r.id = v_feedback.restaurant_id;
 
-  -- Uma linha sÃ³ no push e na central: quebras de linha viram espaÃ§o.
+  -- Uma linha só no push e na central: quebras de linha viram espaço.
   v_excerpt := regexp_replace(v_feedback.body, '\s+', ' ', 'g');
   if char_length(v_excerpt) > 100 then
-    v_excerpt := left(v_excerpt, 99) || 'â€¦';
+    v_excerpt := left(v_excerpt, 99) || '…';
   end if;
   if v_photos = 1 then
-    v_excerpt := v_excerpt || ' Â· 1 foto';
+    v_excerpt := v_excerpt || ' · 1 foto';
   elsif v_photos > 1 then
-    v_excerpt := v_excerpt || ' Â· ' || v_photos::text || ' fotos';
+    v_excerpt := v_excerpt || ' · ' || v_photos::text || ' fotos';
   end if;
 
   perform public.dispatch_notification(
@@ -3089,10 +3089,10 @@ grant execute on function public.begin_feedback(text, text, text, jsonb) to anon
 grant execute on function public.publish_feedback(text, uuid) to anon, authenticated;
 
 -- ---------- excluir ----------
--- Pelo painel, com a sessÃ£o do admin. Apaga as notificaÃ§Ãµes do feedback de
--- TODOS os admins (a polÃ­tica de notifications sÃ³ deixa cada um mexer nas
--- suas), e depois o feedback; as fotos da tabela vÃ£o em cascata. Os
--- arquivos do bucket sÃ£o removidos pela DAL antes desta chamada.
+-- Pelo painel, com a sessão do admin. Apaga as notificações do feedback de
+-- TODOS os admins (a política de notifications só deixa cada um mexer nas
+-- suas), e depois o feedback; as fotos da tabela vão em cascata. Os
+-- arquivos do bucket são removidos pela DAL antes desta chamada.
 drop function if exists public.delete_feedback(uuid);
 create function public.delete_feedback(p_feedback_id uuid)
 returns void
@@ -3126,16 +3126,16 @@ grant execute on function public.delete_feedback(uuid) to authenticated;
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0031 â€” InscriÃ§Ãµes de push (recuperaÃ§Ã£o do 0024)
+-- 0031 — Inscrições de push (recuperação do 0024)
 --
--- Rode DEPOIS do 0030. Idempotente: em banco que jÃ¡ tem o 0024, nÃ£o muda
--- nada alÃ©m de recriar as mesmas funÃ§Ãµes.
+-- Rode DEPOIS do 0030. Idempotente: em banco que já tem o 0024, não muda
+-- nada além de recriar as mesmas funções.
 --
--- Por quÃª: num ambiente, o 0024 nunca foi aplicado, e "Ativar
--- notificaÃ§Ãµes" falhava com save_push_subscription inexistente. Aplicar o
+-- Por quê: num ambiente, o 0024 nunca foi aplicado, e "Ativar
+-- notificações" falhava com save_push_subscription inexistente. Aplicar o
 -- 0024 agora seria errado: ele recriaria push_events, claim_push_deliveries
 -- e o gatilho memberships_push_events, que o 0029 substituiu pelo
--- disparador genÃ©rico. Este arquivo traz sÃ³ a parte das inscriÃ§Ãµes, igual
+-- disparador genérico. Este arquivo traz só a parte das inscrições, igual
 -- ao 0024.
 -- =====================================================================
 
@@ -3157,7 +3157,7 @@ create index if not exists push_subscriptions_user_idx
 alter table public.push_subscriptions enable row level security;
 revoke all on public.push_subscriptions from public, anon, authenticated;
 
--- ---------- inscriÃ§Ãµes da prÃ³pria pessoa ----------
+-- ---------- inscrições da própria pessoa ----------
 drop function if exists public.save_push_subscription(text, text, text, text, timestamptz);
 create function public.save_push_subscription(
   p_endpoint text,
@@ -3179,8 +3179,8 @@ begin
     raise exception 'sessao ausente' using errcode = '42501';
   end if;
 
-  -- O endpoint Ã© do APARELHO. Se outra conta usou este navegador antes, a
-  -- linha passa a ser de quem estÃ¡ aqui agora.
+  -- O endpoint é do APARELHO. Se outra conta usou este navegador antes, a
+  -- linha passa a ser de quem está aqui agora.
   insert into public.push_subscriptions
     (endpoint, user_id, territory, p256dh, auth, expiration_time)
   values
@@ -3193,7 +3193,7 @@ begin
         expiration_time = excluded.expiration_time,
         updated_at = now();
 
-  -- No mÃ¡ximo 10 aparelhos por pessoa e territÃ³rio: navegador esquecido nÃ£o
+  -- No máximo 10 aparelhos por pessoa e território: navegador esquecido não
   -- acumula para sempre.
   delete from public.push_subscriptions s
    where s.user_id = v_uid
@@ -3235,9 +3235,9 @@ as $fn$
      and s.territory = p_territory;
 $fn$;
 
--- O serviÃ§o de push respondeu 404/410: o aparelho saiu. Saber o endpoint Ã©
--- a autorizaÃ§Ã£o: Ã© uma URL longa e imprevisÃ­vel que sÃ³ o dono conhece, e
--- apagar Ã  toa dura atÃ© o dono abrir o app, que reinscreve.
+-- O serviço de push respondeu 404/410: o aparelho saiu. Saber o endpoint é
+-- a autorização: é uma URL longa e imprevisível que só o dono conhece, e
+-- apagar à toa dura até o dono abrir o app, que reinscreve.
 drop function if exists public.prune_push_subscriptions(text[]);
 create function public.prune_push_subscriptions(p_endpoints text[])
 returns void
@@ -3264,13 +3264,13 @@ grant execute on function public.prune_push_subscriptions(text[]) to authenticat
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0032 â€” NotificaÃ§Ã£o de teste
+-- 0032 — Notificação de teste
 --
 -- Rode DEPOIS do 0031. Idempotente.
 --
--- "Enviar notificaÃ§Ã£o de teste", na central: uma notificaÃ§Ã£o de verdade,
--- pelo mesmo dispatch_notification, sÃ³ para quem tocou no botÃ£o. Chega ao
--- vivo, aparece na central e vira push nos aparelhos ativos â€” e o que nÃ£o
+-- "Enviar notificação de teste", na central: uma notificação de verdade,
+-- pelo mesmo dispatch_notification, só para quem tocou no botão. Chega ao
+-- vivo, aparece na central e vira push nos aparelhos ativos — e o que não
 -- chegar mostra qual parte do caminho falhou.
 -- =====================================================================
 
@@ -3297,9 +3297,9 @@ begin
     raise exception 'territorio invalido';
   end if;
 
-  -- Tocar no aviso volta para a tela de onde o teste saiu. A raiz `/` nÃ£o
-  -- cabe no check da coluna (mÃ­nimo de 2 caracteres); /restaurantes existe
-  -- nos dois territÃ³rios.
+  -- Tocar no aviso volta para a tela de onde o teste saiu. A raiz `/` não
+  -- cabe no check da coluna (mínimo de 2 caracteres); /restaurantes existe
+  -- nos dois territórios.
   v_url := case
     when p_url ~ '^/[^/]' and char_length(p_url) <= 300 then p_url
     else '/restaurantes'
@@ -3307,8 +3307,8 @@ begin
 
   perform public.dispatch_notification(
     'test', p_territory, 'users',
-    'NotificaÃ§Ã£o de teste',
-    'Se vocÃª estÃ¡ vendo isto, as notificaÃ§Ãµes estÃ£o funcionando.',
+    'Notificação de teste',
+    'Se você está vendo isto, as notificações estão funcionando.',
     v_url,
     p_user_ids => array[v_uid]
   );
@@ -3321,7 +3321,7 @@ grant execute on function public.send_test_notification(text, text) to authentic
 notify pgrst, 'reload schema';
 
 -- =====================================================================
--- 0034 â€” Chamados de atendimento associados a plaquinhas/mesas
+-- 0034 — Chamados de atendimento associados a plaquinhas/mesas
 -- =====================================================================
 
 alter table public.menu_tags
@@ -3533,7 +3533,7 @@ begin
     perform public.dispatch_notification(
       'service_call_received', 'painel', 'restaurant_roles',
       'Chamado da mesa ' || v_table_number::text,
-      'SolicitaÃ§Ã£o de atendimento em ' || coalesce(v_restaurant_name, 'seu restaurante') || '.',
+      'Solicitação de atendimento em ' || coalesce(v_restaurant_name, 'seu restaurante') || '.',
       '/restaurantes/' || v_restaurant_id::text || '/chamados?c=' || v_call_id::text,
       p_restaurant_id => v_restaurant_id,
       p_roles => array['admin', 'cashier', 'attendant', 'waiter']::public.member_role[],

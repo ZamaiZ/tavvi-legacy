@@ -36,15 +36,10 @@ export async function setPublishedAction(
 ): Promise<ActionResult> {
   return runAction(async () => {
     revalidateRestaurant(await writeDal.setPublished(input))
-    // A lista mostra a situação de cada restaurante, e publicar muda
-    // exatamente isso.
     revalidateLists()
   })
 }
 
-// Formulário do assistente ("Pular e montar o cardápio" / "Ir para o
-// cardápio"): grava a marca e leva ao cardápio. Daí em diante o botão
-// "Primeiros passos" some do cabeçalho.
 export async function completeOnboardingAction(formData: FormData): Promise<void> {
   const restaurantId = String(formData.get('restaurantId') ?? '')
   revalidateRestaurant(await writeDal.completeOnboarding({ restaurantId }))
@@ -59,8 +54,6 @@ export async function updateIdentityAction(
   })
 }
 
-// Consulta, não mutação — mas passa por action porque o assistente é
-// componente de cliente e não pode importar a DAL.
 export async function checkSlugAction(
   candidate: unknown,
 ): Promise<ActionResult<boolean>> {
@@ -97,8 +90,6 @@ export async function updateRestaurantSlugAction(
   return runAction(async () => {
     const { oldSlug, ...target } = await writeDal.updateRestaurantSlug(input)
     revalidateRestaurant(target)
-    // O endereço antigo também: sem esta linha `/{slugAnterior}` continuaria
-    // servindo um cardápio que mudou de endereço.
     revalidatePublicPath(oldSlug)
     revalidateLists()
   })
