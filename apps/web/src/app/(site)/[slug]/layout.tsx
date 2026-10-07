@@ -44,8 +44,8 @@ export default async function RestaurantMenuLayout({
     <>
       {/* As variáveis das duas faces entram por folha de estilo embutida, e
           não por `style` no elemento, porque `style` não consegue expressar
-          media query. A face escura só vale quando o aparelho do cliente
-          pede escuro — e quem decide isso é o celular na mesa, não nós.
+          media query. Sem escolha salva, a face segue o aparelho. O atributo
+          no html pode fixar claro ou escuro apenas para o cardápio.
 
           O seletor é `[data-menu="<preset>"]`, e não uma classe, porque a
           folha de detalhes renderiza em portal, fora desta árvore: carregando
@@ -57,10 +57,12 @@ export default async function RestaurantMenuLayout({
       <style
         dangerouslySetInnerHTML={{
           __html: [
-            `[data-menu="${theme.presetId}"]{${toCss(theme.styleLight)}}`,
+            `[data-menu="${theme.presetId}"]{${toCss(theme.styleLight)};color-scheme:light}`,
             `@media (prefers-color-scheme: dark){`,
-            `[data-menu="${theme.presetId}"]{${toCss(theme.styleDark)}}`,
+            `[data-menu="${theme.presetId}"]{${toCss(theme.styleDark)};color-scheme:dark}`,
             `}`,
+            `html[data-menu-appearance="light"] [data-menu="${theme.presetId}"]{${toCss(theme.styleLight)};color-scheme:light}`,
+            `html[data-menu-appearance="dark"] [data-menu="${theme.presetId}"]{${toCss(theme.styleDark)};color-scheme:dark}`,
           ].join(''),
         }}
       />

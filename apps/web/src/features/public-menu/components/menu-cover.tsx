@@ -1,16 +1,16 @@
+import { directionsUrl, displayAddress, type RestaurantContact } from '@/domain/restaurant'
+import { publicMediaUrl } from '@/lib/media-url'
 import Image from 'next/image'
+import { FaWhatsapp } from 'react-icons/fa'
 import { FcGoogle } from 'react-icons/fc'
 import {
   LuBookOpen,
   LuChevronRight,
   LuInstagram,
   LuMapPin,
-  LuMessageCircle,
   LuMessageSquareText,
-  LuPhone,
+  LuPhone
 } from 'react-icons/lu'
-import { publicMediaUrl } from '@/lib/media-url'
-import { directionsUrl, displayAddress, type RestaurantContact } from '@/domain/restaurant'
 
 type ContactLink = { label: string; href: string; icon: React.ReactNode }
 
@@ -55,7 +55,7 @@ export function MenuCover({
       ? { label: 'Ligar', href: `tel:${contact.phone.replace(/\D/g, '')}`, icon: <LuPhone aria-hidden="true" /> }
       : null,
     contact.whatsapp
-      ? { label: 'WhatsApp', href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`, icon: <LuMessageCircle aria-hidden="true" /> }
+      ? { label: 'WhatsApp', href: `https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`, icon: <FaWhatsapp aria-hidden="true" /> }
       : null,
     handle
       ? { label: `Instagram @${handle}`, href: `https://instagram.com/${handle}`, icon: <LuInstagram aria-hidden="true" /> }

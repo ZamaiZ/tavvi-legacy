@@ -213,6 +213,14 @@
     color: var(--m-ink);
     border-radius: 999px;
   }
+  .menu-chip.menu-theme-toggle {
+    border: 1px solid var(--m-line);
+    background: color-mix(in oklab, var(--m-base) 92%, transparent);
+  }
+  .menu-theme-toggle:focus-visible {
+    outline: 2px solid var(--m-accent);
+    outline-offset: 2px;
+  }
   @supports (backdrop-filter: blur(1px)) {
     .menu-chip {
       background: color-mix(in oklab, var(--m-base) 38%, transparent);
@@ -376,6 +384,7 @@
     .menu-feedback-confirm button:not(.is-danger):hover { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 6%); }
     .menu-action:hover .menu-action-chevron { translate: 2px 0; }
     .menu-chip:hover { background: color-mix(in oklab, var(--m-base) 72%, transparent); }
+    .menu-chip.menu-theme-toggle:hover { background: var(--m-base); }
     .menu-feedback-primary:hover:not(:disabled),
     .menu-feedback-confirm button.is-danger:hover { opacity: .9; }
     .menu-feedback-thumb button:hover { background: color-mix(in oklab, var(--m-base) 90%, transparent); }
@@ -386,6 +395,7 @@
   .menu-feedback-pick:active:not(:disabled),
   .menu-feedback-confirm button:not(.is-danger):active { background: color-mix(in oklab, var(--m-chip), var(--m-ink) 10%); transition-duration: 0s; }
   .menu-chip:active { background: color-mix(in oklab, var(--m-base) 80%, transparent); transition-duration: 0s; }
+  .menu-chip.menu-theme-toggle:active { background: var(--m-base); }
   .menu-feedback-primary:active:not(:disabled),
   .menu-feedback-confirm button.is-danger:active { opacity: .8; transition-duration: 0s; }
   .menu-call-button:active:not(:disabled) { filter: brightness(.86); transition-duration: 0s; }

@@ -9,7 +9,7 @@ import Script from 'next/script'
 //
 // O try/catch nao e decorativo: em janela privada o acesso ao localStorage
 // LANCA, e sem ele a pagina inteira quebraria antes de pintar qualquer coisa.
-const script = `(function(){var t="system";try{var s=localStorage.getItem("tema");if(s==="light"||s==="dark"||s==="system")t=s;}catch(e){}var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";})()`
+const script = `(function(){var t="system",m="system";try{var s=localStorage.getItem("tema");if(s==="light"||s==="dark"||s==="system")t=s;var p=localStorage.getItem("tema-cardapio");if(p==="light"||p==="dark"||p==="system")m=p;}catch(e){}var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";document.documentElement.dataset.menuAppearance=m;})()`
 
 export function ThemeScript() {
   // Um dos dois dangerouslySetInnerHTML do projeto (o outro e o
