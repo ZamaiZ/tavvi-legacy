@@ -1,10 +1,12 @@
 import 'server-only'
+import { z } from 'zod'
 import { uuidSchema } from '@/domain/common'
 import {
   createTagSchema,
   tagTokenSchema,
   updateTagSchema,
   type ResolvedTagDTO,
+  type NfcEventDTO,
   type TagDTO,
 } from '@/domain/tag'
 import { recordAudit } from '@/server/security/audit'
@@ -50,7 +52,7 @@ export async function createTag(
         label: data.label ?? null,
         table_number: data.tableNumber,
       })
-      .select('id, public_token, label, table_number, is_active, last_seen_at')
+      .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at')
       .single()
 
     if (!error && row) {
@@ -69,6 +71,8 @@ export async function createTag(
           tableNumber: row.table_number as number | null,
           isActive: row.is_active as boolean,
           lastSeenAt: row.last_seen_at as string | null,
+          nfcSerial: row.nfc_serial as string | null,
+          nfcVerifiedAt: row.nfc_verified_at as string | null,
         },
       }
     }
@@ -95,7 +99,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
   const supabase = await db()
   const { data, error } = await supabase
     .from('menu_tags')
-    .select('id, public_token, label, table_number, is_active, last_seen_at')
+    .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at')
     .eq('restaurant_id', id)
     .order('created_at')
 
@@ -110,6 +114,8 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
     tableNumber: row.table_number as number | null,
     isActive: row.is_active as boolean,
     lastSeenAt: row.last_seen_at as string | null,
+    nfcSerial: row.nfc_serial as string | null,
+    nfcVerifiedAt: row.nfc_verified_at as string | null,
   }))
 }
 
@@ -173,6 +179,65 @@ export async function deleteTag(tagId: unknown): Promise<RevalidationTarget> {
   })
 
   return revalidationTarget
+}
+
+const nfcEventSchema = z.object({
+  tagId: uuidSchema,
+  operationId: uuidSchema,
+  event: z.enum(['started', 'failed', 'verified']),
+  serial: z.string().regex(/^[0-9A-F]{14}$/),
+  reason: z.enum(['write_error', 'read_error', 'wrong_tag', 'wrong_url', 'cancelled']).nullable().optional(),
+})
+
+export async function recordNfcEvent(input: unknown): Promise<{ verifiedAt: string | null; revalidationTarget: RevalidationTarget | null }> {
+  const data = nfcEventSchema.parse(input)
+  const supabase = await db()
+  const { data: tag, error: lookupError } = await supabase
+    .from('menu_tags')
+    .select('restaurant_id')
+    .eq('id', data.tagId)
+    .single()
+  if (lookupError || !tag) throw new Error('Identificador não encontrado')
+  const restaurantId = tag.restaurant_id as string
+  await requireRestaurantAdmin(restaurantId)
+
+  const { data: verifiedAt, error } = await supabase.rpc('record_menu_tag_nfc_event', {
+    p_tag_id: data.tagId,
+    p_operation_id: data.operationId,
+    p_event: data.event,
+    p_serial: data.serial,
+    p_reason: data.reason ?? null,
+  })
+  if (error) {
+    if (error.code === '23505') throw new ConflictError('Esta etiqueta já está vinculada a outro identificador.')
+    if (error.message.includes('nfc_operation_not_started')) throw new ConflictError('O registro expirou. Leia a etiqueta novamente.')
+    throw new Error(`Não foi possível registrar a operação NFC: ${error.message}`)
+  }
+  return {
+    verifiedAt: verifiedAt as string | null,
+    revalidationTarget: data.event === 'verified' ? await getRestaurantRevalidationTarget(restaurantId) : null,
+  }
+}
+
+export async function listNfcEvents(tagId: unknown): Promise<NfcEventDTO[]> {
+  const id = uuidSchema.parse(tagId)
+  const supabase = await db()
+  const { data: tag, error: lookupError } = await supabase
+    .from('menu_tags')
+    .select('restaurant_id')
+    .eq('id', id)
+    .single()
+  if (lookupError || !tag) throw new Error('Identificador não encontrado')
+  await requireRestaurantAdmin(tag.restaurant_id as string)
+  const { data, error } = await supabase.rpc('list_menu_tag_nfc_events', { p_tag_id: id })
+  if (error) throw new Error(`Não foi possível consultar o histórico NFC: ${error.message}`)
+  return (data ?? []).map((row) => ({
+    action: row.action.replace('tag.nfc.', '') as NfcEventDTO['action'],
+    serial: row.serial,
+    reason: row.reason,
+    actorId: row.actor_id,
+    createdAt: row.created_at,
+  }))
 }
 
 export async function resolveTag(

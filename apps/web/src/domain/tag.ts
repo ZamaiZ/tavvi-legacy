@@ -25,6 +25,16 @@ export type TagDTO = {
   tableNumber: number | null
   isActive: boolean
   lastSeenAt: string | null
+  nfcSerial: string | null
+  nfcVerifiedAt: string | null
+}
+
+export type NfcEventDTO = {
+  action: 'started' | 'failed' | 'verified' | 'routing_changed'
+  serial: string | null
+  reason: string | null
+  actorId: string | null
+  createdAt: string
 }
 
 export type ResolvedTagDTO = {

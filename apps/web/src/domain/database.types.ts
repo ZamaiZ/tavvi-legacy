@@ -417,6 +417,9 @@ export type Database = {
           is_active: boolean
           label: string | null
           last_seen_at: string | null
+          nfc_serial: string | null
+          nfc_verified_at: string | null
+          nfc_verified_by: string | null
           public_token: string
           restaurant_id: string
           table_number: number | null
@@ -427,6 +430,9 @@ export type Database = {
           is_active?: boolean
           label?: string | null
           last_seen_at?: string | null
+          nfc_serial?: string | null
+          nfc_verified_at?: string | null
+          nfc_verified_by?: string | null
           public_token: string
           restaurant_id: string
           table_number?: number | null
@@ -437,11 +443,21 @@ export type Database = {
           is_active?: boolean
           label?: string | null
           last_seen_at?: string | null
+          nfc_serial?: string | null
+          nfc_verified_at?: string | null
+          nfc_verified_by?: string | null
           public_token?: string
           restaurant_id?: string
           table_number?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_tags_nfc_verified_by_fkey"
+            columns: ["nfc_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "menu_tags_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -964,6 +980,26 @@ export type Database = {
           p_subject_type: string
         }
         Returns: undefined
+      }
+      record_menu_tag_nfc_event: {
+        Args: {
+          p_tag_id: string
+          p_operation_id: string
+          p_event: string
+          p_serial: string
+          p_reason?: string | null
+        }
+        Returns: string | null
+      }
+      list_menu_tag_nfc_events: {
+        Args: { p_tag_id: string }
+        Returns: {
+          action: string
+          serial: string | null
+          reason: string | null
+          actor_id: string | null
+          created_at: string
+        }[]
       }
       redeem_invite: { Args: { p_token: string }; Returns: string }
       redeem_platform_invite: {
