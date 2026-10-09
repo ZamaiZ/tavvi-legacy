@@ -18,6 +18,8 @@ type FeedColumn = {
   categoryItemCount: number
 }
 
+const TAP_NAVIGATION_DRAG_THRESHOLD = 32
+
 export function MenuFeed({
   menu,
   presetId,
@@ -29,6 +31,9 @@ export function MenuFeed({
 }) {
   const feedRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const tapNavigationIndexRef = useRef<number | null>(null)
+  const suppressTapNavigationUntilRef = useRef(0)
+  const feedTouchStartRef = useRef<{ x: number; y: number } | null>(null)
   const [detailsItem, setDetailsItem] = useState<MenuItemDTO | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
 
@@ -57,7 +62,8 @@ export function MenuFeed({
   // `scrollIntoView` na coluna, e não `scrollTo` com um deslocamento em
   // pixels: é a API própria para contêiner com `scroll-snap`, e não depende
   // de `clientWidth`, que muda quando o aparelho gira.
-  const scrollToColumn = useCallback((index: number) => {
+  const scrollToColumn = useCallback((index: number, fromTap = false) => {
+    if (!fromTap) tapNavigationIndexRef.current = null
     const feed = feedRef.current
     if (!feed) return
     const targetElement = feed.children[index] as HTMLElement | undefined
@@ -77,6 +83,46 @@ export function MenuFeed({
     if (!feed) return
     const index = Math.round(feed.scrollLeft / feed.clientWidth)
     if (index !== activeIndex) setActiveIndex(index)
+    if (tapNavigationIndexRef.current === index) tapNavigationIndexRef.current = null
+  }
+
+  function navigateByTap(direction: -1 | 1) {
+    if (Date.now() < suppressTapNavigationUntilRef.current) return
+
+    const feed = feedRef.current
+    const visibleIndex = feed?.clientWidth
+      ? Math.round(feed.scrollLeft / feed.clientWidth)
+      : activeIndex
+    const currentTarget = tapNavigationIndexRef.current ?? visibleIndex
+    const nextTarget = Math.max(0, Math.min(currentTarget + direction, columns.length))
+    if (nextTarget === currentTarget) return
+
+    tapNavigationIndexRef.current = nextTarget
+    scrollToColumn(nextTarget, true)
+  }
+
+  function handleFeedTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    const touch = event.touches[0]
+    suppressTapNavigationUntilRef.current = 0
+    feedTouchStartRef.current = touch
+      ? { x: touch.clientX, y: touch.clientY }
+      : null
+  }
+
+  function handleFeedTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    const start = feedTouchStartRef.current
+    const touch = event.changedTouches[0]
+    feedTouchStartRef.current = null
+
+    if (
+      start &&
+      touch &&
+      Math.hypot(touch.clientX - start.x, touch.clientY - start.y) >
+        TAP_NAVIGATION_DRAG_THRESHOLD
+    ) {
+      suppressTapNavigationUntilRef.current = Date.now() + 500
+      tapNavigationIndexRef.current = null
+    }
   }
 
   function scrollToCategory(categoryId: string) {
@@ -120,7 +166,18 @@ export function MenuFeed({
         onGoToCategory={scrollToCategory}
       />
 
-      <div ref={feedRef} className="menu-feed" onScroll={handleScroll}>
+      <div
+        ref={feedRef}
+        className="menu-feed"
+        onScroll={handleScroll}
+        onTouchStart={handleFeedTouchStart}
+        onTouchEnd={handleFeedTouchEnd}
+        onTouchCancel={() => {
+          feedTouchStartRef.current = null
+          suppressTapNavigationUntilRef.current = 0
+          tapNavigationIndexRef.current = null
+        }}
+      >
         <MenuCover
           name={menu.restaurant.name}
           description={menu.restaurant.description}
@@ -162,6 +219,8 @@ export function MenuFeed({
             // numa rede de restaurante.
             isNearViewport={Math.abs(index + 1 - activeIndex) <= 1}
             onViewDetails={() => setDetailsItem(column.item)}
+            onGoToPrevious={() => navigateByTap(-1)}
+            onGoToNext={() => navigateByTap(1)}
           />
         ))}
       </div>

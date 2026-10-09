@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { MenuItemDTO } from '@/domain/menu'
 import { formatCents, priceSummary } from '@/lib/money'
 import { MenuMedia } from './menu-media'
+
+const VERTICAL_GESTURE_THRESHOLD = 48
+const WHEEL_GESTURE_GAP_MS = 280
 
 // Uma coluna do feed: o rolador vertical das mídias, e um rodapé que NÃO se
 // move quando a mídia troca.
@@ -18,6 +21,8 @@ export function MenuDish({
   isFirst,
   isNearViewport,
   onViewDetails,
+  onGoToPrevious,
+  onGoToNext,
 }: {
   item: MenuItemDTO
   /** Vai junto do contador. Sem ele, "2 / 7" não diz de quê. */
@@ -29,8 +34,23 @@ export function MenuDish({
   /** A coluna está no raio de pré-carga. Fora dele, nada é buscado. */
   isNearViewport: boolean
   onViewDetails: () => void
+  onGoToPrevious: () => void
+  onGoToNext: () => void
 }) {
   const [activeScreenIndex, setActiveScreenIndex] = useState(0)
+  const screensRef = useRef<HTMLDivElement>(null)
+  const touchStart = useRef<{
+    x: number
+    y: number
+    isAtLastScreen: boolean
+    isInsideScreens: boolean
+    screenIndex: number
+  } | null>(null)
+  const wheelGesture = useRef<{
+    lastEventAt: number
+    startedAtLastScreen: boolean
+  } | null>(null)
+  const hasDetails = Boolean(item.description || item.variants.length > 0)
 
   // Com variações, o preço base some — regra da Fase 2, que continua. O
   // rodapé mostra a menor, e a lista inteira vai na folha: mostrar os dois
@@ -45,9 +65,114 @@ export function MenuDish({
     if (index !== activeScreenIndex) setActiveScreenIndex(index)
   }
 
+  function isAtLastScreen(element: HTMLDivElement) {
+    return (
+      item.media.length > 0 &&
+      element.scrollTop + element.clientHeight >= element.scrollHeight - 2
+    )
+  }
+
+  function handleWheel(event: React.WheelEvent<HTMLElement>) {
+    const screens = screensRef.current
+    if (!screens) return
+
+    const now = Date.now()
+    const previousGesture = wheelGesture.current
+    const isNewGesture =
+      !previousGesture || now - previousGesture.lastEventAt > WHEEL_GESTURE_GAP_MS
+    const startedAtLastScreen = isNewGesture
+      ? isAtLastScreen(screens)
+      : previousGesture.startedAtLastScreen
+
+    wheelGesture.current = { lastEventAt: now, startedAtLastScreen }
+
+    if (
+      hasDetails &&
+      startedAtLastScreen &&
+      event.deltaY > 0 &&
+      event.deltaY > Math.abs(event.deltaX)
+    ) {
+      onViewDetails()
+    }
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLElement>) {
+    const touch = event.touches[0]
+    const screens = screensRef.current
+    if (!touch || !screens) return
+
+    const screenIndex = Math.round(screens.scrollTop / screens.clientHeight)
+
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      isAtLastScreen: isAtLastScreen(screens),
+      isInsideScreens: event.target instanceof Node && screens.contains(event.target),
+      screenIndex,
+    }
+  }
+
+  function handleTouchEnd(event: React.TouchEvent<HTMLElement>) {
+    const start = touchStart.current
+    const touch = event.changedTouches[0]
+    touchStart.current = null
+    if (!start || !touch) return
+
+    const deltaX = touch.clientX - start.x
+    const deltaY = start.y - touch.clientY
+
+    const advancedVertically =
+      deltaY >= VERTICAL_GESTURE_THRESHOLD &&
+      deltaY > Math.abs(deltaX) * 1.2
+
+    if (!advancedVertically) return
+
+    if (start.isAtLastScreen) {
+      if (hasDetails) onViewDetails()
+      return
+    }
+
+    // The footer sits above the native media scroller. When the gesture starts
+    // there, advance the media directly so the same swipe works across the item.
+    if (!start.isInsideScreens) {
+      const screens = screensRef.current
+      const nextScreen = screens?.children[start.screenIndex + 1] as HTMLElement | undefined
+      nextScreen?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+  }
+
+  function handleScreenClick(event: React.MouseEvent<HTMLDivElement>) {
+    if (!(event.target instanceof HTMLImageElement)) return
+
+    const bounds = event.currentTarget.getBoundingClientRect()
+    if (event.clientX < bounds.left + bounds.width / 2) {
+      onGoToPrevious()
+    } else {
+      onGoToNext()
+    }
+  }
+
   return (
-    <article className="menu-column" aria-label={item.name}>
-      <div className="menu-screens" onScroll={handleScroll}>
+    <article
+      className="menu-column"
+      aria-label={item.name}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => { touchStart.current = null }}
+      onWheel={handleWheel}
+    >
+      <div
+        ref={screensRef}
+        className="menu-screens"
+        onScroll={handleScroll}
+        onClick={handleScreenClick}
+      >
         {item.media.map((media, index) => (
           <MenuMedia
             key={media.storagePath}
@@ -157,7 +282,7 @@ export function MenuDish({
             </span>
           </div>
 
-          {item.description || item.variants.length > 0 ? (
+          {hasDetails ? (
             <button
               type="button"
               onClick={onViewDetails}
