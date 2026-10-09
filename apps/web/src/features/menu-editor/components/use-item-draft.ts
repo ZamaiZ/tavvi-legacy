@@ -286,13 +286,6 @@ export function useItemDraft({
     })
   }, [])
 
-  const setFocal = useCallback((key: string, focalX: number, focalY: number) => {
-    setDraft((current) => ({
-      ...current,
-      media: current.media.map((media) => (media.key === key ? { ...media, focalX, focalY } : media)),
-    }))
-  }, [])
-
   // --- Salvar -------------------------------------------------------------
 
   const discard = useCallback(
@@ -418,7 +411,6 @@ export function useItemDraft({
     removeMedia,
     moveMedia,
     makeCover,
-    setFocal,
     save,
   }
 }

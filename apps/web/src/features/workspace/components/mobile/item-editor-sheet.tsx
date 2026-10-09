@@ -129,7 +129,6 @@ function ItemSheetBody({
             onRemove={draft.removeMedia}
             onMove={draft.moveMedia}
             onMakeCover={draft.makeCover}
-            onFocal={draft.setFocal}
           />
           <div className="tv-group">
             <label className="tv-frow">
@@ -243,8 +242,8 @@ function ItemSheetBody({
         icon={<LuTrash2 />}
         title="Descartar alterações?"
         description={creating ? 'O item não será criado, e as fotos e os vídeos escolhidos serão descartados.' : 'As alterações deste item serão perdidas.'}
-        confirmLabel="Descartar e fechar"
-        cancelLabel="Continuar editando"
+        confirmLabel="Descartar"
+        cancelLabel="Cancelar"
         destructive
         onConfirm={forceClose}
       />

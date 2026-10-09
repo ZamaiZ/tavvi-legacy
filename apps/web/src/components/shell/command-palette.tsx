@@ -3,7 +3,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { RiComputerLine, RiMoonLine, RiSearchLine, RiSunLine } from 'react-icons/ri'
 import { cn } from 'cn'
-import { useProgressNavigate } from './navigation-progress'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -21,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useTheme, type Theme } from '@/components/theme/theme-provider'
 import { flattenNavItems } from './navigation'
 import { getNavIcon } from './navigation-icons'
+import { useProgressNavigate } from './navigation-progress'
 import type { TavviShellConfig } from './navigation.types'
 import {
   setCommandPaletteOpen,
@@ -109,7 +109,7 @@ export function CommandPaletteTrigger({
 
 export function CommandPalette({ config }: { config: TavviShellConfig }) {
   const open = useCommandPaletteOpen()
-  const progressNavigate = useProgressNavigate()
+  const navigateWithProgress = useProgressNavigate()
   const { setTheme } = useTheme()
   const items = flattenNavItems(config.items)
 
@@ -127,7 +127,7 @@ export function CommandPalette({ config }: { config: TavviShellConfig }) {
 
   function navigate(href: string) {
     setCommandPaletteOpen(false)
-    progressNavigate(href)
+    navigateWithProgress(href)
   }
 
   function chooseTheme(theme: Theme) {

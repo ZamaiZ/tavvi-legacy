@@ -9,7 +9,6 @@ import { publicMediaUrl } from '@/lib/media-url'
 import { LIFT_DROP_ANIMATION, panelAnnouncements, PANEL_DRAG_INSTRUCTIONS, usePanelSensors } from '../lib/dnd'
 import type { MediaDraft } from '../lib/item-draft'
 import { ACCEPTED_MEDIA_TYPES } from '../lib/media-prep'
-import { FocalPicker } from './focal-picker'
 import { ItemMediaTile, ItemMediaTileOverlay, type TileStatus } from './item-media-tile'
 import { MediaDropzone } from './media-dropzone'
 
@@ -47,7 +46,6 @@ export function ItemMediaField({
   onRemove,
   onMove,
   onMakeCover,
-  onFocal,
 }: {
   media: MediaDraft[]
   disabled: boolean
@@ -59,15 +57,12 @@ export function ItemMediaField({
   onRemove: (key: string) => void
   onMove: (activeKey: string, overKey: string) => void
   onMakeCover: (key: string) => void
-  onFocal: (key: string, x: number, y: number) => void
 }) {
   const dndId = useId()
   const sensors = usePanelSensors()
-  const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const remaining = Math.max(0, MAX_MEDIA_PER_ITEM - media.length)
   const keys = media.map((entry) => entry.key)
-  const selected = media.find((entry) => entry.key === selectedKey && previewOf(entry)) ?? media.find((entry) => previewOf(entry)) ?? null
   const active = media.find((entry) => entry.key === activeKey) ?? null
   const newCount = media.filter((entry) => entry.source.type === 'new').length
   const failed = media.filter((entry) => entry.source.type === 'new' && entry.source.prep.status === 'error')
@@ -109,8 +104,6 @@ export function ItemMediaField({
                       progress={progress}
                       cover={index === 0}
                       disabled={disabled}
-                      selected={selected?.key === entry.key}
-                      onSelect={previewOf(entry) ? () => setSelectedKey(entry.key) : undefined}
                       onRemove={() => onRemove(entry.key)}
                       onMakeCover={() => onMakeCover(entry.key)}
                     />
@@ -129,17 +122,6 @@ export function ItemMediaField({
           </DndContext>
         )}
       </MediaDropzone>
-
-      {selected ? (
-        <FocalPicker
-          key={selected.key}
-          previewUrl={previewOf(selected) as string}
-          focalX={selected.focalX}
-          focalY={selected.focalY}
-          disabled={disabled}
-          onChange={(x, y) => onFocal(selected.key, x, y)}
-        />
-      ) : null}
 
       {inspecting ? <p className="tv-media-note" role="status">Conferindo arquivos…</p> : null}
       {newCount > 0 ? (

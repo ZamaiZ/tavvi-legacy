@@ -460,3 +460,17 @@
 .tv-theme-switching *::before,
 .tv-theme-switching *::after { transition: none !important; }
 
+/* Blur consistente nas confirmações e nos sheets, também em camadas. */
+:where(
+  .tv-team-scrim,
+  .tv-confirm-scrim,
+  .tv-sheet-scrim,
+  .tv-sidebar-scrim,
+  .tv-team-discard,
+  [data-slot="dialog-overlay"],
+  [data-slot="alert-dialog-overlay"]
+) {
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+

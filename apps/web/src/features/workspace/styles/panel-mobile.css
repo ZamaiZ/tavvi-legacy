@@ -7,7 +7,6 @@
 @media (max-width: 767px) {
   .workspace-territory:has([data-surface="restaurant"]) {
     --tv-gutter: 16px;
-    --tv-mheader-height: calc(48px + env(safe-area-inset-top));
     --tv-bg: #F2F0EB;
     --tv-scrim: rgba(22,20,15,.28);
     -webkit-text-size-adjust: 100%;
@@ -33,34 +32,18 @@
   html.dark:has([data-surface="restaurant"]) body { background: #0D0C0A; }
 }
 
-/* Cabeçalho e área principal do painel no celular (Tavvi Mobile.dc.html:
-   barra de 48 px translúcida sob a área segura). */
+/* Área principal do painel no celular, acima da dock e sob a área segura. */
 @media (max-width: 767px) {
-  [data-surface="restaurant"] .tv-mobile-header {
-    height: var(--tv-mheader-height);
-    padding: env(safe-area-inset-top) 4px 0 16px;
-    gap: 10px;
-    border-bottom: .5px solid var(--tv-line-2);
-    background: var(--tv-bar);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-  }
-  [data-surface="restaurant"] .tv-mobile-context { gap: 0; line-height: 1.2; }
-  [data-surface="restaurant"] .tv-mobile-context strong { font-size: 15px; font-weight: 600; }
-  [data-surface="restaurant"] .tv-mobile-context small { font-size: 11.5px; }
-  [data-surface="restaurant"] .tv-mobile-search { color: var(--tv-text-2); }
-  [data-surface="restaurant"] .tv-mobile-search svg { width: 19px; height: 19px; }
-  [data-surface="restaurant"] .tv-mobile-search:active { opacity: .5; transition-duration: 0s; }
   [data-surface="restaurant"] .tv-console-main {
     min-height: 100dvh;
-    padding: var(--tv-mheader-height) 0 calc(var(--tv-dock-space) + 24px);
+    padding: env(safe-area-inset-top) 0 calc(var(--tv-dock-space) + 24px);
     overflow-x: clip;
     background: var(--tv-bg);
   }
 }
 
 /* Páginas do painel no celular (bMenu, bService, bTeam): conteúdo 14 px
-   abaixo do cabeçalho, margens de 16, blocos com 12 entre si. */
+   após a área segura, margens de 16, blocos com 12 entre si. */
 @media (max-width: 767px) {
   .workspace-territory .tv-mp { min-width: 0; padding: 14px var(--tv-gutter) 0; display: flex; flex-direction: column; gap: 12px; color: var(--tv-text); }
   .workspace-territory .tv-mp-head { display: flex; flex-direction: column; gap: 12px; }
@@ -159,7 +142,7 @@
   .workspace-territory .tv-mchip:active { opacity: .75; transition-duration: 0s; }
 
   /* Grupos de categoria. */
-  .workspace-territory .tv-mcats { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: calc(var(--tv-mheader-height) + 12px); }
+  .workspace-territory .tv-mcats { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: calc(env(safe-area-inset-top) + 12px); }
   .workspace-territory .tv-mcat { display: flex; flex-direction: column; gap: 6px; }
   .workspace-territory .tv-mcat-head { width: 100%; padding: 8px 4px 0; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border: 0; background: transparent; color: var(--tv-text); font: inherit; text-align: left; }
   .workspace-territory button.tv-mcat-head:active { opacity: .6; transition-duration: 0s; }
@@ -270,7 +253,7 @@
 @keyframes tv-msheet-push { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 767px) {
-  .workspace-territory .tv-msheet-scrim { position: fixed; z-index: 70; inset: 0; background: var(--tv-scrim); transition: opacity 300ms var(--tv-ease); }
+  .workspace-territory .tv-msheet-scrim { position: fixed; z-index: 70; inset: 0; background: var(--tv-scrim); -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15); transition: opacity 300ms var(--tv-ease); }
   .workspace-territory .tv-msheet-scrim[data-starting-style],
   .workspace-territory .tv-msheet-scrim[data-ending-style] { opacity: 0; }
   .workspace-territory .tv-msheet {

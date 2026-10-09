@@ -36,7 +36,7 @@ export function AccountPopover({ email, name, description, profileHref, settings
   }, [])
 
   return <>
-    <div className="tv-popover-catcher" aria-hidden="true" onClick={onClose} />
+    <div className="tv-popover-catcher tv-account-catcher" aria-hidden="true" onClick={onClose} />
     <div ref={ref} role="dialog" aria-modal="true" aria-label="Conta" className="tv-account-popover">
       <div className="tv-account-mobile-head"><strong>Conta</strong><small>Preferências da sessão</small></div>
       <div className="tv-account-head">

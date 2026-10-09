@@ -100,6 +100,7 @@
    blur. Pelo mesmo motivo a entrada não segura o último quadro (backwards,
    e não both): opacidade animada também vira raiz. */
 .tv-popover-catcher { position: fixed; z-index: 90; inset: 0; }
+.tv-account-catcher { -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15); }
 .tv-account-popover { --tv-text-3: var(--tv-mat-text-3); position: fixed; z-index: 91; left: 10px; bottom: 62px; width: 300px; padding: 6px; display: flex; flex-direction: column; gap: 6px; border-radius: 16px; color: var(--tv-text); transform-origin: left bottom; animation: tv-pop-in 150ms var(--tv-ease) backwards; }
 .tv-account-popover::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none; }
 /* O mesmo material na central (notifications.css cuida do resto dela). */
@@ -204,6 +205,13 @@
 
 @keyframes tv-pop-in { from { opacity: 0; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: none; } }
 
+/* Navegação em andamento (NavigationProgress). */
+.tv-nav-progress { position: fixed; z-index: 120; top: 0; right: 0; left: 0; height: 2px; overflow: hidden; opacity: 0; transition: opacity 150ms var(--tv-ease); pointer-events: none; }
+.tv-nav-progress::after { position: absolute; inset: 0; width: 35%; content: ''; background: var(--tv-gold); animation: tv-nav-progress 1.1s ease-in-out infinite; }
+.tv-nav-progress[data-active] { opacity: 1; }
+@keyframes tv-nav-progress { from { left: -35%; } to { left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .tv-nav-progress::after { width: 100%; animation: none; } }
+
 /* Cabeçalho móvel do painel; a navegação fica na dock compartilhada. */
 .tv-mobile-header { display: none; }
 @media (max-width: 767px) {
@@ -227,13 +235,6 @@
 .tv-shell-skeleton-rail { align-items: center; gap: 10px; padding-top: 14px; }
 .tv-shell-skeleton-mark { width: 32px; height: 32px; margin-bottom: 8px; border-radius: 10px; }
 .tv-shell-skeleton-icon { width: 28px; height: 28px; border-radius: 8px; }
-
-/* Navegação em andamento (NavigationProgress). */
-.tv-nav-progress { position: fixed; z-index: 120; top: 0; right: 0; left: 0; height: 2px; overflow: hidden; opacity: 0; transition: opacity 150ms var(--tv-ease); pointer-events: none; }
-.tv-nav-progress::after { position: absolute; inset: 0; width: 35%; content: ''; background: var(--tv-gold); animation: tv-nav-progress 1.1s ease-in-out infinite; }
-.tv-nav-progress[data-active] { opacity: 1; }
-@keyframes tv-nav-progress { from { left: -35%; } to { left: 100%; } }
-@media (prefers-reduced-motion: reduce) { .tv-nav-progress::after { width: 100%; animation: none; } }
 
 .tv-picker-card { position: relative; }
 .tv-picker-pending { position: absolute; top: 12px; right: 12px; }

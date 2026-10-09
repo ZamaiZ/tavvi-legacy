@@ -3,9 +3,36 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { ShellSkeleton } from '@/components/shell/shell-skeleton'
 import { uuidSchema } from '@/domain/common'
-import { MenuSkeleton } from '@/features/workspace/components/menu-skeleton'
+import { RestaurantRouteLoading } from '@/features/workspace/components/restaurant-route-loading'
 import { RestaurantShell } from '@/features/workspace/components/restaurant-shell'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
+import MenuLoading from './loading'
+import CallsLoading from './chamados/loading'
+import ContactLoading from './contact/loading'
+import FeedbacksLoading from './feedbacks/loading'
+import GettingStartedLoading from './getting-started/loading'
+import IdentityLoading from './identity/loading'
+import IdentifiersLoading from './identificadores/loading'
+import ServiceLoading from './service/loading'
+import SettingsLoading from './settings/loading'
+import TeamLoading from './team/loading'
+import AccountProfileLoading from './account/profile/loading'
+import AccountSettingsLoading from './account/settings/loading'
+
+const restaurantRouteSkeletons = {
+  '': <MenuLoading />,
+  chamados: <CallsLoading />,
+  contact: <ContactLoading />,
+  feedbacks: <FeedbacksLoading />,
+  'getting-started': <GettingStartedLoading />,
+  identity: <IdentityLoading />,
+  identificadores: <IdentifiersLoading />,
+  service: <ServiceLoading />,
+  settings: <SettingsLoading />,
+  team: <TeamLoading />,
+  'account/profile': <AccountProfileLoading />,
+  'account/settings': <AccountSettingsLoading />,
+}
 
 export async function generateMetadata({
   params,
@@ -21,7 +48,7 @@ export async function generateMetadata({
     : { title: 'Painel' }
 }
 
-  // Área segura do iPhone (cabeçalho, dock e sheets) e cor da barra do
+  // Área segura do iPhone (dock e sheets) e cor da barra do
 // navegador igual ao fundo agrupado do painel no celular.
 export const viewport: Viewport = {
   width: 'device-width',
@@ -48,7 +75,11 @@ export default async function RestaurantLayout({
   // "Interaction with loading.js"). Sem isso a navegação para um restaurante
   // travava até o layout terminar, sem esqueleto nenhum.
   return (
-    <Suspense fallback={<ShellSkeleton><MenuSkeleton /></ShellSkeleton>}>
+    <Suspense fallback={
+      <ShellSkeleton surface="restaurant">
+        <RestaurantRouteLoading skeletons={restaurantRouteSkeletons} />
+      </ShellSkeleton>
+    }>
       <RestaurantShell restaurantId={parsed.data}>{children}</RestaurantShell>
     </Suspense>
   )

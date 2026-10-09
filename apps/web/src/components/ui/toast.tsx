@@ -153,8 +153,7 @@ function currentToastPlacement(): { placement: ToastPlacement; offset: "header" 
     }
     return { placement: "bottom", offset: "edge" }
   }
-  // O painel e a lista de restaurantes têm cabeçalho fixo de 48 px; o
-  // console não.
+  // A lista de restaurantes tem cabeçalho fixo; o painel e o console não.
   const header = document.querySelector(".tv-mobile-header")
   return { placement: "top", offset: header ? "header" : "edge" }
 }

@@ -6,12 +6,12 @@ import { AccountPopover } from './account-popover'
 import { MobileDock } from './mobile-dock'
 import { CommandPalette } from './command-palette'
 import { flattenNavItems } from './navigation'
-import { NavigationProgress } from './navigation-progress'
 import { Sidebar, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { TavviShellConfig } from './navigation.types'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 import { toExternalPath } from '@/lib/route-paths'
+import { NavigationProgress } from './navigation-progress'
 
 export function TavviShell({
   config,

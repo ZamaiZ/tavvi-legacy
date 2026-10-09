@@ -36,7 +36,7 @@ export type MediaDraft = {
 }
 
 // O item inteiro em edição. Nada daqui vai ao servidor antes do "Salvar":
-// variações, mídia, ordem, capa e enquadramento vivem só no rascunho.
+// variações, mídia, ordem e capa vivem só no rascunho.
 export type ItemDraft = {
   name: string
   description: string
@@ -118,7 +118,7 @@ export function emptyDraft(categoryId: string): ItemDraft {
 }
 
 // O que conta como "mudou". Chaves locais e o estado da preparação não
-// contam; a mídia conta pela identidade, pela ordem e pelo enquadramento.
+// contam; a mídia conta pela identidade e pela ordem.
 export function draftFingerprint(draft: ItemDraft): string {
   return JSON.stringify({
     name: draft.name,
@@ -133,11 +133,7 @@ export function draftFingerprint(draft: ItemDraft): string {
       draft.pricing === 'variants'
         ? draft.variants.map((variant) => [variant.id ?? null, variant.name, variant.priceCents, variant.isAvailable])
         : [],
-    media: draft.media.map((media) => [
-      media.source.type === 'saved' ? media.source.id : media.key,
-      media.focalX,
-      media.focalY,
-    ]),
+    media: draft.media.map((media) => media.source.type === 'saved' ? media.source.id : media.key),
   })
 }
 

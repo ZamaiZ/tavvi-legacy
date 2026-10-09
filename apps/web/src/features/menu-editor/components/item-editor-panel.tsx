@@ -117,7 +117,7 @@ function ItemEditorBody({
           <section className="tv-ipanel-media">
             <div className="tv-ipanel-section-head">
               <h3>Fotos e vídeos</h3>
-              <p>A primeira abre o prato. Arraste para mudar a ordem; selecione uma foto para ajustar o enquadramento.</p>
+              <p>A primeira abre o prato. Arraste para mudar a ordem.</p>
             </div>
             <ItemMediaField
               media={values.media}
@@ -129,7 +129,6 @@ function ItemEditorBody({
               onRemove={draft.removeMedia}
               onMove={draft.moveMedia}
               onMakeCover={draft.makeCover}
-              onFocal={draft.setFocal}
             />
           </section>
           <section className="tv-ipanel-data">
@@ -255,8 +254,8 @@ function ItemEditorBody({
         icon={<LuTrash2 />}
         title="Descartar alterações?"
         description={creating ? 'O item não será criado, e as fotos e os vídeos escolhidos serão descartados.' : 'As alterações deste item serão perdidas.'}
-        confirmLabel="Descartar e fechar"
-        cancelLabel="Continuar editando"
+        confirmLabel="Descartar"
+        cancelLabel="Cancelar"
         destructive
         onConfirm={onClose}
       />

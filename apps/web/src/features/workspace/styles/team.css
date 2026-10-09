@@ -105,7 +105,7 @@
 .workspace-territory .tv-team-copy { height: 34px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--tv-line-2); border-radius: 999px; background: var(--tv-surface); color: var(--tv-text); font-size: 13px; font-weight: 500; cursor: pointer; }
 .workspace-territory .tv-team-copy svg { width: 14px; height: 14px; }
 
-.workspace-territory .tv-team-discard { position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 18px; background: var(--tv-surface); text-align: center; }
+.workspace-territory .tv-team-discard { position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 18px; background: color-mix(in srgb, var(--tv-surface) 88%, transparent); text-align: center; }
 .workspace-territory .tv-team-discard > span { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--tv-warn-soft); color: var(--tv-warn); }
 .workspace-territory .tv-team-discard > span svg { width: 18px; height: 18px; }
 .workspace-territory .tv-team-discard h2 { margin: 4px 0 0; font-size: 16px; font-weight: 600; }

@@ -28,7 +28,7 @@ function statusText(status: TileStatus, progress: number): string | null {
 
 // Tile quadrado da grade de mídia. Mídia gravada e nova, na MESMA lista:
 // no feed a ordem das duas é uma só. O tile inteiro arrasta (mouse e toque);
-// o botão interno seleciona para o enquadramento e é o ativador do teclado.
+// o botão interno é o ativador do teclado.
 export function ItemMediaTile({
   id,
   title,
@@ -37,8 +37,6 @@ export function ItemMediaTile({
   progress,
   cover,
   disabled,
-  selected,
-  onSelect,
   onRemove,
   onMakeCover,
 }: {
@@ -49,8 +47,6 @@ export function ItemMediaTile({
   progress: number
   cover: boolean
   disabled: boolean
-  selected: boolean
-  onSelect?: () => void
   onRemove: () => void
   onMakeCover: () => void
 }) {
@@ -66,7 +62,7 @@ export function ItemMediaTile({
           <div
             ref={setNodeRef}
             style={{ transform: CSS.Transform.toString(transform), transition }}
-            className={`tv-media-tile${selected ? ' is-selected' : ''}${isDragging ? ' is-placeholder' : ''}${status === 'error' ? ' is-error' : ''}`}
+            className={`tv-media-tile${isDragging ? ' is-placeholder' : ''}${status === 'error' ? ' is-error' : ''}`}
             onMouseDown={(event) => { if (fromInside(event)) listeners?.onMouseDown?.(event) }}
             onTouchStart={(event) => { if (fromInside(event)) listeners?.onTouchStart?.(event) }}
           />
@@ -77,10 +73,8 @@ export function ItemMediaTile({
           type="button"
           className="tv-media-select"
           {...attributes}
-          aria-pressed={onSelect ? selected : undefined}
-          aria-label={onSelect ? `${label}. Selecionar para ajustar o enquadramento` : label}
+          aria-label={label}
           onKeyDown={(event) => listeners?.onKeyDown?.(event)}
-          onClick={onSelect}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {previewUrl ? <img src={previewUrl} alt="" draggable={false} /> : <LuFilm aria-hidden="true" />}

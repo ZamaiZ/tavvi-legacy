@@ -4,7 +4,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
 import { MobileDock } from './mobile-dock'
-import { NavigationProgress } from './navigation-progress'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
@@ -15,6 +14,7 @@ import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 import { ACTIVE_PANEL_RESTAURANT_COOKIE, toExternalPath } from '@/lib/route-paths'
 import { countPendingServiceCallsAction } from '@/server/actions/service-calls'
 import { useServiceCallsRealtime } from '@/features/calls/use-service-calls-realtime'
+import { NavigationProgress } from './navigation-progress'
 
 type InviteRequest = { email?: string; inviteId?: string }
 
@@ -199,13 +199,12 @@ export function ConsoleShell({
   // painel), inclusive quando o tema escolhido difere do tema do sistema.
   useThemeColorSync('#F2F0EB', '#0D0C0A')
 
-  return <ConsoleActionsContext.Provider value={context}>
+  return <NavigationProgress><ConsoleActionsContext.Provider value={context}>
     <ConsoleInviteContext.Provider value={inviteContext}>
       <ConsoleAccountContext.Provider value={accountContext}>
         <RestaurantShellContext.Provider value={restaurantContext}>
         <NotificationsContext.Provider value={notifications}>
         <ShellCountsContext.Provider value={shellCounts}>
-        <NavigationProgress>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
             items={navigationEntries}
@@ -218,7 +217,7 @@ export function ConsoleShell({
             onSearch={() => setPaletteOpen(true)}
             onAccount={() => setAccountOpen((open) => !open)}
             onToggle={toggleRailMode}
-            mobileChrome={surface === 'console' ? 'none' : 'header'}
+            mobileChrome="none"
             switcher={config.restaurant ? { restaurants: config.restaurant.restaurants, currentId: config.restaurant.restaurantId } : undefined}
             accountBadge={notifications.unreadCount > 0}
             callsArrivalKey={callsArrivalKey}
@@ -255,11 +254,10 @@ export function ConsoleShell({
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>
-        </NavigationProgress>
         </ShellCountsContext.Provider>
         </NotificationsContext.Provider>
         </RestaurantShellContext.Provider>
       </ConsoleAccountContext.Provider>
     </ConsoleInviteContext.Provider>
-  </ConsoleActionsContext.Provider>
+  </ConsoleActionsContext.Provider></NavigationProgress>
 }

@@ -77,7 +77,7 @@
   :is(.admin-territory, .workspace-territory) .tv-dock-pending-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; gap: 12px; }
   :is(.admin-territory, .workspace-territory) .tv-dock-home .tv-dock-pending-wrap { justify-content: center; }
   :is(.admin-territory, .workspace-territory) .tv-dock-pending { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: color-mix(in srgb, var(--tv-surface) 35%, transparent); backdrop-filter: blur(2px); }
-  :is(.admin-territory, .workspace-territory) .tv-dock-scrim { position: fixed; z-index: 60; inset: 0; width: 100%; height: 100%; display: block; border: 0; background: color-mix(in srgb, var(--tv-text) 45%, transparent); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-scrim { position: fixed; z-index: 60; inset: 0; width: 100%; height: 100%; display: block; border: 0; background: color-mix(in srgb, var(--tv-text) 45%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
   :is(.admin-territory, .workspace-territory) .tv-dock-pages {
     position: fixed;
     z-index: 65;
@@ -115,8 +115,8 @@
   :is(.admin-territory, .workspace-territory) .tv-dock-link-copy strong { font-size: 14px; font-weight: 600; }
   :is(.admin-territory, .workspace-territory) .tv-dock-link-copy small { color: var(--tv-text-3); font-size: 11px; line-height: 1.3; }
   :is(.admin-territory, .workspace-territory) .tv-dock-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--tv-gold); color: #17150F; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
-  :is(.admin-territory, .workspace-territory) .tv-account-popover { z-index: 72; left: 12px; bottom: calc(88px + env(safe-area-inset-bottom)); width: min(280px, calc(100vw - 24px)); max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; border: 1px solid var(--tv-line-2); border-radius: 18px; background: color-mix(in srgb, var(--tv-surface) 92%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: var(--tv-pop); }
-  :is(.admin-territory, .workspace-territory) .tv-account-popover::before { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover { z-index: 72; left: 12px; bottom: calc(88px + env(safe-area-inset-bottom)); width: min(280px, calc(100vw - 24px)); max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; border: 1px solid var(--tv-line-2); border-radius: 18px; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--tv-pop); }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover::before { background: var(--tv-mat); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); box-shadow: var(--tv-pop-lg), inset 0 0 0 .5px var(--tv-line-2); }
   :is(.admin-territory, .workspace-territory) .tv-account-popover .tv-notif-panel { position: static; width: auto; max-height: min(360px, 42dvh); flex: 0 1 auto; margin: 4px; transform-origin: top; }
   :is(.admin-territory, .workspace-territory) .tv-popover-catcher { z-index: 71; }
 }
