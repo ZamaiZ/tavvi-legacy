@@ -1,5 +1,5 @@
 /* Central de notificações: console e painel, desktop e celular. Só
-   tokens --tv-*; o badge repete as cores do .tv-tabbar-badge. */
+   tokens --tv-*; o badge repete as cores do contador da navegação móvel. */
 
 .tv-notif-count { min-width: 18px; height: 18px; margin-left: auto; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--tv-gold); color: #17150F; font-size: 11px; font-weight: 700; line-height: 18px; white-space: nowrap; }
 .tv-notif-count.is-row { margin-right: 4px; }

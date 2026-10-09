@@ -1,16 +1,15 @@
 /* Console da plataforma no celular. Referência: o app do console
    (Tavvi Mobile.dc.html, telefone da esquerda) e os prints do handoff.
    Regra da casa: tudo aqui vale só abaixo de 768 px e só no console
-   ([data-surface="console"]). A base comum (tab bar, grupos, pílulas,
-   sheet) está em mobile-base.css. */
+   ([data-surface="console"]). Os sheets, grupos e pílulas usam
+   mobile-base.css; a navegação usa mobile-dock.css. */
 
 @media (max-width: 767px) {
   /* Tokens do celular. Os apelidos (--tv-field, --tv-panel...) são
      redeclarados aqui porque herdam já resolvidos do território: sem isso
-     continuariam com as cores do desktop. */
+     continuariam com as cores do desktop. A dock define o espaço inferior. */
   [data-surface="console"] {
     --tv-gutter: 16px;
-    --tv-tabbar-height: calc(49px + env(safe-area-inset-bottom));
     --tv-bg: #F2F0EB;
     --tv-scrim: rgba(22,20,15,.28);
     --tv-screen: var(--tv-bg);
@@ -46,7 +45,7 @@
   [data-surface="console"] .tv-console-main {
     min-height: 100dvh;
     margin: 0;
-    padding: calc(env(safe-area-inset-top) + 8px) 0 calc(var(--tv-tabbar-height) + 24px);
+    padding: calc(env(safe-area-inset-top) + 8px) 0 calc(var(--tv-dock-space) + 24px);
     overflow-x: clip;
     background: var(--tv-bg);
   }

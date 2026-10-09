@@ -86,7 +86,7 @@ export function Sidebar({
   onSearch,
   onAccount,
   onToggle,
-  mobileChrome = 'full',
+  mobileChrome = 'none',
   switcher,
   accountBadge = false,
   callsArrivalKey = 0,
@@ -103,9 +103,8 @@ export function Sidebar({
   onSearch?: () => void
   onAccount: () => void
   onToggle: () => void
-  /** Celular: `full` (cabeçalho com conta e abas, seletor de restaurantes),
-      `header` (só o cabeçalho, painel com tab bar) ou `none` (console). */
-  mobileChrome?: 'full' | 'header' | 'none'
+  /** Cabeçalho mobile do painel/seletor ou sem cabeçalho no console. */
+  mobileChrome?: 'header' | 'none'
   /** Com 2 ou mais restaurantes, o bloco da marca vira o seletor. */
   switcher?: { restaurants: RestaurantSwitchEntry[]; currentId: string }
   callsArrivalKey?: number
@@ -137,7 +136,7 @@ export function Sidebar({
     setCommandPaletteOpen(true)
   }
 
-  function links(mobile = false) {
+  function links() {
     return items.map((item) => {
       const Icon = getNavIcon(item.icon)
       const selected = item.href === activeHref
@@ -147,10 +146,10 @@ export function Sidebar({
           key={item.href}
           href={item.href}
           aria-current={selected ? 'page' : undefined}
-          aria-label={mobile || !expanded ? item.label : undefined}
-          title={!mobile && !expanded ? item.label : undefined}
+          aria-label={!expanded ? item.label : undefined}
+          title={!expanded ? item.label : undefined}
           ref={item.icon === 'bell' ? callsLinkRef : undefined}
-          className={`tv-sidebar-link${selected ? ' is-active' : ''}${loading ? ' is-loading' : ''}${mobile ? ' is-mobile' : ''}${item.icon === 'bell' && (item.count ?? 0) > 0 ? ' has-call-pending' : ''}`}
+          className={`tv-sidebar-link${selected ? ' is-active' : ''}${loading ? ' is-loading' : ''}${item.icon === 'bell' && (item.count ?? 0) > 0 ? ' has-call-pending' : ''}`}
           onClick={(event) => {
             if (item.href !== activeHref && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
               onNavigate?.(item.href)
@@ -235,14 +234,12 @@ export function Sidebar({
       </aside>
       {switchOpen && switcher ? <RestaurantSwitcher restaurants={switcher.restaurants} currentId={switcher.currentId} onClose={closeSwitch} /> : null}
 
-      {mobileChrome !== 'none' ? <>
+      {mobileChrome === 'header' ? <>
         <header className="tv-mobile-header">
           <BrandMark brand={identity.brand} />
           <span className="tv-mobile-context"><strong>{identity.title}</strong><small>{identity.subtitle}</small></span>
           <button type="button" className="tv-mobile-search" aria-label="Buscar páginas" onClick={openSearch}><LuSearch /></button>
-          {mobileChrome === 'full' ? <button type="button" className="tv-mobile-account" aria-label="Abrir conta" onClick={onAccount}>{initial}</button> : null}
         </header>
-        {mobileChrome === 'full' ? <nav className="tv-mobile-tabs" aria-label="Navegação principal">{links(true)}</nav> : null}
       </> : null}
     </>
   )

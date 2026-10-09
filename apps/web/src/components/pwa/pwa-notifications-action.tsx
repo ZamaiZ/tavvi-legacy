@@ -23,8 +23,8 @@ const PENDING_LABEL: Record<string, string> = {
 }
 
 // Push deste aparelho: no desktop, como interruptor na página Configurações
-// (`group`); no celular, como linha da folha de Ajustes do painel e da
-// subtela Conta do console (`row`). A permissão do navegador só é pedida
+// (`group`); no celular, como linha das subtelas de conta e notificações
+// (`row`). A permissão do navegador só é pedida
 // num toque, nunca sozinha. Sem suporte, não renderiza nada — nem o rótulo.
 export function PwaNotificationsAction({ variant, className, label }: { variant: 'row' | 'group'; className?: string; label?: string }) {
   const { availability, subscribed, pending, enable, disable } = usePush()

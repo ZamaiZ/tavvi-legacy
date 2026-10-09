@@ -7,7 +7,6 @@
 @media (max-width: 767px) {
   .workspace-territory:has([data-surface="restaurant"]) {
     --tv-gutter: 16px;
-    --tv-tabbar-height: calc(49px + env(safe-area-inset-bottom));
     --tv-mheader-height: calc(48px + env(safe-area-inset-top));
     --tv-bg: #F2F0EB;
     --tv-scrim: rgba(22,20,15,.28);
@@ -52,10 +51,9 @@
   [data-surface="restaurant"] .tv-mobile-search { color: var(--tv-text-2); }
   [data-surface="restaurant"] .tv-mobile-search svg { width: 19px; height: 19px; }
   [data-surface="restaurant"] .tv-mobile-search:active { opacity: .5; transition-duration: 0s; }
-  [data-surface="restaurant"] .tv-mobile-account:active { opacity: .7; transition-duration: 0s; }
   [data-surface="restaurant"] .tv-console-main {
     min-height: 100dvh;
-    padding: var(--tv-mheader-height) 0 calc(var(--tv-tabbar-height) + 24px);
+    padding: var(--tv-mheader-height) 0 calc(var(--tv-dock-space) + 24px);
     overflow-x: clip;
     background: var(--tv-bg);
   }
@@ -110,10 +108,10 @@
   .workspace-territory .tv-mrest-mark.is-logo img { width: 100%; height: 100%; padding: 3px; object-fit: contain; }
 }
 
-/* Identidade e Contato no celular: telas empilhadas a partir de Ajustes.
-   Mesmo conteúdo; mudam o topo, as margens e o que flutua sobre a tab bar. */
+/* Identidade e Contato no celular: telas de edição acessíveis pela navegação.
+   Mesmo conteúdo; mudam o topo, as margens e o que flutua sobre a dock. */
 @media (max-width: 767px) {
-  .workspace-territory :is(.tv-identity-page, .tv-contact-page) { padding: 0 var(--tv-gutter) calc(var(--tv-tabbar-height) + 24px); }
+  .workspace-territory :is(.tv-identity-page, .tv-contact-page) { padding: 0 var(--tv-gutter) calc(var(--tv-dock-space) + 24px); }
   .workspace-territory :is(.tv-identity-page, .tv-contact-page) > .tv-m-navbar { margin-left: -4px; }
   .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header { margin-bottom: 14px; gap: 0; }
   .workspace-territory :is(.tv-identity-page, .tv-contact-page) .tv-page-header > div > p:first-child { display: none; }
@@ -122,7 +120,7 @@
   /* Barra de salvar: status numa linha e, embaixo, os botões de 44 px
      dividindo toda a largura. Nada quebra nem vaza. Os 52 px à direita são
      do botão da prévia, na mesma altura. */
-  .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) { bottom: calc(var(--tv-tabbar-height) + 12px); margin-right: 52px; padding: 10px; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; border-radius: 20px; }
+  .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) { bottom: calc(var(--tv-dock-space) + 12px); margin-right: 52px; padding: 10px; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; border-radius: 20px; }
   .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) > span { min-width: 0; padding: 0 6px; overflow: hidden; font-size: 13px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
   .workspace-territory :is(.tv-identity-savebar, .tv-contact-savebar) > div { min-width: 0; flex: none; display: flex; gap: 8px; }
   .workspace-territory :is(.tv-identity-reset, .tv-identity-save, .tv-contact-discard, .tv-contact-save) { min-width: 0; height: 44px; flex: 1 1 0; justify-content: center; padding: 0 10px; font-size: 15px; }
@@ -131,7 +129,7 @@
   .workspace-territory :is(.tv-identity-reset, .tv-identity-save) > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .workspace-territory .tv-savebar-long { display: none; }
   .workspace-territory .tv-savebar-short { display: inline; }
-  .workspace-territory .tv-floating-preview { right: 16px; bottom: calc(var(--tv-tabbar-height) + 12px); }
+  .workspace-territory .tv-floating-preview { right: 16px; bottom: calc(var(--tv-dock-space) + 12px); }
   .workspace-territory .tv-floating-preview-trigger { width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; border: 0; border-radius: 50%; background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-pop); }
   .workspace-territory .tv-floating-preview-trigger > span { display: none; }
   .workspace-territory .tv-floating-preview-trigger svg { width: 20px; height: 20px; }

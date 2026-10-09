@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from 'cn'
 import { AccountPopover } from './account-popover'
+import { MobileDock } from './mobile-dock'
 import { CommandPalette } from './command-palette'
 import { flattenNavItems } from './navigation'
 import { NavigationProgress } from './navigation-progress'
@@ -31,9 +32,11 @@ export function TavviShell({
   const mode = useRailMode(initialRail)
   const [accountOpen, setAccountOpen] = useState(false)
   const accountButtonRef = useRef<HTMLButtonElement>(null)
+  const mobileAccountButtonRef = useRef<HTMLButtonElement>(null)
   const closeAccount = useCallback(() => {
     setAccountOpen(false)
-    accountButtonRef.current?.focus()
+    const target = window.matchMedia('(max-width: 767px)').matches ? mobileAccountButtonRef.current : accountButtonRef.current
+    target?.focus()
   }, [])
   const expanded = mode === 'pinned'
   const sidebarWidth = expanded ? 232 : 60
@@ -56,6 +59,7 @@ export function TavviShell({
       const editable = target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
       if (event.repeat || editable) return
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
+        if (window.matchMedia('(max-width: 767px)').matches) return
         event.preventDefault()
         toggleRailMode()
       }
@@ -77,8 +81,20 @@ export function TavviShell({
         accountButtonRef={accountButtonRef}
         onAccount={() => setAccountOpen((open) => !open)}
         onToggle={toggleRailMode}
+        mobileChrome="header"
       />
       <main className={cn('tv-console-main', className)}>{children}</main>
+      <MobileDock
+        entries={entries}
+        groupLabel={sidebar.section}
+        groupIcon="store"
+        homeHref={config.homeHref}
+        subtitle="Acesse seus restaurantes"
+        accountOpen={accountOpen}
+        accountButtonRef={mobileAccountButtonRef}
+        onAccount={() => setAccountOpen((open) => !open)}
+        onCloseAccount={() => setAccountOpen(false)}
+      />
       <CommandPalette config={config} />
       {accountOpen ? <AccountPopover
         email={config.userLabel} name={config.userName ?? null} description={null}

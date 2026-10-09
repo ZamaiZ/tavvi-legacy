@@ -16,7 +16,7 @@ import { PwaProvider } from '@/components/pwa/pwa-provider'
 import { pwaMetadata } from '@/lib/pwa'
 import { env } from '@/server/env'
 
-// Área segura do iPhone (tab bar e sheet) e cor da barra do navegador igual
+  // Área segura do iPhone (dock e sheet) e cor da barra do navegador igual
 // ao fundo agrupado do console no celular.
 export const viewport: Viewport = {
   width: 'device-width',

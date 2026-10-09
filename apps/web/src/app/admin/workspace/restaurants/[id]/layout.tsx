@@ -21,7 +21,7 @@ export async function generateMetadata({
     : { title: 'Painel' }
 }
 
-// Área segura do iPhone (cabeçalho, tab bar e sheets) e cor da barra do
+  // Área segura do iPhone (cabeçalho, dock e sheets) e cor da barra do
 // navegador igual ao fundo agrupado do painel no celular.
 export const viewport: Viewport = {
   width: 'device-width',

@@ -6,8 +6,6 @@
    vencendo. O escopo é o território, e não o shell, porque o painel porta
    sheets e alertas para `.workspace-territory`. */
 
-.tv-tabbar { display: none; }
-
 @media (min-width: 768px) {
   .tv-m-only { display: none !important; }
 }
@@ -16,63 +14,6 @@
 
 @media (max-width: 767px) {
   :is(.admin-territory, .workspace-territory) .tv-d-only { display: none !important; }
-
-  /* Tab bar do iOS: rótulo sempre visível, dourado só na ativa. A contagem
-     de colunas vem do MobileTabBar (--tv-tab-count). */
-  :is(.admin-territory, .workspace-territory) .tv-tabbar {
-    position: fixed;
-    z-index: 45;
-    inset: auto 0 0;
-    height: var(--tv-tabbar-height);
-    padding: 7px 0 env(safe-area-inset-bottom);
-    display: grid;
-    grid-template-columns: repeat(var(--tv-tab-count, 3), minmax(0, 1fr));
-    border-top: .5px solid var(--tv-line-2);
-    background: var(--tv-bar);
-    -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    backdrop-filter: blur(20px) saturate(1.6);
-  }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-item {
-    min-height: 44px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    color: var(--tv-text-3);
-    font-size: 10.5px;
-    font-weight: 500;
-    line-height: 1.2;
-    text-decoration: none;
-  }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-item.is-active { color: var(--tv-gold-text); }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-item:active { opacity: .6; transition-duration: 0s; }
-  :is(.admin-territory, .workspace-territory) button.tv-tabbar-item { padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-icon { position: relative; width: 24px; height: 24px; }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-icon > svg { width: 24px; height: 24px; stroke-width: 1.7; }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-badge {
-    position: absolute;
-    top: -3px;
-    left: calc(50% + 6px);
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: var(--tv-gold);
-    color: #17150F;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 18px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-  :is(.admin-territory, .workspace-territory) .tv-tabbar-item.has-call-pending .tv-tabbar-badge {
-    min-width: 21px;
-    height: 21px;
-    background: var(--tv-danger);
-    box-shadow: 0 0 0 2px var(--tv-bar);
-    color: var(--tv-btn-text);
-    line-height: 21px;
-  }
 
   /* Primitivos das telas do celular. */
   :is(.admin-territory, .workspace-territory) .tv-m-title {

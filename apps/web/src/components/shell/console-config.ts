@@ -1,6 +1,5 @@
 import { restaurantInitials } from '@/lib/initials'
-import { getRestaurantMobileTabs } from './navigation'
-import type { MobileTab, NavIconName } from './navigation.types'
+import type { NavIconName } from './navigation.types'
 import type { SidebarIdentity } from './sidebar'
 
 export type ConsoleIcon = NavIconName
@@ -53,7 +52,6 @@ export type ConsoleConfig = {
   showNewInvite?: boolean
   counts?: { pendingInvites: number; restaurants: number; unreadFeedback?: number; unreadNotifications?: number; pendingServiceCalls?: number }
   railWidths?: { collapsed: number; pinned: number }
-  mobileTabs?: MobileTab[]
   restaurant?: RestaurantShellInfo
   sidebar: SidebarIdentity
 }
@@ -90,10 +88,6 @@ export function getConsoleConfig(user: { email?: string | null } | null, display
     userDescription: 'Administrador da plataforma',
     homeHref: '/',
     showNewInvite: true,
-    mobileTabs: [
-      { key: 'invites', href: '/', match: ['/convites'], label: 'Convites', icon: 'mail' },
-      { key: 'restaurants', href: '/restaurantes', label: 'Restaurantes', icon: 'store' },
-    ],
     railWidths: { collapsed: 60, pinned: 232 },
     sidebar: {
       brand: { kind: 'tavvi' },
@@ -156,7 +150,6 @@ export function getRestaurantConsoleConfig({
     showNewInvite: false,
     counts: { pendingInvites: 0, restaurants: 0, unreadFeedback, unreadNotifications, pendingServiceCalls },
     railWidths: { collapsed: 60, pinned: 232 },
-    mobileTabs: getRestaurantMobileTabs(restaurantId, canEdit),
     restaurant: { restaurantId, canEdit, restaurants },
     sidebar: {
       brand: { kind: 'restaurant', logoUrl, initials: restaurantInitials(restaurantName) },

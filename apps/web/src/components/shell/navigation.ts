@@ -1,4 +1,4 @@
-import type { MobileTab, NavGroup, NavItem, NavLeaf } from './navigation.types'
+import type { NavGroup, NavItem, NavLeaf } from './navigation.types'
 import { toExternalPath } from '@/lib/route-paths'
 
 export function getAdminNavigation(): NavItem[] {
@@ -66,6 +66,13 @@ export function getRestaurantNavigation(
       description: 'Categorias, itens e publicação',
       keywords: ['menu', 'produto', 'preço'],
     },
+    {
+      kind: 'leaf',
+      href: `${root}/servico`,
+      label: 'Serviço',
+      icon: 'service',
+      description: 'Disponibilidade dos itens',
+    },
   ]
 
   if (canEdit) {
@@ -126,30 +133,10 @@ export function getRestaurantNavigation(
       id: 'restaurant',
       label: 'Restaurante',
       icon: 'restaurant',
-      description: 'Cardápio e configurações',
+      description: 'Cardápio e operações',
       children,
     },
   ]
-}
-
-// Tab bar do painel no celular (Tavvi Mobile.dc.html, tabsB). Feedbacks e
-// Equipe só para administrador; Identidade e Contato moram dentro de Ajustes.
-export function getRestaurantMobileTabs(restaurantId: string, canEdit: boolean): MobileTab[] {
-  const root = `/restaurantes/${restaurantId}`
-  const tabs: MobileTab[] = [
-    { key: 'menu', href: root, label: 'Cardápio', icon: 'menu', exact: true },
-    { key: 'service', href: `${root}/servico`, label: 'Serviço', icon: 'service' },
-  ]
-  // Cardápio · Serviço · Feedbacks · Equipe · Ajustes: 5 abas, o máximo da
-  // barra do iOS.
-  if (canEdit) {
-    tabs.push(
-      { key: 'feedback', href: `${root}/feedbacks`, label: 'Feedbacks', icon: 'feedback' },
-      { key: 'team', href: `${root}/equipe`, label: 'Equipe', icon: 'team' },
-    )
-  }
-  tabs.push({ key: 'settings', href: `${root}/ajustes`, label: 'Ajustes', icon: 'settings', match: [`${root}/identidade`, `${root}/contato`] })
-  return tabs
 }
 
 export function externalPathname(pathname: string) {

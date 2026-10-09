@@ -27,7 +27,7 @@ export default async function Page({
 
   return (
     <main className="tv-identity-page">
-      <MobileNavBar backHref={`/restaurantes/${restaurant.id}/ajustes`} backLabel="Ajustes" />
+      <MobileNavBar backHref={`/restaurantes/${restaurant.id}`} backLabel="Cardápio" />
       <PageHeader
         className="tv-page-header"
         eyebrow="Marca"

@@ -1,10 +1,9 @@
-import { notFound } from 'next/navigation'
-import { SettingsMobile } from '@/features/workspace/components/mobile/settings-mobile'
+import { notFound, redirect } from 'next/navigation'
 import { uuidSchema } from '@/domain/common'
 import { requireUser } from '@/server/dal/auth'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 
-export const metadata = { title: 'Ajustes' }
+export const metadata = { title: 'Cardápio' }
 
 export default async function Page({
   params,
@@ -22,5 +21,5 @@ export default async function Page({
   const workspace = await getRestaurantWorkspace(parsed.data)
   if (!workspace) notFound()
 
-  return <SettingsMobile />
+  redirect(`/restaurantes/${workspace.restaurant.id}`)
 }

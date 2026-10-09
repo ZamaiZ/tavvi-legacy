@@ -8,7 +8,7 @@ import { LuBell } from 'react-icons/lu'
 import { markStackedFromList } from '@/lib/viewport'
 
 // Serviço (Tavvi Mobile.dc.html, bService): a disponibilidade dos itens
-// visíveis, um toque por item. No celular é aba própria. No desktop a rota
+// visíveis, um toque por item. No celular está na lista de páginas. No desktop a rota
 // também abre, com o cabeçalho do painel, e o modo "Trabalhar › Serviço"
 // continua dentro do Cardápio.
 export function ServiceScreen({

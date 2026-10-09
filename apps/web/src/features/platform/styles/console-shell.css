@@ -204,8 +204,8 @@
 
 @keyframes tv-pop-in { from { opacity: 0; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: none; } }
 
-/* Barra superior e abas do painel no celular; o console usa console-mobile.css. */
-.tv-mobile-header, .tv-mobile-tabs { display: none; }
+/* Cabeçalho móvel do painel; a navegação fica na dock compartilhada. */
+.tv-mobile-header { display: none; }
 @media (max-width: 767px) {
   .tv-sidebar { display: none; }
   .tv-mobile-header { position: fixed; z-index: 40; inset: 0 0 auto; height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--tv-line); background: var(--tv-side); }
@@ -213,16 +213,9 @@
   .tv-mobile-context { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
   .tv-mobile-context strong { overflow: hidden; color: var(--tv-text); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
   .tv-mobile-context small { overflow: hidden; color: var(--tv-text-3); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-  .tv-mobile-search, .tv-mobile-account { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--tv-text-2); }
+  .tv-mobile-search { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--tv-text-2); }
   .tv-mobile-search svg { width: 18px; height: 18px; }
-  .tv-mobile-account { background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 13px; font-weight: 600; }
-  .tv-mobile-tabs { position: fixed; z-index: 40; inset: auto 0 0; min-height: calc(84px + env(safe-area-inset-bottom)); padding: 8px 8px calc(18px + env(safe-area-inset-bottom)); display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; align-items: center; border-top: 1px solid var(--tv-line); background: var(--tv-bar, var(--tv-side)); backdrop-filter: blur(20px); }
-  .tv-mobile-tabs .tv-sidebar-link { height: 48px; padding: 4px 2px; flex-direction: column; justify-content: center; gap: 2px; border-radius: 9px; }
-  .tv-mobile-tabs .tv-sidebar-link > svg { width: 20px; height: 20px; }
-  .tv-mobile-tabs .tv-sidebar-link > span { display: block; flex: initial; font-size: 10.5px; text-align: center; }
-  .tv-mobile-tabs .tv-sidebar-link > small { display: none; }
-  .tv-console-main { min-height: 100dvh; margin: 0; padding: 48px 0 calc(84px + env(safe-area-inset-bottom)); }
-  .tv-account-popover { left: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(300px, calc(100vw - 24px)); }
+  .tv-console-main { min-height: 100dvh; margin: 0; padding: 48px 0 calc(var(--tv-dock-space, 80px) + 24px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

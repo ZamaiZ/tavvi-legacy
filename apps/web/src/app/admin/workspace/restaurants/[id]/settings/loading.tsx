@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Espelha Ajustes: título e três grupos.
+// Estado mínimo enquanto confirma a participação antes do redirect ao Cardápio.
 export default function Loading() {
   return (
     <div className="tv-mp tv-msettings" aria-busy="true">

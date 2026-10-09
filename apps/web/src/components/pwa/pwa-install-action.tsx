@@ -15,7 +15,7 @@ function HelpText({ help }: { help: Help }) {
     : <>No menu Arquivo, escolha <strong>Adicionar ao Dock</strong>.</>
 }
 
-// "Instalar app": linha agrupada no celular (Ajustes do painel, Conta do
+// "Instalar app": linha agrupada no celular (Conta do painel, Conta do
 // console) e no grupo de "Notificações" do popover de conta no desktop. Só
 // aparece quando dá para instalar e o app não está aberto instalado. Nada
 // acontece sem um toque.

@@ -103,7 +103,7 @@ export function IdentificadoresScreen({ restaurantId, initialTags }: { restauran
   }
 
   return <div className="tv-tags-page">
-    <MobileNavBar backHref={`/restaurantes/${restaurantId}/ajustes`} backLabel="Ajustes" />
+    <MobileNavBar backHref={`/restaurantes/${restaurantId}`} backLabel="Cardápio" />
     <div className="tv-tags-heading">
       <PageHeader className="tv-page-header" eyebrow="Atendimento" title="Identificadores" description="Cada mesa tem um link permanente para acessar o cardápio e chamar a equipe." />
       <button type="button" className="tv-tags-create-button" aria-label="Novo identificador" aria-haspopup="dialog" onClick={() => setPanel({ mode: 'create' })}><LuPlus aria-hidden="true" /><span className="tv-tags-create-full">Novo identificador</span><span className="tv-tags-create-short">Novo</span></button>

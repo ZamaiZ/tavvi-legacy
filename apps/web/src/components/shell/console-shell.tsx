@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
-import { MobileTabBar } from './mobile-tab-bar'
+import { MobileDock } from './mobile-dock'
 import { NavigationProgress } from './navigation-progress'
 import { Sidebar } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
@@ -35,8 +35,8 @@ export function useConsoleInvite() {
   return context
 }
 
-// Estado do sheet da aba Conta (celular). O sheet vem do layout pela prop
-// `accountSheet`, no mesmo padrão do `inviteOverlay`.
+// Opções avançadas da conta no celular, abertas pelo menu de perfil.
+// O sheet vem do layout pela prop `accountSheet`.
 export function useConsoleAccount() {
   const context = useContext(ConsoleAccountContext)
   if (!context) throw new Error('useConsoleAccount precisa estar dentro de ConsoleShell')
@@ -148,7 +148,8 @@ export function ConsoleShell({
   const inviteContext = useMemo(() => ({ request: inviteRequest, onClose: closeInvite }), [closeInvite, inviteRequest])
   const closeAccount = useCallback(() => {
     setAccountOpen(false)
-    accountButtonRef.current?.focus()
+    const target = window.matchMedia('(max-width: 767px)').matches ? accountTabRef.current : accountButtonRef.current
+    target?.focus()
   }, [])
   const navigateFromAccount = useCallback((href?: string) => {
     setAccountOpen(false)
@@ -166,19 +167,19 @@ export function ConsoleShell({
   }, [])
   const accountContext = useMemo(() => ({ open: accountSheetOpen, email, name, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email, name])
   const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email, name } : null), [config.restaurant, email, name])
-  const mobileTabs = (config.mobileTabs ?? []).map((tab) => {
-    if (tab.key === 'invites') return { ...tab, badge: counts.pendingInvites }
-    if (tab.key === 'feedback') return { ...tab, badge: unreadFeedback }
-    if (tab.key === 'service') return { ...tab, badge: pendingServiceCalls }
-    // Ajustes do painel abriga a central: o badge é o das notificações.
-    if (tab.key === 'settings') return { ...tab, badge: notifications.unreadCount }
-    return tab
-  })
+  const navigationEntries = leaves.map((leaf) => ({
+    href: leaf.href,
+    label: leaf.label,
+    description: leaf.sub,
+    icon: leaf.icon,
+    count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : leaf.icon === 'bell' ? pendingServiceCalls || undefined : undefined,
+  }))
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const editable = event.target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable)
       if (event.repeat || editable) return
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+        if (window.matchMedia('(max-width: 767px)').matches) return
         event.preventDefault()
         toggleRailMode()
       }
@@ -207,13 +208,7 @@ export function ConsoleShell({
         <NavigationProgress>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
-            items={leaves.map((leaf) => ({
-              href: leaf.href,
-              label: leaf.label,
-              description: leaf.sub,
-              icon: leaf.icon,
-              count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : leaf.key === 'bell' ? pendingServiceCalls || undefined : undefined,
-            }))}
+            items={navigationEntries}
             mode={mode}
             identity={config.sidebar}
             email={email}
@@ -234,18 +229,27 @@ export function ConsoleShell({
             {children}
             {pendingPageHref ? <span className="tv-page-loading-mask" aria-hidden="true" /> : null}
           </main>
-          {mobileTabs.length > 0 ? (
-            <MobileTabBar
-              tabs={mobileTabs}
-              callsArrivalKey={callsArrivalKey}
-              account={surface === 'console' ? { open: accountSheetOpen, buttonRef: accountTabRef, onOpen: () => setAccountSheetOpen(true), badge: notifications.unreadCount } : undefined}
-            />
-          ) : null}
+          <MobileDock
+            entries={navigationEntries}
+            groupLabel={config.sidebar.section}
+            groupIcon={surface === 'console' ? 'store' : 'restaurant'}
+            homeHref={config.homeHref ?? '/'}
+            subtitle={surface === 'console' ? 'Acesse as áreas do console' : 'Acesse as áreas do restaurante'}
+            accountOpen={accountOpen}
+            accountButtonRef={accountTabRef}
+            onAccount={() => setAccountOpen((open) => !open)}
+            onCloseAccount={() => setAccountOpen(false)}
+            accountBadge={notifications.unreadCount}
+            menuBadge={surface === 'console' ? counts.pendingInvites : pendingServiceCalls + unreadFeedback}
+            callsArrivalKey={callsArrivalKey}
+          />
           <CommandPalette leaves={leaves} open={paletteOpen} onClose={() => setPaletteOpen(false)} onNewInvite={config.showNewInvite ? () => openInvite() : undefined} />
           {accountOpen ? <AccountPopover
             email={email} name={name} description={description}
             profileHref={toExternalPath(surface === 'console' ? '/admin/profile' : '/admin/workspace/profile')}
             settingsHref={toExternalPath(surface === 'console' ? '/admin/settings' : '/admin/workspace/settings')}
+            switchHref={config.restaurant && config.restaurant.restaurants.length > 1 ? '/restaurantes' : undefined}
+            onOpenAccountSheet={surface === 'console' ? () => { setAccountOpen(false); setAccountSheetOpen(true) } : undefined}
             onClose={closeAccount} onNavigate={navigateFromAccount}
           /> : null}
           {config.showNewInvite ? inviteOverlay : null}

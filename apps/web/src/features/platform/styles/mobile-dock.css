@@ -1,0 +1,129 @@
+.tv-dock, .tv-dock-scrim, .tv-dock-pages { display: none; }
+.tv-shell-skeleton-dock { display: none; }
+.tv-account-more-mobile { display: none; }
+.tv-account-mobile-head { display: none; }
+
+@media (max-width: 767px) {
+  .tv-console-root { --tv-dock-space: calc(80px + env(safe-area-inset-bottom)); }
+  :is(.admin-territory, .workspace-territory) .tv-shell-skeleton-dock { position: fixed; z-index: 45; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; height: 68px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--tv-line-2); border-radius: 18px; background: var(--tv-bar); }
+  :is(.admin-territory, .workspace-territory) .tv-shell-skeleton-dock span { width: 44px; height: 44px; border-radius: 12px; }
+  :is(.admin-territory, .workspace-territory) .tv-shell-skeleton-dock span:nth-child(2) { width: 58px; height: 58px; transform: translateY(-14px); border-radius: 18px; }
+  :is(.admin-territory, .workspace-territory) .tv-account-more-mobile { display: flex; }
+  :is(.admin-territory, .workspace-territory) .tv-account-mobile-head { padding: 10px 12px 7px; display: flex; flex-direction: column; gap: 4px; }
+  :is(.admin-territory, .workspace-territory) .tv-account-mobile-head strong { color: var(--tv-text); font-size: 13px; font-weight: 650; }
+  :is(.admin-territory, .workspace-territory) .tv-account-mobile-head small { color: var(--tv-text-3); font-size: 11px; }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover .tv-account-head { display: none; }
+  :is(.admin-territory, .workspace-territory) .tv-dock {
+    position: fixed;
+    z-index: 70;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
+    display: block;
+  }
+  :is(.admin-territory, .workspace-territory) .tv-dock-bar {
+    height: 68px;
+    padding: 0 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    border: 1px solid var(--tv-line-2);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--tv-bar) 82%, transparent);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--tv-pop);
+  }
+  :is(.admin-territory, .workspace-territory) .tv-dock-side { display: flex; justify-content: flex-start; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-side.is-end { justify-content: flex-end; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--tv-text-3);
+    cursor: pointer;
+    transition: background-color 150ms var(--tv-ease), color 150ms var(--tv-ease), transform 100ms ease-out;
+  }
+  :is(.admin-territory, .workspace-territory) .tv-dock-button svg { width: 21px; height: 21px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-dot { position: absolute; top: 6px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--tv-gold); box-shadow: 0 0 0 2px var(--tv-bar); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-badge { position: absolute; top: -5px; right: -7px; min-width: 19px; height: 19px; padding: 0 4px; border-radius: 999px; background: var(--tv-danger); color: #fff; font-size: 11px; font-weight: 700; line-height: 19px; text-align: center; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-button.is-active { background: var(--tv-active); color: var(--tv-text); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-home {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    justify-self: center;
+    display: grid;
+    place-items: center;
+    transform: translateY(-14px);
+    border: 1px solid var(--tv-line-2);
+    border-radius: 18px;
+    background: var(--tv-surface);
+    color: var(--tv-text-3);
+    box-shadow: var(--tv-pop);
+    transition: background-color 160ms var(--tv-ease), color 160ms var(--tv-ease), scale 100ms ease-out;
+  }
+  :is(.admin-territory, .workspace-territory) .tv-dock-home.is-active { border-color: transparent; background: var(--tv-btn); color: var(--tv-btn-text); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-home svg { width: 23px; height: 23px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-button:active { transform: scale(.93); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-home:active { scale: .92; }
+  :is(.admin-territory, .workspace-territory) :is(.tv-dock-button, .tv-dock-home, .tv-dock-group, .tv-dock-link):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pending-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; gap: 12px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-home .tv-dock-pending-wrap { justify-content: center; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pending { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: color-mix(in srgb, var(--tv-surface) 35%, transparent); backdrop-filter: blur(2px); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-scrim { position: fixed; z-index: 60; inset: 0; width: 100%; height: 100%; display: block; border: 0; background: color-mix(in srgb, var(--tv-text) 45%, transparent); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pages {
+    position: fixed;
+    z-index: 65;
+    right: 12px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: 12px;
+    max-height: min(calc(100dvh - 144px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 520px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--tv-line-2);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--tv-surface) 92%, transparent);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--tv-pop);
+  }
+  :is(.admin-territory, .workspace-territory) .tv-dock-grip { width: 36px; height: 4px; margin: 12px auto 0; flex: 0 0 auto; border-radius: 999px; background: var(--tv-line-strong); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pages-head { padding: 12px 20px 16px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pages-head h2 { margin: 0; color: var(--tv-text); font-size: 21px; font-weight: 650; letter-spacing: -.02em; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pages-head p { margin: 3px 0 0; color: var(--tv-text-3); font-size: 12px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pages-scroll { min-height: 0; padding: 0 12px 16px; overflow-y: auto; overscroll-behavior: contain; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group { width: 100%; min-height: 56px; padding: 4px 12px; display: flex; align-items: center; gap: 12px; border: 0; border-radius: 12px; background: var(--tv-active); color: var(--tv-text); font: inherit; font-size: 14px; font-weight: 600; text-align: left; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group-icon { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border-radius: 11px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group-icon svg { width: 20px; height: 20px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group-label { min-width: 0; flex: 1; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group > svg { width: 18px; height: 18px; transition: rotate 180ms var(--tv-ease); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-group:not(.is-open) > svg { rotate: -90deg; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-links { margin: 4px 0 0; padding: 0 0 0 18px; display: grid; gap: 4px; list-style: none; border-left: 2px solid var(--tv-line-strong); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link { position: relative; min-height: 48px; padding: 6px 10px; display: flex; align-items: center; border-radius: 10px; color: var(--tv-text-2); text-decoration: none; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link.is-active { background: var(--tv-active); color: var(--tv-text); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link-icon { width: 22px; flex: 0 0 22px; color: var(--tv-gold-text); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link-icon svg { width: 19px; height: 19px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link-copy strong { font-size: 14px; font-weight: 600; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-link-copy small { color: var(--tv-text-3); font-size: 11px; line-height: 1.3; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--tv-gold); color: #17150F; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover { z-index: 72; left: 12px; bottom: calc(88px + env(safe-area-inset-bottom)); width: min(280px, calc(100vw - 24px)); max-height: calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; border: 1px solid var(--tv-line-2); border-radius: 18px; background: color-mix(in srgb, var(--tv-surface) 92%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: var(--tv-pop); }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover::before { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+  :is(.admin-territory, .workspace-territory) .tv-account-popover .tv-notif-panel { position: static; width: auto; max-height: min(360px, 42dvh); flex: 0 1 auto; margin: 4px; transform-origin: top; }
+  :is(.admin-territory, .workspace-territory) .tv-popover-catcher { z-index: 71; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  :is(.admin-territory, .workspace-territory) .tv-dock-button,
+  :is(.admin-territory, .workspace-territory) .tv-dock-home,
+  :is(.admin-territory, .workspace-territory) .tv-dock-group > svg { transition: none; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-pending { backdrop-filter: none; }
+}

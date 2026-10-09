@@ -17,4 +17,5 @@
 @import "../features/platform/styles/mobile-base.css";
 @import "../features/platform/styles/console-mobile.css";
 @import "../features/workspace/styles/panel-mobile.css";
+@import "../features/platform/styles/mobile-dock.css";
 @import "../features/notifications/styles/notifications.css";

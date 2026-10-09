@@ -108,7 +108,7 @@
 .tv-tag-dialog button:focus-visible,.tv-tag-details button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 
 @media (max-width: 767px) {
-  .workspace-territory .tv-tags-page { padding: 15px 16px calc(var(--tv-tabbar-height) + 28px); }
+  .workspace-territory .tv-tags-page { padding: 15px 16px calc(var(--tv-dock-space) + 28px); }
   .workspace-territory .tv-tags-heading { align-items: center; gap: 8px; }
   .workspace-territory .tv-tags-heading .tv-page-header { min-width: 0; }
   .workspace-territory .tv-tags-heading .tv-page-header > div > p:first-child { display: none; }
