@@ -52,7 +52,7 @@ export async function createTag(
         label: data.label ?? null,
         table_number: data.tableNumber,
       })
-      .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at')
+      .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at, nfc_protected_at')
       .single()
 
     if (!error && row) {
@@ -73,6 +73,7 @@ export async function createTag(
           lastSeenAt: row.last_seen_at as string | null,
           nfcSerial: row.nfc_serial as string | null,
           nfcVerifiedAt: row.nfc_verified_at as string | null,
+          nfcProtectedAt: row.nfc_protected_at as string | null,
         },
       }
     }
@@ -99,7 +100,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
   const supabase = await db()
   const { data, error } = await supabase
     .from('menu_tags')
-    .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at')
+    .select('id, public_token, label, table_number, is_active, last_seen_at, nfc_serial, nfc_verified_at, nfc_protected_at')
     .eq('restaurant_id', id)
     .order('created_at')
 
@@ -116,6 +117,7 @@ export async function listTags(restaurantId: unknown): Promise<TagDTO[]> {
     lastSeenAt: row.last_seen_at as string | null,
     nfcSerial: row.nfc_serial as string | null,
     nfcVerifiedAt: row.nfc_verified_at as string | null,
+    nfcProtectedAt: row.nfc_protected_at as string | null,
   }))
 }
 
@@ -184,12 +186,17 @@ export async function deleteTag(tagId: unknown): Promise<RevalidationTarget> {
 const nfcEventSchema = z.object({
   tagId: uuidSchema,
   operationId: uuidSchema,
-  event: z.enum(['started', 'failed', 'verified']),
+  event: z.enum(['started', 'failed', 'verified', 'protected']),
   serial: z.string().regex(/^[0-9A-F]{14}$/),
-  reason: z.enum(['write_error', 'read_error', 'wrong_tag', 'wrong_url', 'cancelled']).nullable().optional(),
+  reason: z.enum(['write_error', 'read_error', 'wrong_tag', 'wrong_url', 'cancelled', 'protection_error']).nullable().optional(),
+}).superRefine((data, context) => {
+  const hasReason = data.reason != null
+  if ((data.event === 'failed') !== hasReason) {
+    context.addIssue({ code: 'custom', message: 'Informe o motivo somente para operações que falharam.', path: ['reason'] })
+  }
 })
 
-export async function recordNfcEvent(input: unknown): Promise<{ verifiedAt: string | null; revalidationTarget: RevalidationTarget | null }> {
+export async function recordNfcEvent(input: unknown): Promise<{ verifiedAt: string | null; protectedAt: string | null; revalidationTarget: RevalidationTarget | null }> {
   const data = nfcEventSchema.parse(input)
   const supabase = await db()
   const { data: tag, error: lookupError } = await supabase
@@ -211,11 +218,17 @@ export async function recordNfcEvent(input: unknown): Promise<{ verifiedAt: stri
   if (error) {
     if (error.code === '23505') throw new ConflictError('Esta etiqueta já está vinculada a outro identificador.')
     if (error.message.includes('nfc_operation_not_started')) throw new ConflictError('O registro expirou. Leia a etiqueta novamente.')
+    if (error.message.includes('nfc_operation_not_verified')) throw new ConflictError('A conferência dessa operação não foi encontrada. Leia a etiqueta novamente.')
+    if (error.message.includes('nfc_tag_already_protected')) throw new ConflictError('Esta etiqueta já está protegida e não pode ser regravada.')
+    if (error.message.includes('nfc_binding_changed')) throw new ConflictError('O vínculo da etiqueta mudou. Leia e confira novamente antes de sincronizar.')
     throw new Error(`Não foi possível registrar a operação NFC: ${error.message}`)
   }
   return {
-    verifiedAt: verifiedAt as string | null,
-    revalidationTarget: data.event === 'verified' ? await getRestaurantRevalidationTarget(restaurantId) : null,
+    verifiedAt: data.event === 'verified' ? verifiedAt as string | null : null,
+    protectedAt: data.event === 'protected' ? verifiedAt as string | null : null,
+    revalidationTarget: data.event === 'verified' || data.event === 'protected'
+      ? await getRestaurantRevalidationTarget(restaurantId)
+      : null,
   }
 }
 

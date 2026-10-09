@@ -1,19 +1,19 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { LuChevronRight, LuCircleAlert, LuCopy, LuEllipsis, LuPencil, LuPlus, LuQrCode, LuRadio, LuRadioTower, LuScanLine } from 'react-icons/lu'
 import { PageHeader } from '@/components/shell/page-header'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
-import { PanelConfirm } from './panel-confirm'
-import { TagPanel, type TagPanelState } from './identificadores-panel'
-import { lastSeen, tagName, tagPublicUrl } from './identificadores-utils'
 import type { TagDTO } from '@/domain/tag'
+import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { updateTagAction } from '@/server/actions/tags'
+import { useState, useTransition } from 'react'
+import { LuChevronRight, LuCircleAlert, LuCopy, LuEllipsis, LuPencil, LuPlus, LuQrCode, LuRadio, LuRadioTower, LuScanLine } from 'react-icons/lu'
+import { TagPanel, type TagPanelState } from './identifiers-panel'
+import { lastSeen, tagName, tagPublicUrl } from './identifiers-utils'
+import { PanelConfirm } from './panel-confirm'
 
 type Filter = 'all' | 'active' | 'attention' | 'inactive'
 const FILTERS: { value: Filter; label: string }[] = [
@@ -125,7 +125,7 @@ export function IdentificadoresScreen({ restaurantId, initialTags }: { restauran
             <ContextMenuTrigger render={<article className={`tv-tag-card is-${tagFilter(tag)}${recentId === tag.id ? ' is-recent' : ''}`} />}>
               <button type="button" className="tv-tag-main" aria-haspopup="dialog" onClick={() => setPanel({ mode: 'details', tagId: tag.id })}>
                 <span className="tv-tag-icon"><LuQrCode aria-hidden="true" /></span>
-                <span className="tv-tag-copy"><strong>{tagName(tag)}</strong><span>{lastSeen(tag)}{tag.nfcSerial ? ' · NFC vinculada' : ''}</span></span>
+                <span className="tv-tag-copy"><strong>{tagName(tag)}</strong><span>{lastSeen(tag)}{tag.nfcSerial ? tag.nfcProtectedAt ? ' · NFC protegida' : ' · NFC: proteção pendente' : ''}</span></span>
                 <span className={`tv-tag-status is-${tagFilter(tag)}`}><span aria-hidden="true" />{tagFilter(tag) === 'inactive' ? 'Desativado' : tagFilter(tag) === 'attention' ? 'Sem mesa' : 'Ativo'}</span>
                 <LuChevronRight className="tv-tag-chevron" aria-hidden="true" />
               </button>
@@ -134,7 +134,7 @@ export function IdentificadoresScreen({ restaurantId, initialTags }: { restauran
             <ContextMenuContent aria-label={`Ações de ${tagName(tag).toLowerCase()}`}>{contextActions(tag)}</ContextMenuContent>
           </ContextMenu>)}
         </section>}
-    {panel ? <TagPanel key={'tagId' in panel ? panel.tagId : 'new'} panel={panel} tag={'tagId' in panel ? tags.find((tag) => tag.id === panel.tagId) ?? null : null} restaurantId={restaurantId} mobile={mobile} onClose={() => setPanel(null)} onEdit={() => setPanel((current) => current && 'tagId' in current ? { mode: 'edit', tagId: current.tagId } : current)} onNfcVerified={(tagId, serial, verifiedAt) => setTags((current) => current.map((item) => item.id === tagId ? { ...item, nfcSerial: serial, nfcVerifiedAt: verifiedAt } : item))} onSaved={(tag, created) => { setTags((current) => sortTags(created ? [...current, tag] : current.map((item) => item.id === tag.id ? tag : item))); setFilter('all'); setRecentId(tag.id); window.setTimeout(() => setRecentId((current) => current === tag.id ? null : current), 1800); setPanel(created ? { mode: 'details', tagId: tag.id } : null) }} /> : null}
+    {panel ? <TagPanel key={'tagId' in panel ? panel.tagId : 'new'} panel={panel} tag={'tagId' in panel ? tags.find((tag) => tag.id === panel.tagId) ?? null : null} restaurantId={restaurantId} mobile={mobile} onClose={() => setPanel(null)} onEdit={() => setPanel((current) => current && 'tagId' in current ? { mode: 'edit', tagId: current.tagId } : current)} onNfcVerified={(tagId, serial, verifiedAt) => setTags((current) => current.map((item) => item.id === tagId ? { ...item, nfcSerial: serial, nfcVerifiedAt: verifiedAt } : item))} onNfcProtected={(tagId, serial, protectedAt) => setTags((current) => current.map((item) => item.id === tagId ? { ...item, nfcSerial: serial, nfcProtectedAt: protectedAt } : item))} onSaved={(tag, created) => { setTags((current) => sortTags(created ? [...current, tag] : current.map((item) => item.id === tag.id ? tag : item))); setFilter('all'); setRecentId(tag.id); window.setTimeout(() => setRecentId((current) => current === tag.id ? null : current), 1800); setPanel(created ? { mode: 'details', tagId: tag.id } : null) }} /> : null}
     <PanelConfirm open={!!confirmTag} onOpenChange={(open) => { if (!open) setConfirmTagId(null) }} icon={<LuRadioTower />} title={`Desativar ${confirmTag ? tagName(confirmTag).toLowerCase() : 'identificador'}?`} description="Este link deixa de abrir o cardápio e de receber chamados até você reativá-lo." confirmLabel="Desativar" pendingLabel="Desativando…" pending={!!confirmTag && changingIds.includes(confirmTag.id)} destructive onConfirm={() => { if (confirmTag) changeAvailability(confirmTag) }} />
   </div>
 }

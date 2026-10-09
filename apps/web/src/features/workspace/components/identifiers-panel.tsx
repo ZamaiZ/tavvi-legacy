@@ -1,16 +1,16 @@
 'use client'
 
-import { useId, useState, useTransition, type FormEvent } from 'react'
-import { LuArrowRight, LuCheck, LuCircleAlert, LuCopy, LuLink, LuPencil, LuQrCode } from 'react-icons/lu'
 import { MobileSheet, MobileSheetNav, useMobileSheet, useSheetBusy, useSheetGuard } from '@/components/shell/mobile-sheet'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import type { TagDTO } from '@/domain/tag'
 import { createTagAction, updateTagAction } from '@/server/actions/tags'
+import { useId, useState, useTransition, type FormEvent } from 'react'
+import { LuArrowRight, LuCheck, LuCircleAlert, LuCopy, LuLink, LuPencil, LuQrCode } from 'react-icons/lu'
+import { lastSeen, tagName, tagPublicUrl } from './identifiers-utils'
+import { TagNfcRegistration } from './nfc-identifiers'
 import { PanelConfirm } from './panel-confirm'
-import { TagNfcRegistration } from './identificadores-nfc'
-import { lastSeen, tagName, tagPublicUrl } from './identificadores-utils'
 
 export type TagPanelState = { mode: 'create' } | { mode: 'details' | 'edit'; tagId: string }
 
@@ -23,6 +23,7 @@ type PanelProps = {
   onEdit: () => void
   onSaved: (tag: TagDTO, created: boolean) => void
   onNfcVerified: (tagId: string, serial: string, verifiedAt: string) => void
+  onNfcProtected: (tagId: string, serial: string, protectedAt: string) => void
 }
 
 function useTagForm({ panel, tag, restaurantId, onSaved }: PanelProps) {
@@ -99,7 +100,11 @@ export function TagPanel(props: PanelProps) {
     <div className="tv-tag-details-hero"><span className="tv-tag-details-mark"><LuQrCode aria-hidden="true" /></span><div><strong>{tagName(props.tag)}</strong><span>{props.tag.isActive ? 'Identificador ativo' : 'Identificador desativado'}</span></div></div>
     <div className="tv-tag-details-group"><div><span>Último acesso</span><strong>{lastSeen(props.tag)}</strong></div><div><span>Link permanente</span><code>{tagPublicUrl(props.tag)}</code></div></div>
     {!props.tag.tableNumber ? <p className="tv-tag-details-note"><LuCircleAlert aria-hidden="true" />Defina a mesa antes de usar este identificador para chamados.</p> : null}
-    <TagNfcRegistration tag={props.tag} onVerified={(serial, verifiedAt) => props.onNfcVerified(props.tag!.id, serial, verifiedAt)} />
+    <TagNfcRegistration
+      tag={props.tag}
+      onVerified={(serial, verifiedAt) => props.onNfcVerified(props.tag!.id, serial, verifiedAt)}
+      onProtected={(serial, protectedAt) => props.onNfcProtected(props.tag!.id, serial, protectedAt)}
+    />
     <div className="tv-tag-details-actions"><button type="button" className="is-primary" onClick={() => void copy()}>{copied ? <LuCheck aria-hidden="true" /> : <LuCopy aria-hidden="true" />}{copied ? 'Link copiado' : 'Copiar link'}</button><button type="button" onClick={props.onEdit}><LuPencil aria-hidden="true" />Editar mesa</button></div>
   </div> : null
 

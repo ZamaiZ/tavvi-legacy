@@ -420,6 +420,8 @@ export type Database = {
           nfc_serial: string | null
           nfc_verified_at: string | null
           nfc_verified_by: string | null
+          nfc_protected_at: string | null
+          nfc_protected_by: string | null
           public_token: string
           restaurant_id: string
           table_number: number | null
@@ -433,6 +435,8 @@ export type Database = {
           nfc_serial?: string | null
           nfc_verified_at?: string | null
           nfc_verified_by?: string | null
+          nfc_protected_at?: string | null
+          nfc_protected_by?: string | null
           public_token: string
           restaurant_id: string
           table_number?: number | null
@@ -446,6 +450,8 @@ export type Database = {
           nfc_serial?: string | null
           nfc_verified_at?: string | null
           nfc_verified_by?: string | null
+          nfc_protected_at?: string | null
+          nfc_protected_by?: string | null
           public_token?: string
           restaurant_id?: string
           table_number?: number | null
@@ -454,6 +460,13 @@ export type Database = {
           {
             foreignKeyName: "menu_tags_nfc_verified_by_fkey"
             columns: ["nfc_verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_tags_nfc_protected_by_fkey"
+            columns: ["nfc_protected_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

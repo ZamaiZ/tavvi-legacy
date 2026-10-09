@@ -31,11 +31,11 @@ export async function deleteTagAction(tagId: unknown): Promise<ActionResult> {
   })
 }
 
-export async function recordNfcEventAction(input: unknown): Promise<ActionResult<{ verifiedAt: string | null }>> {
+export async function recordNfcEventAction(input: unknown): Promise<ActionResult<{ verifiedAt: string | null; protectedAt: string | null }>> {
   return runAction(async () => {
     const result = await dal.recordNfcEvent(input)
     if (result.revalidationTarget) revalidateRestaurant(result.revalidationTarget)
-    return { verifiedAt: result.verifiedAt }
+    return { verifiedAt: result.verifiedAt, protectedAt: result.protectedAt }
   })
 }
 
