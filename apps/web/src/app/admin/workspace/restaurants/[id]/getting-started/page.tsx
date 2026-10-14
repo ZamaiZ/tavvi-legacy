@@ -66,7 +66,7 @@ export default async function Page({
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
             {currentStep === 'identidade'
-              ? 'Escolha o tema e as cores. Dá para mudar depois, quando quiser.'
+              ? 'Escolha o formato, o tema e as cores. Dá para mudar depois, quando quiser.'
               : 'Telefone, WhatsApp e endereço viram botões no topo do cardápio.'}
           </p>
         </div>
@@ -77,6 +77,7 @@ export default async function Page({
             name={restaurant.name}
             segment={restaurant.segment}
             theme={restaurant.theme}
+            menuPresentation={restaurant.menuPresentation}
             logoPath={restaurant.logoPath}
             coverPath={restaurant.coverPath}
           />

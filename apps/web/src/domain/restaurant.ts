@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { plainTextSchema, slugSchema, uuidSchema } from './common'
 import { googleReviewUrlSchema } from './google-review'
 import { inviteTokenSchema, type MemberRole } from './invite'
+import { menuPresentationSchema, type MenuPresentation } from './menu-presentation'
 import { themeSchema } from './theme'
 
 export const restaurantStatusSchema = z.enum(['draft', 'active', 'suspended'])
@@ -232,6 +233,7 @@ export type RestaurantMemberDTO = {
   // `unknown` de propósito: quem sabe a forma da coluna é o `themeSchema`,
   // não este DTO. Tipar aqui seria mentir sobre dado ainda não validado.
   theme: unknown
+  menuPresentation: MenuPresentation
   /** Nulo enquanto o dono não concluiu nem pulou os primeiros passos. */
   onboardingCompletedAt: string | null
 }
@@ -257,6 +259,7 @@ export const updateIdentitySchema = z.object({
   restaurantId: uuidSchema,
   segment: plainTextSchema(60, 2).nullish(),
   theme: themeSchema,
+  menuPresentation: menuPresentationSchema,
 })
 
 export type RestaurantDetailDTO = {

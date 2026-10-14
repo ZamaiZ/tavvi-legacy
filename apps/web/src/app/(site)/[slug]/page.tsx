@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
+import { MenuCatalog } from '@/features/public-menu/components/menu-catalog'
 import { MenuFeed } from '@/features/public-menu/components/menu-feed'
 import { ALL_THEME_FONT_VARIABLES } from '@/lib/fonts'
 import { resolveTheme } from '@/lib/theme/resolve'
 import { getPublicMenu } from '@/server/dal/menu-read'
 import { tagTokenSchema } from '@/domain/tag'
 import '@/features/public-menu/styles/menu.css'
+import '@/features/public-menu/styles/menu-catalog.css'
 
 export default async function Page({
   params,
@@ -25,6 +27,8 @@ export default async function Page({
   const theme = resolveTheme(menu.restaurant.theme)
   const parsedToken = typeof query.tag === 'string' ? tagTokenSchema.safeParse(query.tag) : null
   const tagToken = parsedToken?.success ? parsedToken.data : null
+  const presentation = menu.restaurant.menuPresentation
+  const isImmersive = presentation === 'immersive'
 
   // `overflow-hidden` e sem rolagem no documento: quem rola são os dois
   // roladores aninhados do feed. As variáveis do tema chegam pelo <style>
@@ -33,10 +37,20 @@ export default async function Page({
     <div
       data-menu={theme.presetId}
       data-density={theme.density}
+      data-presentation={presentation}
       data-has-service-call={tagToken ? 'true' : undefined}
-      className={`menu relative overflow-hidden ${ALL_THEME_FONT_VARIABLES}`}
+      className={`menu relative ${isImmersive ? 'overflow-hidden' : 'menu-catalog-page'} ${ALL_THEME_FONT_VARIABLES}`}
     >
-      <MenuFeed menu={menu} presetId={theme.presetId} tagToken={tagToken} />
+      {isImmersive ? (
+        <MenuFeed menu={menu} presetId={theme.presetId} tagToken={tagToken} />
+      ) : (
+        <MenuCatalog
+          menu={menu}
+          presetId={theme.presetId}
+          presentation={presentation}
+          tagToken={tagToken}
+        />
+      )}
     </div>
   )
 }

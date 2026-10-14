@@ -3,6 +3,7 @@ import { cache } from 'react'
 import { slugSchema, uuidSchema } from '@/domain/common'
 import type { MenuCategoryDTO, OwnerMenuCategoryDTO, OwnerMenuItemDTO, PublicMenuDTO } from '@/domain/menu'
 import { parseContact } from '@/domain/restaurant'
+import { parseMenuPresentation } from '@/domain/menu-presentation'
 import { createUserClient } from './_client'
 import { currentTerritory, requireMember } from './auth'
 
@@ -69,7 +70,7 @@ async function loadPublicMenu(
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      `slug, name, description, logo_path, cover_path, contact, theme,
+      `slug, name, description, logo_path, cover_path, contact, theme, menu_presentation,
        menu_categories (
          id, name, description, position, is_visible,
          menu_items (
@@ -156,6 +157,7 @@ async function loadPublicMenu(
       coverPath: data.cover_path as string | null,
       contact: parseContact(data.contact),
       theme: data.theme,
+      menuPresentation: parseMenuPresentation(data.menu_presentation),
     },
     categories: comItens,
   }

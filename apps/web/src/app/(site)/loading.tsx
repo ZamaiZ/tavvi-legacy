@@ -13,7 +13,6 @@ export default function Loading() {
         <span className="menu-loading-line" />
         <span className="menu-loading-line is-short" />
         <div className="menu-loading-icons"><span /><span /><span /><span /></div>
-        <div className="menu-loading-list"><span /><span /><span /></div>
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ import {
 } from './common'
 import { focalSchema, MAX_VIDEO_DURATION_MS, mediaKindSchema } from './media'
 import type { RestaurantContact } from './restaurant'
+import type { MenuPresentation } from './menu-presentation'
 
 export const MAX_CATEGORIES_PER_BATCH = 20
 
@@ -137,6 +138,7 @@ export type PublicMenuDTO = {
     // dela é o `themeSchema`, não este DTO. Tipar como `ThemeChoice` aqui
     // seria mentir sobre um dado que ainda não foi validado.
     theme: unknown
+    menuPresentation: MenuPresentation
   }
   categories: MenuCategoryDTO[]
 }

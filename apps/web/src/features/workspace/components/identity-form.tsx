@@ -12,11 +12,13 @@ import {
 } from '@/features/workspace/components/brand-images'
 import { FloatingRestaurantPreview } from '@/features/workspace/components/floating-restaurant-preview'
 import { IdentityPreview } from '@/features/workspace/components/identity-preview'
+import { MenuPresentationPicker } from '@/features/workspace/components/menu-presentation-picker'
 import { ThemePreview } from '@/features/workspace/components/theme-preview'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import type { BrandSlot } from '@/domain/media'
+import type { MenuPresentation } from '@/domain/menu-presentation'
 import { SORTED_SEGMENTS, suggestPresetFor } from '@/domain/segment'
 import {
   THEME_PRESET_IDS,
@@ -58,6 +60,7 @@ export function IdentityForm({
   name,
   segment,
   theme,
+  menuPresentation,
   logoPath,
   coverPath,
   continueLabel,
@@ -68,6 +71,7 @@ export function IdentityForm({
   name: string
   segment: string | null
   theme: unknown
+  menuPresentation: MenuPresentation
   logoPath: string | null
   coverPath: string | null
   /** Assistente: o botão vira "Salvar e continuar" e, sem mudanças, só continua. */
@@ -86,6 +90,8 @@ export function IdentityForm({
   const [savedChoice, setSavedChoice] = useState(choice)
   const [selectedSegment, setSelectedSegment] = useState<string | null>(segment)
   const [savedSegment, setSavedSegment] = useState(segment)
+  const [presentation, setPresentation] = useState<MenuPresentation>(menuPresentation)
+  const [savedPresentation, setSavedPresentation] = useState(menuPresentation)
   const [themeTouched, setThemeTouched] = useState(false)
   // Logo e capa em rascunho: o arquivo escolhido aparece na prévia e só sobe
   // no "Salvar identidade", como o resto da tela.
@@ -133,8 +139,10 @@ export function IdentityForm({
   const isAccentValid =
     choice.accent === null ? accentReadsOnLight : isAccentUsable(choice.preset, currentAccent, currentBase)
   const themeChanged = JSON.stringify(choice) !== JSON.stringify(savedChoice) || selectedSegment !== savedSegment
+  const presentationChanged = presentation !== savedPresentation
+  const identityChanged = themeChanged || presentationChanged
   const brandDirty = BRAND_SLOTS.some((slot) => brandChanged(brand[slot], savedBrand[slot]))
-  const hasChanges = themeChanged || brandDirty
+  const hasChanges = identityChanged || brandDirty
   const canSave = !locked && hasChanges && isBaseValid && isAccentValid
   const canContinue = !locked && !hasChanges && Boolean(continueLabel)
 
@@ -173,6 +181,7 @@ export function IdentityForm({
     if (!canSave) return
     const choiceToSave = choice
     const segmentToSave = selectedSegment
+    const presentationToSave = presentation
     const brandToSave = brand
     startTransition(async () => {
       // Logo e capa primeiro: são arquivos, e a falha mais provável (rede)
@@ -192,11 +201,12 @@ export function IdentityForm({
       }
       setSavedBrand(nextSaved)
 
-      if (themeChanged) {
+      if (identityChanged) {
         const result = await updateIdentityAction({
           restaurantId,
           segment: segmentToSave,
           theme: choiceToSave,
+          menuPresentation: presentationToSave,
         })
         if (!result.ok) {
           toast.add({ title: result.error, type: 'error' })
@@ -204,6 +214,7 @@ export function IdentityForm({
         }
         setSavedChoice(choiceToSave)
         setSavedSegment(segmentToSave)
+        setSavedPresentation(presentationToSave)
       }
       toast.add({ title: 'Identidade salva', type: 'success' })
       onSaved?.()
@@ -212,6 +223,7 @@ export function IdentityForm({
 
   const previewData = {
     theme: choice,
+    menuPresentation: presentation,
     name,
     segment: selectedSegment,
     logoPath: brandPreviewPath(brand.logo),
@@ -225,6 +237,12 @@ export function IdentityForm({
           drafts={brand}
           disabled={locked}
           onChange={(slot, draft) => setBrand((current) => ({ ...current, [slot]: draft }))}
+        />
+
+        <MenuPresentationPicker
+          value={presentation}
+          disabled={locked}
+          onChange={setPresentation}
         />
 
         <section className="tv-identity-card is-theme" aria-label="Tema e cores" aria-busy={locked || undefined}>

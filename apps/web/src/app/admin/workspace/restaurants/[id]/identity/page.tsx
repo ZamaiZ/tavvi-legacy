@@ -32,13 +32,14 @@ export default async function Page({
         className="tv-page-header"
         eyebrow="Marca"
         title="Identidade"
-        description="Logo, capa, tema e cores do cardápio público."
+        description="Logo, capa, formato e aparência do cardápio público."
       />
       <IdentityForm
         restaurantId={restaurant.id}
         name={restaurant.name}
         segment={restaurant.segment}
         theme={restaurant.theme}
+        menuPresentation={restaurant.menuPresentation}
         logoPath={restaurant.logoPath}
         coverPath={restaurant.coverPath}
       />

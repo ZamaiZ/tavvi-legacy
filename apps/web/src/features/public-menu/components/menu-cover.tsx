@@ -3,6 +3,7 @@ import { publicMediaUrl } from '@/lib/media-url'
 import Image from 'next/image'
 import { FaWhatsapp } from 'react-icons/fa'
 import { FcGoogle } from 'react-icons/fc'
+import { MenuAppearanceToggle } from './menu-appearance-toggle'
 import {
   LuBookOpen,
   LuChevronRight,
@@ -24,6 +25,7 @@ type ContactLink = { label: string; href: string; icon: React.ReactNode }
 // com o conteúdo (rola na vertical em aparelho baixo) e % de um pai com
 // altura automática não vale nada.
 export function MenuCover({
+  variant = 'feed',
   name,
   description,
   logoPath,
@@ -34,6 +36,7 @@ export function MenuCover({
   onViewMenu,
   onOpenFeedback,
 }: {
+  variant?: 'feed' | 'catalog'
   name: string
   description: string | null
   logoPath: string | null
@@ -63,6 +66,103 @@ export function MenuCover({
     directions ? { label: 'Como chegar', href: directions, icon: <LuMapPin aria-hidden="true" /> } : null,
   ]
   const links: ContactLink[] = candidates.filter((link): link is ContactLink => link !== null)
+
+  if (variant === 'catalog') {
+    return (
+      <section className="menu-catalog-cover" aria-label={`Sobre ${name}`}>
+        <div className="menu-catalog-cover-art">
+          {coverPath ? (
+            <Image
+              src={publicMediaUrl('image', coverPath)}
+              alt=""
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(150deg, color-mix(in oklab, var(--m-accent) 62%, var(--m-base)), var(--m-base))',
+              }}
+            />
+          )}
+          <div aria-hidden="true" className="menu-catalog-cover-fade" />
+        </div>
+
+        <div className="menu-catalog-cover-content">
+          {logoPath ? (
+            <div className="menu-catalog-logo">
+              <Image
+                src={publicMediaUrl('image', logoPath)}
+                alt=""
+                fill
+                sizes="76px"
+                className="object-contain"
+              />
+            </div>
+          ) : null}
+          <p className="menu-catalog-eyebrow">Cardápio</p>
+          <h1 className="menu-display">{name}</h1>
+          {description ? <p className="menu-catalog-description">{description}</p> : null}
+
+          <div className="menu-cover-contact-row is-catalog">
+            {links.length > 0 ? (
+              <div className="menu-cover-contact-links menu-catalog-contact-links" aria-label="Contato">
+                {links.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target={link.href.startsWith('http') ? '_blank' : undefined}
+                    rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    aria-label={link.label}
+                    title={link.label}
+                    className="menu-contact"
+                  >
+                    {link.icon}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+            <MenuAppearanceToggle />
+          </div>
+
+          {addressText ? <p className="menu-catalog-address">{addressText}</p> : null}
+
+          <ul className="menu-catalog-actions" aria-label="Ações do restaurante">
+            {googleReviewUrl ? (
+              <li>
+                <a className="menu-block menu-action" href={googleReviewUrl} target="_blank" rel="noopener noreferrer">
+                  <span className="menu-action-icon is-brand" aria-hidden="true"><FcGoogle /></span>
+                  <span className="menu-action-label">Avaliar no Google</span>
+                  <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+                </a>
+              </li>
+            ) : null}
+            {hasDishes ? (
+              <li>
+                <button type="button" className="menu-block menu-action" onClick={onViewMenu}>
+                  <span className="menu-action-icon" aria-hidden="true"><LuBookOpen /></span>
+                  <span className="menu-action-label">Ver cardápio</span>
+                  <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+                </button>
+              </li>
+            ) : null}
+            <li>
+              <button type="button" className="menu-block menu-action" aria-haspopup="dialog" onClick={onOpenFeedback}>
+                <span className="menu-action-icon" aria-hidden="true"><LuMessageSquareText /></span>
+                <span className="menu-action-label">Deixar feedback anônimo</span>
+                <LuChevronRight className="menu-action-chevron" aria-hidden="true" />
+              </button>
+            </li>
+          </ul>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="menu-column" aria-label={`Sobre ${name}`}>
@@ -101,10 +201,7 @@ export function MenuCover({
             <div className="mx-auto w-full max-w-[720px] px-5 pb-6">
               {logoPath ? (
                 // `relative z-10` mantém o logo NA FRENTE da faixa.
-                <div
-                  className="menu-photo relative z-10 -mt-14 mb-5 size-20 overflow-hidden border-4"
-                  style={{ borderColor: 'var(--m-base)', background: 'var(--m-base)', borderRadius: '50%' }}
-                >
+                <div className="menu-catalog-logo relative z-10 -mt-14">
                   <Image
                     src={publicMediaUrl('image', logoPath)}
                     alt=""
@@ -126,25 +223,28 @@ export function MenuCover({
                 </p>
               ) : null}
 
-              {links.length > 0 ? (
-                <div className="mt-5 flex flex-wrap gap-2.5">
-                  {links.map((link) => (
-                    // Todos em `_blank`, como antes (num `tel:` não faz
-                    // nada de útil; fica por consistência).
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={link.label}
-                      title={link.label}
-                      className="menu-contact"
-                    >
-                      {link.icon}
-                    </a>
-                  ))}
-                </div>
-              ) : null}
+              <div className="menu-cover-contact-row">
+                {links.length > 0 ? (
+                  <div className="menu-cover-contact-links" aria-label="Contato">
+                    {links.map((link) => (
+                      // Todos em `_blank`, como antes (num `tel:` não faz
+                      // nada de útil; fica por consistência).
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={link.label}
+                        title={link.label}
+                        className="menu-contact"
+                      >
+                        {link.icon}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+                <MenuAppearanceToggle />
+              </div>
 
               {addressText ? (
                 <p className="mt-3 text-[0.8125rem] leading-relaxed" style={{ color: 'var(--m-muted)' }}>

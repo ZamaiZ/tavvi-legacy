@@ -4,6 +4,7 @@ import { plainTextSchema, slugSchema, uuidSchema } from '@/domain/common'
 import type { RestaurantDetailDTO, RestaurantAdminDTO, RestaurantMemberDTO, RestaurantPickerDTO, RestaurantPublicDTO, RestaurantResponsibleDTO, RestaurantStatus } from '@/domain/restaurant'
 import type { MemberRole } from '@/domain/invite'
 import { parseContact } from '@/domain/restaurant'
+import { parseMenuPresentation } from '@/domain/menu-presentation'
 import { nextSlugCandidate, slugify } from '@/lib/slug'
 import { rateLimitIdentity } from '@/server/security/client-ip'
 import { enforceRateLimit } from '@/server/security/rate-limit'
@@ -91,7 +92,7 @@ export const listMyRestaurants = cache(async (): Promise<RestaurantPickerDTO[]> 
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, onboarding_completed_at, memberships!inner(user_id, role)',
+      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, menu_presentation, onboarding_completed_at, memberships!inner(user_id, role)',
     )
     .eq('memberships.user_id', user.id)
     .is('deleted_at', null)
@@ -112,6 +113,7 @@ export const listMyRestaurants = cache(async (): Promise<RestaurantPickerDTO[]> 
       contact: parseContact(row.contact),
       segment: row.segment as string | null,
       theme: row.theme,
+      menuPresentation: parseMenuPresentation(row.menu_presentation),
       onboardingCompletedAt: row.onboarding_completed_at as string | null,
       role: membership?.role ?? null,
     }
@@ -128,7 +130,7 @@ export async function getRestaurantForMember(
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, onboarding_completed_at',
+      'id, slug, name, description, status, logo_path, cover_path, contact, segment, theme, menu_presentation, onboarding_completed_at',
     )
     .eq('id', id)
     .is('deleted_at', null)
@@ -152,6 +154,7 @@ export async function getRestaurantForMember(
     contact: parseContact(data.contact),
     segment: data.segment as string | null,
     theme: data.theme,
+    menuPresentation: parseMenuPresentation(data.menu_presentation),
     onboardingCompletedAt: data.onboarding_completed_at as string | null,
   }
 }

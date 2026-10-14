@@ -25,6 +25,20 @@ export default function Loading() {
             </div>
           </div>
 
+          {/* Formato do cardápio. */}
+          <div className="tv-identity-card">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-3 w-56" />
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {[0, 1].map((option) => (
+                <Skeleton key={option} className="h-[86px] rounded-[13px]" />
+              ))}
+            </div>
+            <Skeleton className="h-3 w-64" />
+          </div>
+
           {/* Tipo, temas, cores e densidade. */}
           <div className="tv-identity-card is-theme">
             <div className="max-w-[320px] space-y-1.5">

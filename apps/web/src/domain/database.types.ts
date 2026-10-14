@@ -804,6 +804,7 @@ export type Database = {
           description: string | null
           id: string
           logo_path: string | null
+          menu_presentation: string
           name: string
           onboarding_completed_at: string | null
           segment: string | null
@@ -823,6 +824,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo_path?: string | null
+          menu_presentation?: string
           name: string
           onboarding_completed_at?: string | null
           segment?: string | null
@@ -842,6 +844,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo_path?: string | null
+          menu_presentation?: string
           name?: string
           onboarding_completed_at?: string | null
           segment?: string | null

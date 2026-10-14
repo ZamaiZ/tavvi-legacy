@@ -120,6 +120,25 @@
     background: var(--m-chip);
     color: var(--m-ink);
   }
+  .menu-cover-contact-row {
+    min-width: 0;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 12px;
+  }
+  .menu-cover-contact-row.is-catalog { margin-top: 15px; }
+  .menu-cover-contact-links { min-width: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .menu-cover-contact-row.is-catalog .menu-cover-contact-links { gap: 8px; }
+  .menu-cover-contact-row > .menu-theme-toggle {
+    grid-column: 2;
+    width: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .menu-cover-contact-row > .menu-theme-toggle > span { display: none; }
   .menu-contact svg {
     width: 20px;
     height: 20px;
@@ -256,6 +275,7 @@
     opacity: 1;
     transform: none;
   }
+  .menu-rail[data-open='true'] .menu-rail-item.is-active { transition-delay: 0ms; }
   
   /* Fechar é rápido e junto. Escalonar a saída faria o trilho parecer lento
      justamente quando a pessoa já decidiu que não quer mais ele ali. */
@@ -305,22 +325,29 @@
   @media (prefers-color-scheme: dark) { .menu-loading { --ml-bg: #121110; --ml-block: rgba(255,255,255,.07); --ml-shine: rgba(255,255,255,.06); } }
   .menu-loading-cover { height: 34dvh; background: var(--ml-block); }
   .menu-loading-body { max-width: 720px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; }
-  .menu-loading-line, .menu-loading-icons > span, .menu-loading-list > span, .menu-loading-cover { position: relative; overflow: hidden; }
+  .menu-loading-line, .menu-loading-icons > span, .menu-loading-cover { position: relative; overflow: hidden; }
   .menu-loading-line { display: block; height: 14px; width: 80%; border-radius: 7px; background: var(--ml-block); }
   .menu-loading-line.is-title { height: 30px; width: 60%; border-radius: 10px; }
   .menu-loading-line.is-short { width: 40%; }
   .menu-loading-icons { margin-top: 8px; display: flex; gap: 10px; }
   .menu-loading-icons > span { width: 44px; height: 44px; border-radius: 50%; background: var(--ml-block); }
-  .menu-loading-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-  .menu-loading-list > span { height: 56px; border-radius: 14px; background: var(--ml-block); }
-  .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, var(--ml-shine), transparent); animation: menu-loading-shine 1.4s infinite; translate: -100% 0; }
+  .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-cover::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, transparent, var(--ml-shine), transparent); animation: menu-loading-shine 1.4s infinite; translate: -100% 0; }
   @keyframes menu-loading-shine { to { translate: 100% 0; } }
-  @media (prefers-reduced-motion: reduce) { .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-list > span::after, .menu-loading-cover::after { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .menu-loading-line::after, .menu-loading-icons > span::after, .menu-loading-cover::after { animation: none; } }
   
   /* ---------------------------------------------------------------------
      FEEDBACK ANÔNIMO — folha aberta pela tela inicial. Só variáveis do
      tema, como o resto desta folha.
      --------------------------------------------------------------------- */
+  .menu-details-overlay {
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    backdrop-filter: blur(18px) saturate(1.15);
+  }
+  [data-slot="sheet-content"].menu-details-sheet[data-side="bottom"] {
+    position: fixed;
+    min-height: 0;
+    max-height: 85dvh;
+  }
   .menu-sheet { min-height: 0; --tv-ring-color: var(--m-accent); font-family: var(--m-font-text); }
   /* O popup inferior do Sheet usa `data-[side=bottom]:h-auto`. Esse seletor
      tem especificidade maior que uma classe simples e anulava a altura do

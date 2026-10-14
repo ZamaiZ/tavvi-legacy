@@ -28,6 +28,7 @@ export function MenuDetails({
     <Sheet open={item !== null} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent
         side="bottom"
+        overlayClassName="menu-details-overlay"
         // `data-menu` faz a folha de estilo embutida da rota alcançar este
         // elemento, que o portal põe no fim do body, FORA da árvore do
         // `.menu`. As variáveis do tema são declaradas no seletor
@@ -43,7 +44,7 @@ export function MenuDetails({
         // da rota — que o portal não tem acima de si. Sem estas classes a
         // declaração fica inválida em tempo de valor computado e a fonte cai
         // para a HERDADA, que é a de texto. Medido: o título saía em Inter.
-        className={`menu max-h-[85dvh] overflow-y-auto ${ALL_THEME_FONT_VARIABLES}`}
+        className={`menu menu-details-sheet max-h-[85dvh] overflow-y-auto ${ALL_THEME_FONT_VARIABLES}`}
         style={{ background: 'var(--m-base)', color: 'var(--m-ink)' }}
       >
         {item ? (

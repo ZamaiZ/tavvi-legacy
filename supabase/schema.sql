@@ -126,6 +126,7 @@ create table if not exists public.restaurants (
   logo_path text,
   cover_path text,
   theme jsonb not null default '{}'::jsonb,
+  menu_presentation text not null default 'immersive',
   contact jsonb not null default '{}'::jsonb,
   created_by uuid references public.profiles (id),
   created_at timestamptz not null default now(),
@@ -139,7 +140,9 @@ create table if not exists public.restaurants (
     check (slug not in (
       'admin', 'painel', 'api', 't', 'entrar', 'convite',
       'assets', 'static', 'public', 'favicon', 'robots', 'sitemap'
-    ))
+    )),
+  constraint restaurants_menu_presentation_supported
+    check (menu_presentation in ('immersive', 'catalog-list', 'catalog-grid'))
 );
 
 drop trigger if exists restaurants_set_updated_at on public.restaurants;

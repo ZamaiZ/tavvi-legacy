@@ -300,7 +300,11 @@ export async function updateIdentity(
   const supabase = await db()
   const { error } = await supabase
     .from('restaurants')
-    .update({ segment: data.segment ?? null, theme: data.theme })
+    .update({
+      segment: data.segment ?? null,
+      theme: data.theme,
+      menu_presentation: data.menuPresentation,
+    })
     .eq('id', data.restaurantId)
 
   if (error) throw new Error(`Não foi possível salvar: ${error.message}`)
@@ -310,7 +314,11 @@ export async function updateIdentity(
     subjectType: 'restaurant',
     subjectId: data.restaurantId,
     restaurantId: data.restaurantId,
-    metadata: { preset: data.theme.preset, segment: data.segment ?? null },
+    metadata: {
+      preset: data.theme.preset,
+      segment: data.segment ?? null,
+      menuPresentation: data.menuPresentation,
+    },
   })
 
   return getRestaurantRevalidationTarget(data.restaurantId)

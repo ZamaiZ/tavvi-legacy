@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import type { Density, ThemeChoice } from '@/domain/theme'
+import type { MenuPresentation } from '@/domain/menu-presentation'
 import { publicMediaUrl } from '@/lib/media-url'
 
 // Logo e capa ainda não salvas chegam como imagem local (blob:), e são
@@ -35,6 +36,7 @@ export type ThemePreviewData = {
   segment: string | null
   logoPath: string | null
   coverPath: string | null
+  menuPresentation: MenuPresentation
 }
 
 // As variáveis `--m-*` que o cardápio público usa, na face pedida. A prévia
@@ -52,10 +54,11 @@ export function ThemePreviewContent({
   segment,
   logoPath,
   coverPath,
+  menuPresentation,
   density,
 }: Omit<ThemePreviewData, 'theme'> & { density: Density }) {
   return (
-    <div className="tv-theme-preview">
+    <div className="tv-theme-preview" data-presentation={menuPresentation}>
       <div className="tv-theme-preview-cover">
         {coverPath ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -72,22 +75,37 @@ export function ThemePreviewContent({
         <strong className="menu-display">{name || 'Seu restaurante'}</strong>
         {segment ? <span>{segment}</span> : null}
       </div>
-      <div className="tv-theme-preview-chips">
-        {SAMPLE_CATEGORIES.map((category, index) => (
-          <span key={category} className={index === 0 ? 'is-active' : undefined}>{category}</span>
-        ))}
-      </div>
-      {SAMPLE_DISHES.map((dish) => (
-        <div key={dish.name} className="tv-theme-preview-dish">
-          <span />
-          <span>
-            <strong className="menu-display">{dish.name}</strong>
-            {/* Compacto recolhe a descrição, como no cardápio no ar. */}
-            {density === 'confortavel' ? <span>{dish.description}</span> : null}
-            <b>{dish.price}</b>
-          </span>
+      {menuPresentation === 'immersive' ? (
+        <div className="tv-theme-preview-feed">
+          <div className="tv-theme-preview-feed-media" />
+          <div className="tv-theme-preview-feed-footer">
+            <span>Massas · 1 de 7</span>
+            <strong className="menu-display">{SAMPLE_DISHES[0].name}</strong>
+            <b>{SAMPLE_DISHES[0].price}</b>
+          </div>
         </div>
-      ))}
+      ) : (
+        <>
+          <div className="tv-theme-preview-chips">
+            {SAMPLE_CATEGORIES.map((category, index) => (
+              <span key={category} className={index === 0 ? 'is-active' : undefined}>{category}</span>
+            ))}
+          </div>
+          <div className={`tv-theme-preview-items ${menuPresentation === 'catalog-grid' ? 'is-grid' : 'is-list'}`}>
+            {SAMPLE_DISHES.map((dish) => (
+              <div key={dish.name} className="tv-theme-preview-dish">
+                <span className="tv-theme-preview-dish-image" />
+                <span className="tv-theme-preview-dish-copy">
+                  <strong className="menu-display">{dish.name}</strong>
+                  {/* Compacto recolhe a descrição, como no cardápio no ar. */}
+                  {density === 'confortavel' ? <span>{dish.description}</span> : null}
+                  <b>{dish.price}</b>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

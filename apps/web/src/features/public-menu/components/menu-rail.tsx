@@ -1,16 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { RiCloseLine, RiComputerLine, RiHome4Line, RiMoonLine, RiRestaurantLine, RiSunLine } from 'react-icons/ri'
+import { useEffect, useRef, useState } from 'react'
+import { RiCloseLine, RiHome4Line, RiRestaurantLine } from 'react-icons/ri'
 import type { MenuCategoryDTO } from '@/domain/menu'
-
-type MenuAppearance = 'system' | 'light' | 'dark'
-const MENU_THEME_KEY = 'tema-cardapio'
-const appearanceOptions = {
-  system: { label: 'Sistema', Icon: RiComputerLine, next: 'light' },
-  light: { label: 'Claro', Icon: RiSunLine, next: 'dark' },
-  dark: { label: 'Escuro', Icon: RiMoonLine, next: 'system' },
-} as const
 
 // Fixo no topo, sobre as colunas. É ele que resolve "oitenta itens, quero
 // Bebidas": tocar numa categoria ROLA até a primeira coluna dela. Não existe
@@ -33,23 +25,8 @@ export function MenuRail({
   onGoToCategory: (categoryId: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [appearance, setAppearance] = useState<MenuAppearance>('system')
-
-  useEffect(() => {
-    const stored = document.documentElement.dataset.menuAppearance
-    if (stored === 'light' || stored === 'dark') setAppearance(stored)
-  }, [])
-
-  function cycleAppearance() {
-    const next = appearanceOptions[appearance].next
-    setAppearance(next)
-    document.documentElement.dataset.menuAppearance = next
-    try {
-      localStorage.setItem(MENU_THEME_KEY, next)
-    } catch {
-      // A troca continua funcionando nesta visita quando o armazenamento falha.
-    }
-  }
+  const listRef = useRef<HTMLUListElement>(null)
+  const wasOpenRef = useRef(false)
 
   // Fecha sozinho ao deslizar para outro prato. Aberto, ele não fica no
   // caminho da foto — que é o ponto inteiro de ele ser colapsável.
@@ -57,10 +34,26 @@ export function MenuRail({
     setIsOpen(false)
   }, [active])
 
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current && active) {
+      const list = listRef.current
+      const selected = list?.querySelector<HTMLElement>('[aria-current="true"]')
+      if (list && selected) {
+        const listRect = list.getBoundingClientRect()
+        const selectedRect = selected.getBoundingClientRect()
+        const left = list.scrollLeft + selectedRect.left - listRect.left - (list.clientWidth - selectedRect.width) / 2
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        list.scrollTo({
+          left: Math.max(0, Math.min(left, list.scrollWidth - list.clientWidth)),
+          behavior: reduceMotion ? 'auto' : 'smooth',
+        })
+      }
+    }
+    wasOpenRef.current = isOpen
+  }, [active, isOpen])
+
   const currentName =
     categories.find((category) => category.id === active)?.name ?? 'Cardápio'
-
-  const { label: appearanceLabel, Icon: AppearanceIcon, next } = appearanceOptions[appearance]
 
   return (
     <nav
@@ -92,6 +85,7 @@ export function MenuRail({
         {/* `inert` tira os chips escondidos do foco e do leitor de tela. Sem
             ele, `Tab` passeia por botões invisíveis. */}
         <ul
+          ref={listRef}
           inert={!isOpen}
           className="menu-rail-list flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
@@ -126,7 +120,7 @@ export function MenuRail({
             return (
               <li
                 key={category.id}
-                className="menu-rail-item"
+                className={`menu-rail-item${current ? ' is-active' : ''}`}
                 style={{ '--i': index + 1 } as React.CSSProperties}
               >
                 <button
@@ -157,16 +151,6 @@ export function MenuRail({
             )
           })}
         </ul>
-        <button
-          type="button"
-          onClick={cycleAppearance}
-          className="menu-chip menu-theme-toggle flex min-h-11 shrink-0 items-center gap-1.5 px-3 text-[0.8125rem] font-semibold"
-          aria-label={`Tema: ${appearanceLabel}. Ativar ${appearanceOptions[next].label}`}
-          title={`Tema: ${appearanceLabel}`}
-        >
-          <AppearanceIcon className="size-4" aria-hidden="true" />
-          <span>{appearanceLabel}</span>
-        </button>
       </div>
     </nav>
   )

@@ -17,12 +17,19 @@ export function territoryFromHost(host: string | null): Territory {
 
   const root = stripPort(env.NEXT_PUBLIC_ROOT_DOMAIN)
   const current = stripPort(host)
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
-  if (current === `${ADMIN_PREFIX}${root}`) return 'admin'
-  if (current === `${WORKSPACE_PREFIX}${root}`) return 'painel'
+  // O dominio configurado pode apontar para o tunel; em desenvolvimento,
+  // os aliases locais continuam disponiveis independentemente dele.
+  if (current === `${ADMIN_PREFIX}${root}` || (isDevelopment && current === 'admin.localhost')) {
+    return 'admin'
+  }
+  if (current === `${WORKSPACE_PREFIX}${root}` || (isDevelopment && current === 'painel.localhost')) {
+    return 'painel'
+  }
 
   if (
-    process.env.NODE_ENV !== 'production' &&
+    isDevelopment &&
     env.DEV_TUNNEL_HOST &&
     env.DEV_TUNNEL_TERRITORY &&
     current === stripPort(env.DEV_TUNNEL_HOST)
