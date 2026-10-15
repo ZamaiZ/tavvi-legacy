@@ -28,6 +28,7 @@ export function MenuCatalog({
   const flowRef = useRef<HTMLDivElement>(null)
   const menuScreenRef = useRef<HTMLDivElement>(null)
   const menuNavRef = useRef<HTMLElement>(null)
+  const categoryNavListRef = useRef<HTMLUListElement>(null)
   const categoryRefs = useRef(new Map<string, HTMLElement>())
   const isGrid = presentation === 'catalog-grid'
   const categories = menu.categories
@@ -47,6 +48,21 @@ export function MenuCatalog({
     for (const section of categoryRefs.current.values()) observer.observe(section)
     return () => observer.disconnect()
   }, [categories])
+
+  useEffect(() => {
+    const list = categoryNavListRef.current
+    const selected = list?.querySelector<HTMLElement>('[aria-current="location"]')
+    if (!list || !selected) return
+
+    const listRect = list.getBoundingClientRect()
+    const selectedRect = selected.getBoundingClientRect()
+    const left = list.scrollLeft + selectedRect.left - listRect.left - (list.clientWidth - selectedRect.width) / 2
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    list.scrollTo({
+      left: Math.max(0, Math.min(left, list.scrollWidth - list.clientWidth)),
+      behavior: reduceMotion ? 'auto' : 'smooth',
+    })
+  }, [activeCategoryId])
 
   function scrollToCategory(categoryId: string) {
     const section = categoryRefs.current.get(categoryId)
@@ -97,7 +113,7 @@ export function MenuCatalog({
           {categories.length > 0 ? (
             <nav ref={menuNavRef} className="menu-catalog-nav" aria-label="Categorias do cardápio">
               <div className="menu-catalog-nav-inner">
-                <ul className="menu-catalog-nav-list">
+                <ul ref={categoryNavListRef} className="menu-catalog-nav-list">
                   {categories.map((category) => (
                     <li key={category.id}>
                       <button
