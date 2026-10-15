@@ -20,8 +20,8 @@ import { usePhone } from '../lib/use-phone'
 import { FeedbackCard } from './feedback-card'
 import { FeedbackDetail } from './feedback-detail'
 
-// Feedbacks (só administradores): os comentários e fotos anônimos da tela
-// inicial do cardápio. Uma tela para desktop e celular, como o Serviço.
+// Feedbacks (só administradores): comentários e fotos anônimos da tela
+// inicial do cardápio, em uma árvore responsiva para desktop e celular.
 export function FeedbacksScreen({
   restaurantId,
   initialPage,

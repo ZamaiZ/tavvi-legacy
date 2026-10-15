@@ -42,8 +42,8 @@ export default async function Page({
     listInvites(restaurant.id),
   ])
 
-  const pendentes = invites.filter(
-    (invite) => inviteStatus(invite) === 'pendente',
+  const pendingInvites = invites.filter(
+    (invite) => inviteStatus(invite) === 'pending',
   )
 
   return (
@@ -75,7 +75,7 @@ export default async function Page({
           })}
         </section>
 
-        {members.length === 1 && pendentes.length === 0 ? (
+        {members.length === 1 && pendingInvites.length === 0 ? (
           <PanelEmptyState
             density="section"
             icon={<LuUsers />}
@@ -96,10 +96,10 @@ export default async function Page({
           ))}
         </div>
 
-        {pendentes.length > 0 ? (
+        {pendingInvites.length > 0 ? (
           <section className="tv-team-invites" aria-labelledby="tv-team-invites-title">
             <h2 id="tv-team-invites-title">Convites pendentes</h2>
-            <InviteList invites={pendentes} />
+            <InviteList invites={pendingInvites} />
           </section>
         ) : null}
       </div>
@@ -109,7 +109,7 @@ export default async function Page({
         restaurantId={restaurant.id}
         restaurantName={restaurant.name}
         members={members}
-        invites={pendentes}
+        invites={pendingInvites}
         currentUserId={user.id}
       />
     </div>

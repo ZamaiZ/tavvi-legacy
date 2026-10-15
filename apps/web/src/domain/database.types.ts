@@ -480,9 +480,81 @@ export type Database = {
           },
         ]
       }
+      service_call_events: {
+        Row: {
+          actor_id: string | null
+          call_id: string
+          created_at: string
+          event_type: string
+          id: string
+          next_assignee_id: string | null
+          previous_assignee_id: string | null
+          restaurant_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          call_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          next_assignee_id?: string | null
+          previous_assignee_id?: string | null
+          restaurant_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          call_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          next_assignee_id?: string | null
+          previous_assignee_id?: string | null
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_call_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_call_events_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "service_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_call_events_next_assignee_id_fkey"
+            columns: ["next_assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_call_events_previous_assignee_id_fkey"
+            columns: ["previous_assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_call_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_calls: {
         Row: {
+          assigned_to: string | null
           created_at: string
+          first_claimed_at: string | null
+          first_claimed_by: string | null
           id: string
           restaurant_id: string
           resolved_at: string | null
@@ -492,7 +564,10 @@ export type Database = {
           tag_id: string
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string
+          first_claimed_at?: string | null
+          first_claimed_by?: string | null
           id?: string
           restaurant_id: string
           resolved_at?: string | null
@@ -502,7 +577,10 @@ export type Database = {
           tag_id: string
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string
+          first_claimed_at?: string | null
+          first_claimed_by?: string | null
           id?: string
           restaurant_id?: string
           resolved_at?: string | null
@@ -512,6 +590,20 @@ export type Database = {
           tag_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "service_calls_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_calls_first_claimed_by_fkey"
+            columns: ["first_claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_calls_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -973,15 +1065,53 @@ export type Database = {
         Args: { p_key: string; p_token: string; p_allow_create?: boolean }
         Returns: { call_id: string; table_number: number; status: string; created: boolean }[]
       }
-      resolve_service_call: {
+      claim_service_call: {
         Args: { p_call_id: string }
         Returns: {
+          outcome: string
           call_id: string
           restaurant_id: string
           tag_id: string
           table_number: number
           status: string
           created_at: string
+          first_claimed_at: string | null
+          first_claimed_by: string | null
+          assigned_to: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }[]
+      }
+      transfer_service_call: {
+        Args: { p_assignee_id: string; p_call_id: string }
+        Returns: {
+          outcome: string
+          call_id: string
+          restaurant_id: string
+          tag_id: string
+          table_number: number
+          status: string
+          created_at: string
+          first_claimed_at: string | null
+          first_claimed_by: string | null
+          assigned_to: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }[]
+      }
+      resolve_service_call: {
+        Args: { p_call_id: string }
+        Returns: {
+          outcome: string
+          call_id: string
+          restaurant_id: string
+          tag_id: string
+          table_number: number
+          status: string
+          created_at: string
+          first_claimed_at: string | null
+          first_claimed_by: string | null
+          assigned_to: string | null
           resolved_at: string | null
           resolved_by: string | null
         }[]

@@ -15,15 +15,12 @@ export function ServiceMode({
   restaurantId,
   categories,
   canEdit,
-  showIntro = true,
   onReviewMenu,
   onManageHiddenItems,
 }: {
   restaurantId: string
   categories: OwnerMenuCategoryDTO[]
   canEdit: boolean
-  /** A rota Serviço tem o próprio cabeçalho e dispensa a frase. */
-  showIntro?: boolean
   onReviewMenu: () => void
   onManageHiddenItems: () => void
 }) {
@@ -32,7 +29,7 @@ export function ServiceMode({
 
   return (
     <>
-      {showIntro ? <p className="tv-mode-intro">Toque para alternar entre disponível e esgotado durante o atendimento.</p> : null}
+      <p className="tv-mode-intro">Toque para alternar entre disponível e esgotado durante o atendimento.</p>
       {items.length === 0 ? (
         <PanelEmptyState
           density="section"

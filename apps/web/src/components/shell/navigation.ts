@@ -68,10 +68,10 @@ export function getRestaurantNavigation(
     },
     {
       kind: 'leaf',
-      href: `${root}/servico`,
-      label: 'Serviço',
-      icon: 'service',
-      description: 'Disponibilidade dos itens',
+      href: `${root}/service-calls`,
+      label: 'Chamados',
+      icon: 'bell',
+      description: 'Chamados de atendimento por mesa',
     },
   ]
 
@@ -118,14 +118,6 @@ export function getRestaurantNavigation(
       },
     )
   }
-
-  children.push({
-    kind: 'leaf',
-    href: `${root}/chamados`,
-    label: 'Chamados',
-    icon: 'bell',
-    description: 'Chamados de atendimento por mesa',
-  })
 
   return [
     {

@@ -41,6 +41,15 @@ export async function proxy(request: NextRequest) {
   const territory = territoryFromHost(request.headers.get('host'))
   const path = request.nextUrl.pathname
 
+  if (territory === 'painel') {
+    const legacyCallsMatch = /^\/restaurantes\/([0-9a-f-]{36})\/chamados\/?$/i.exec(path)
+    if (legacyCallsMatch && RESTAURANT_ID_PATTERN.test(legacyCallsMatch[1])) {
+      const target = new URL(request.url)
+      target.pathname = `/restaurantes/${legacyCallsMatch[1]}/service-calls`
+      return NextResponse.redirect(target)
+    }
+  }
+
   if (territory === 'site') {
     // O dominio publico nao alcanca territorio privado. Sem isto, os
     // caminhos /admin e /painel ficariam servidos tambem pela raiz.

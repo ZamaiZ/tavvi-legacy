@@ -7,13 +7,12 @@ import { RestaurantRouteLoading } from '@/features/workspace/components/restaura
 import { RestaurantShell } from '@/features/workspace/components/restaurant-shell'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 import MenuLoading from './loading'
-import CallsLoading from './chamados/loading'
+import CallsLoading from './service-calls/loading'
 import ContactLoading from './contact/loading'
 import FeedbacksLoading from './feedbacks/loading'
 import GettingStartedLoading from './getting-started/loading'
 import IdentityLoading from './identity/loading'
 import IdentifiersLoading from './identificadores/loading'
-import ServiceLoading from './service/loading'
 import SettingsLoading from './settings/loading'
 import TeamLoading from './team/loading'
 import AccountProfileLoading from './account/profile/loading'
@@ -21,13 +20,12 @@ import AccountSettingsLoading from './account/settings/loading'
 
 const restaurantRouteSkeletons = {
   '': <MenuLoading />,
-  chamados: <CallsLoading />,
+  'service-calls': <CallsLoading />,
   contact: <ContactLoading />,
   feedbacks: <FeedbacksLoading />,
   'getting-started': <GettingStartedLoading />,
   identity: <IdentityLoading />,
   identificadores: <IdentifiersLoading />,
-  service: <ServiceLoading />,
   settings: <SettingsLoading />,
   team: <TeamLoading />,
   'account/profile': <AccountProfileLoading />,

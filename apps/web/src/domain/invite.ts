@@ -16,10 +16,10 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
 
 // O que cada papel pode, em uma linha, para a tela explicar sem inventar.
 export const MEMBER_ROLE_HINTS: Record<MemberRole, string> = {
-  admin: 'Edita o cardápio, a identidade e a equipe.',
-  cashier: 'Consulta o cardápio e os preços.',
-  attendant: 'Consulta o cardápio e os preços.',
-  waiter: 'Consulta o cardápio e os preços.',
+  admin: 'Edita o cardápio, a identidade e a equipe; pode assumir, concluir os próprios chamados e transferir atendimentos.',
+  cashier: 'Consulta o cardápio e os preços; pode assumir chamados e concluir os que estão sob sua responsabilidade.',
+  attendant: 'Consulta o cardápio e os preços; pode assumir chamados e concluir os que estão sob sua responsabilidade.',
+  waiter: 'Consulta o cardápio e os preços; pode assumir chamados e concluir os que estão sob sua responsabilidade.',
 }
 
 // O convite de plataforma não pergunta restaurante nem papel: não existe
@@ -79,23 +79,22 @@ export function inviteState(
   return 'pending'
 }
 
-export type InviteStatus = 'pendente' | 'resgatado' | 'revogado' | 'vencido'
+export type InviteStatus = 'pending' | 'redeemed' | 'revoked' | 'expired'
 
-// Derivada, e não gravada: uma coluna de situação precisaria de um job para
-// virar 'vencido' na hora certa, e ficaria mentindo entre uma execução e a
-// próxima.
+// Derived rather than stored: a status column would need a job to become
+// 'expired' at the right moment and could be stale between job runs.
 export function inviteStatus(invite: InviteDTO, now = new Date()): InviteStatus {
-  if (invite.redeemedAt) return 'resgatado'
-  if (invite.revokedAt) return 'revogado'
-  if (new Date(invite.expiresAt) <= now) return 'vencido'
-  return 'pendente'
+  if (invite.redeemedAt) return 'redeemed'
+  if (invite.revokedAt) return 'revoked'
+  if (new Date(invite.expiresAt) <= now) return 'expired'
+  return 'pending'
 }
 
 export const INVITE_STATUS_LABELS: Record<InviteStatus, string> = {
-  pendente: 'Pendente',
-  resgatado: 'Resgatado',
-  revogado: 'Revogado',
-  vencido: 'Vencido',
+  pending: 'Pendente',
+  redeemed: 'Resgatado',
+  revoked: 'Revogado',
+  expired: 'Vencido',
 }
 
 // Devolvido UMA única vez, na criação. O banco guarda só o hash e não

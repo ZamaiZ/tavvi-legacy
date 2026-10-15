@@ -1,5 +1,4 @@
 import type { IconType } from 'react-icons'
-import { LuConciergeBell } from 'react-icons/lu'
 import {
   RiBookOpenLine,
   RiContactsLine,
@@ -25,7 +24,6 @@ export const NAV_ICONS: Record<NavIconName, IconType> = {
   feedback: RiMessage2Line,
   tag: RiQrCodeLine,
   bell: RiNotification3Line,
-  service: LuConciergeBell,
 }
 
 export function getNavIcon(name: NavIconName) {

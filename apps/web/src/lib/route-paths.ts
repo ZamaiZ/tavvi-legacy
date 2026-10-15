@@ -31,6 +31,7 @@ const externalRestaurantSections: Record<string, string> = {
   identidade: 'identity',
   equipe: 'team',
   contato: 'contact',
+  // Preserve the old link while the route redirects to the restaurant menu.
   servico: 'service',
   ajustes: 'settings',
   feedbacks: 'feedbacks',

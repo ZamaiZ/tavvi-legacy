@@ -57,19 +57,6 @@
   .workspace-territory .tv-mp-lead.is-team { margin-top: -4px; font-size: 13.5px; }
   .workspace-territory .tv-mp-refresh { margin: 0; color: var(--tv-text-3); font-size: 13px; text-align: center; }
 
-  /* Serviço (bService): grade de 2 colunas, blocos de 104 px. */
-  .workspace-territory .tv-service { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .workspace-territory .tv-service-tile { min-height: 104px; padding: 12px; gap: 4px; border: 0; border-radius: 16px; background: var(--tv-surface); box-shadow: none; transition: var(--tv-transition), transform var(--tv-dur-1) var(--tv-ease); }
-  .workspace-territory .tv-service-tile.is-soldout { background: var(--tv-danger-soft); }
-  .workspace-territory .tv-service-state { gap: 5px; font-size: 12px; }
-  .workspace-territory .tv-service-state > span { width: 7px; height: 7px; }
-  .workspace-territory .tv-service-tile > strong { font-size: 15px; line-height: 1.25; }
-  .workspace-territory .tv-service-tile > small { font-size: 13px; }
-  .workspace-territory .tv-service-tile:not([aria-disabled="true"]):active { transform: scale(.98); transition-duration: 0s; }
-}
-
-@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
-  .workspace-territory .tv-service-tile { transition: none; }
 }
 
 /* Ajustes (bMore): título, grupos com 16 px entre si, linhas de 50 px. */

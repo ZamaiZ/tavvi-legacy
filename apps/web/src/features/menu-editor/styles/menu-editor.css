@@ -408,12 +408,6 @@ textarea.tv-pinput { height: auto; min-height: 76px; padding: 8px 10px; line-hei
 .tv-service-state > span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .tv-service-tile > strong { margin-top: auto; font-size: 13px; font-weight: 600; }
 .tv-service-tile > small { color: var(--tv-text-2); font-size: 12px; }
-/* Rota Serviço no desktop: a mesma largura do Cardápio. */
-.workspace-territory .tv-service-page { width: min(100%, 1160px); margin: 0 auto; padding: 26px 32px 72px; display: flex; flex-direction: column; gap: 12px; color: var(--tv-text); }
-@media (max-width: 1023px) {
-  .workspace-territory .tv-service-page { padding: 26px 22px 72px; }
-}
-
 @media (max-width: 767px) {
   .workspace-territory .tv-sheet-head { display: none; }
   .workspace-territory .tv-sheet-row { min-width: 0; grid-template-columns: minmax(0, 1fr) 96px 92px; gap: 8px; }

@@ -26,10 +26,14 @@ export function RequestServiceCall({ token }: { token: string }) {
         setSent(true)
         toast.add({
           type: result.data.created ? 'success' : 'info',
-          title: result.data.created ? 'Chamado enviado' : 'Chamado já está na fila',
+          title: result.data.created
+            ? 'Chamado enviado'
+            : result.data.status === 'in_progress' ? 'A equipe já está atendendo' : 'Chamado já está na fila',
           description: result.data.created
             ? `A equipe foi avisada sobre a mesa ${result.data.tableNumber}. Aguarde por aqui.`
-            : `A equipe já foi avisada sobre a mesa ${result.data.tableNumber}. Seu chamado continua na fila.`,
+            : result.data.status === 'in_progress'
+              ? `A equipe já assumiu o atendimento da mesa ${result.data.tableNumber}.`
+              : `A equipe já foi avisada sobre a mesa ${result.data.tableNumber}. Seu chamado continua na fila.`,
         })
       } catch {
         toast.add({

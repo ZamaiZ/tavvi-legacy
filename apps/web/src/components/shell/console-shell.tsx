@@ -112,7 +112,7 @@ export function ConsoleShell({
       pendingServiceCallsRef.current = result.data
       setPendingServiceCalls(result.data)
     }
-    else console.error('[chamados] contagem da navegação', result.error)
+    else console.error('[service-calls] navigation count failed', result.error)
   }, [config.restaurant?.restaurantId])
   const onServiceCallsRealtime = useCallback(() => { void refreshPendingServiceCalls() }, [refreshPendingServiceCalls])
   useServiceCallsRealtime(config.restaurant?.restaurantId ?? '', onServiceCallsRealtime)

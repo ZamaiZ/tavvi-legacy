@@ -1,60 +1,235 @@
-.workspace-territory .tv-calls-page { width: min(100%, 1240px); margin: 0 auto; padding: 26px 32px 72px; color: var(--tv-text); }
-.workspace-territory .tv-calls-toolbar { margin: 18px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.workspace-territory .tv-calls-tabs { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface-2); }
-.workspace-territory .tv-calls-tabs button,.workspace-territory .tv-calls-sound { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
-.workspace-territory .tv-calls-tabs button[aria-selected="true"] { background: var(--tv-surface); color: var(--tv-text); box-shadow: var(--tv-shadow); }
-.workspace-territory .tv-calls-tabs button svg,.workspace-territory .tv-calls-sound svg { width: 15px; height: 15px; }
-.workspace-territory .tv-calls-tabs button span { min-width: 20px; padding: 2px 5px; border-radius: 999px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 10px; text-align: center; }
+.workspace-territory .tv-calls-page { width: min(100%, 1400px); margin: 0 auto; padding: 26px 32px 72px; color: var(--tv-text); }
+.workspace-territory .tv-calls-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 22px 0 17px; }
+.workspace-territory .tv-call-summary-card { position: relative; min-height: 88px; padding: 15px 17px; display: flex; align-items: center; gap: 13px; overflow: hidden; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); color: var(--tv-text); text-align: left; box-shadow: var(--tv-shadow); cursor: pointer; transition: border-color 160ms ease, transform 160ms ease, background-color 160ms ease; }
+.workspace-territory .tv-call-summary-card:hover { transform: translateY(-1px); border-color: var(--tv-gold); }
+.workspace-territory .tv-call-summary-card.is-active { border-color: var(--tv-gold); background: var(--tv-surface-2); box-shadow: 0 0 0 1px var(--tv-gold); }
+.workspace-territory .tv-call-summary-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-summary-icon svg { width: 19px; height: 19px; }
+.workspace-territory .tv-call-summary-card.is-in_progress .tv-call-summary-icon { background: var(--tv-surface-2); color: var(--tv-text-2); }
+.workspace-territory .tv-call-summary-card.is-resolved .tv-call-summary-icon { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-call-summary-copy { display: flex; flex-direction: column; gap: 3px; }
+.workspace-territory .tv-call-summary-copy small { color: var(--tv-text-3); font-size: 11px; font-weight: 550; }
+.workspace-territory .tv-call-summary-copy strong { font-size: 24px; font-weight: 650; letter-spacing: -.04em; line-height: 1; }
+.workspace-territory .tv-call-summary-arrow { width: 26px; height: 26px; margin-left: auto; display: grid; place-items: center; border-radius: 8px; color: var(--tv-text-3); opacity: .55; }
+.workspace-territory .tv-call-summary-arrow svg { width: 14px; height: 14px; }
+.workspace-territory .tv-call-summary-card.is-active .tv-call-summary-arrow { color: var(--tv-gold-text); opacity: 1; }
+.workspace-territory .tv-calls-toolbar { min-height: 48px; margin: 0 0 12px; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+.workspace-territory .tv-calls-sound { min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 550; white-space: nowrap; cursor: pointer; }
+.workspace-territory .tv-calls-tools { display: flex; align-items: center; gap: 12px; }
+.workspace-territory .tv-calls-live { display: inline-flex; align-items: center; gap: 7px; color: var(--tv-text-3); font-size: 11px; white-space: nowrap; }
+.workspace-territory .tv-calls-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--tv-ok); box-shadow: 0 0 0 3px var(--tv-ok-soft); }
 .workspace-territory .tv-calls-sound { border: 1px solid var(--tv-line); background: var(--tv-surface); }
 .workspace-territory .tv-calls-sound.is-on { border-color: var(--tv-gold); color: var(--tv-gold-text); }
-.workspace-territory .tv-calls-layout { min-height: min(62dvh, 720px); display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.15fr); overflow: hidden; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
+.workspace-territory .tv-calls-sound svg { width: 15px; height: 15px; }
+.workspace-territory .tv-calls-layout { min-height: min(66dvh, 780px); display: grid; grid-template-columns: minmax(320px, .84fr) minmax(0, 1.16fr); overflow: hidden; border: 1px solid var(--tv-line); border-radius: 16px; background: var(--tv-surface); box-shadow: var(--tv-shadow); }
 .workspace-territory .tv-calls-list-panel { min-width: 0; border-right: 1px solid var(--tv-line); }
-.workspace-territory .tv-calls-list-head { min-height: 48px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--tv-line); }
-.workspace-territory .tv-calls-list-head strong { font-size: 12px; font-weight: 600; }
-.workspace-territory .tv-calls-list-head span { display: inline-flex; align-items: center; gap: 5px; color: var(--tv-text-3); font-size: 10px; }
-.workspace-territory .tv-calls-list-head svg { width: 12px; height: 12px; }
-.workspace-territory .tv-calls-list { max-height: 58dvh; margin: 0; padding: 6px; overflow: auto; list-style: none; }
-.workspace-territory .tv-call-row { width: 100%; min-height: 64px; padding: 9px; display: flex; align-items: center; gap: 10px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--tv-text); text-align: left; cursor: pointer; }
-.workspace-territory .tv-call-row[aria-current="true"] { border-color: var(--tv-line); background: var(--tv-surface-2); }
-.workspace-territory .tv-call-row-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
-.workspace-territory .tv-call-row-icon.is-done { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-calls-list-head { min-height: 67px; padding: 12px 17px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-calls-list-head > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.workspace-territory .tv-calls-list-head strong { font-size: 12px; font-weight: 620; }
+.workspace-territory .tv-calls-list-head > div > span,.workspace-territory .tv-calls-list-count { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-calls-refreshing { display: inline-flex; align-items: center; gap: 5px; color: var(--tv-text-3); font-size: 10px; white-space: nowrap; }
+.workspace-territory .tv-calls-refreshing svg { width: 13px; height: 13px; }
+.workspace-territory .tv-calls-list { max-height: 63dvh; margin: 0; padding: 8px; overflow: auto; list-style: none; }
+.workspace-territory .tv-call-row { width: 100%; min-height: 74px; padding: 11px; display: flex; align-items: center; gap: 11px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--tv-text); text-align: left; cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease; }
+.workspace-territory .tv-call-row:hover { background: var(--tv-surface-2); }
+.workspace-territory .tv-call-row.is-selected { border-color: var(--tv-line); background: var(--tv-surface-2); box-shadow: inset 3px 0 var(--tv-gold); }
+.workspace-territory .tv-call-row-icon { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 11px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-row-icon.is-in_progress { background: var(--tv-surface-2); color: var(--tv-text-2); }
+.workspace-territory .tv-call-row-icon.is-resolved { background: var(--tv-ok-soft); color: var(--tv-ok); }
 .workspace-territory .tv-call-row-icon svg { width: 16px; height: 16px; }
-.workspace-territory .tv-call-row-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.workspace-territory .tv-call-row-copy strong { font-size: 12px; font-weight: 600; }
+.workspace-territory .tv-call-row-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.workspace-territory .tv-call-row-topline { min-width: 0; display: flex; align-items: center; gap: 7px; }
+.workspace-territory .tv-call-row-copy strong { font-size: 12px; font-weight: 620; }
 .workspace-territory .tv-call-row-copy small { overflow: hidden; color: var(--tv-text-3); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.workspace-territory .tv-call-row time { display: inline-flex; align-items: center; gap: 4px; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-row-copy small.tv-call-assignee { display: inline-flex; align-items: center; gap: 4px; }
+.workspace-territory .tv-call-assignee svg { width: 11px; height: 11px; }
+.workspace-territory .tv-call-row time { display: inline-flex; align-items: center; gap: 4px; color: var(--tv-text-3); font-size: 10px; white-space: nowrap; }
 .workspace-territory .tv-call-row time svg { width: 11px; height: 11px; }
-.workspace-territory .tv-calls-empty,.workspace-territory .tv-call-detail-empty { min-height: 220px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--tv-text-3); text-align: center; }
-.workspace-territory .tv-calls-empty > span svg,.workspace-territory .tv-call-detail-empty svg { width: 24px; height: 24px; color: var(--tv-gold-text); }
-.workspace-territory .tv-calls-empty strong,.workspace-territory .tv-call-detail-empty strong { color: var(--tv-text); font-size: 13px; font-weight: 600; }
-.workspace-territory .tv-calls-empty small,.workspace-territory .tv-call-detail-empty span { font-size: 11px; }
-.workspace-territory .tv-call-detail { min-width: 0; padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.workspace-territory .tv-call-detail-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 15px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
-.workspace-territory .tv-call-detail-icon svg { width: 23px; height: 23px; }
-.workspace-territory .tv-call-status { margin: 12px 0 0; color: var(--tv-gold-text); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .09em; }
-.workspace-territory .tv-call-detail h2 { margin: 4px 0 0; font-size: clamp(24px, 3vw, 34px); font-weight: 650; letter-spacing: -.03em; }
-.workspace-territory .tv-call-detail-time { margin: 10px 0 0; display: flex; align-items: center; gap: 6px; color: var(--tv-text-2); font-size: 11px; }
-.workspace-territory .tv-call-detail-time svg { width: 13px; height: 13px; }
-.workspace-territory .tv-call-resolved-time { margin: 7px 0 0; color: var(--tv-text-3); font-size: 11px; }
-.workspace-territory .tv-call-resolve { min-height: 42px; margin-top: 20px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--tv-gold); color: #17150f; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
-.workspace-territory .tv-call-resolve:disabled { opacity: .7; cursor: progress; }
-.workspace-territory .tv-call-resolve svg { width: 15px; height: 15px; }
-.workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-calls-tabs button:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-call-resolve:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
-.workspace-territory .tv-calls-load-more { width: calc(100% - 12px); min-height: 36px; margin: 0 6px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; cursor: pointer; }
+.workspace-territory .tv-call-state { padding: 4px 7px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 9px; font-weight: 650; letter-spacing: .01em; white-space: nowrap; }
+.workspace-territory .tv-call-state.is-in_progress { background: var(--tv-surface-2); color: var(--tv-text-2); }
+.workspace-territory .tv-call-state.is-resolved { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-calls-empty,.workspace-territory .tv-call-detail-empty { min-height: 260px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: var(--tv-text-3); text-align: center; }
+.workspace-territory .tv-calls-empty > span,.workspace-territory .tv-call-detail-empty > span { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface-2); color: var(--tv-gold-text); }
+.workspace-territory .tv-calls-empty > span svg,.workspace-territory .tv-call-detail-empty > span svg { width: 21px; height: 21px; }
+.workspace-territory .tv-calls-empty strong,.workspace-territory .tv-call-detail-empty strong { color: var(--tv-text); font-size: 13px; font-weight: 620; }
+.workspace-territory .tv-calls-empty small,.workspace-territory .tv-call-detail-empty small { max-width: 260px; font-size: 11px; line-height: 1.5; }
+.workspace-territory .tv-call-detail { min-width: 0; padding: clamp(20px, 3vw, 34px); display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.workspace-territory .tv-call-detail-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-call-reference { color: var(--tv-text-3); font-size: 10px; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
+.workspace-territory .tv-call-table-heading { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
+.workspace-territory .tv-call-table-icon { width: 52px; height: 52px; flex: 0 0 52px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 15px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-table-icon svg { width: 23px; height: 23px; }
+.workspace-territory .tv-call-table-heading small { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-table-heading h2 { margin: 3px 0 0; font-size: clamp(25px, 3vw, 34px); font-weight: 660; letter-spacing: -.045em; line-height: 1.1; }
+.workspace-territory .tv-call-detail-time { margin: 12px 0 17px; display: flex; align-items: center; gap: 6px; color: var(--tv-text-2); font-size: 11px; }
+.workspace-territory .tv-call-detail-time svg { width: 13px; height: 13px; color: var(--tv-text-3); }
+.workspace-territory .tv-call-timing-card { position: relative; min-height: 96px; padding: 17px; display: flex; align-items: center; gap: 13px; overflow: hidden; border: 1px solid var(--tv-line); border-radius: 13px; background: var(--tv-surface-2); }
+.workspace-territory .tv-call-timing-icon { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 11px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-timing-icon.is-service { background: var(--tv-surface); color: var(--tv-text-2); }
+.workspace-territory .tv-call-timing-icon.is-done { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-call-timing-icon svg { width: 17px; height: 17px; }
+.workspace-territory .tv-call-timing-card > div:nth-child(2) { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.workspace-territory .tv-call-timing-card small { color: var(--tv-text-3); font-size: 10px; font-weight: 550; }
+.workspace-territory .tv-call-timing-card strong { font-size: 23px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.035em; line-height: 1.1; }
+.workspace-territory .tv-call-timing-card span:not(.tv-call-timing-pulse) { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-timing-pulse { width: 7px; height: 7px; margin-left: auto; flex: 0 0 7px; border-radius: 50%; background: var(--tv-gold); box-shadow: 0 0 0 4px var(--tv-gold-soft); animation: tv-call-pulse 1.8s ease-out infinite; }
+.workspace-territory .tv-call-assignment-card { min-height: 68px; margin-top: 11px; padding: 12px 13px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--tv-line); border-radius: 12px; background: var(--tv-surface); }
+.workspace-territory .tv-call-assignment-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); }
+.workspace-territory .tv-call-assignment-icon svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-assignment-card > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.workspace-territory .tv-call-assignment-card small { color: var(--tv-text-3); font-size: 9px; }
+.workspace-territory .tv-call-assignment-card strong { overflow: hidden; font-size: 11px; font-weight: 610; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-territory .tv-call-assignment-card > div > span { color: var(--tv-text-3); font-size: 9px; }
+.workspace-territory .tv-call-transfer-trigger { min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 10px; font-weight: 550; cursor: pointer; }
+.workspace-territory .tv-call-transfer-trigger svg { width: 13px; height: 13px; }
+.workspace-territory .tv-call-action-area { min-height: 64px; padding-top: 12px; }
+.workspace-territory .tv-call-button { min-height: 44px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 12px; font-weight: 640; cursor: pointer; transition: transform 130ms ease, opacity 130ms ease; }
+.workspace-territory .tv-call-button:hover:not(:disabled) { transform: translateY(-1px); }
+.workspace-territory .tv-call-button:disabled { opacity: .62; cursor: progress; }
+.workspace-territory .tv-call-button svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-button.is-primary { background: var(--tv-gold); color: #17150f; }
+.workspace-territory .tv-call-button.is-secondary { border-color: var(--tv-line); background: var(--tv-surface); color: var(--tv-text-2); }
+.workspace-territory .tv-call-button.is-wide { width: 100%; }
+.workspace-territory .tv-call-permission-note,.workspace-territory .tv-call-completed-note { min-height: 42px; margin: 0; display: flex; align-items: center; gap: 7px; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-completed-note { color: var(--tv-ok); }
+.workspace-territory .tv-call-completed-note svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-history { margin-top: 3px; padding-top: 15px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-call-history-heading { display: flex; align-items: center; gap: 7px; color: var(--tv-text-2); }
+.workspace-territory .tv-call-history-heading > svg { width: 14px; height: 14px; color: var(--tv-text-3); }
+.workspace-territory .tv-call-history-heading strong { font-size: 10px; font-weight: 620; }
+.workspace-territory .tv-call-history-heading .tv-spinner-ring { width: 12px; height: 12px; margin-left: auto; }
+.workspace-territory .tv-call-history ol { margin: 12px 0 0; padding: 0; list-style: none; }
+.workspace-territory .tv-call-history li { position: relative; min-height: 40px; padding: 0 0 12px 20px; display: flex; align-items: flex-start; gap: 8px; }
+.workspace-territory .tv-call-history li:not(:last-child)::before { position: absolute; top: 10px; bottom: -1px; left: 4px; width: 1px; background: var(--tv-line); content: ''; }
+.workspace-territory .tv-call-history-dot { position: absolute; top: 3px; left: 0; width: 9px; height: 9px; border: 2px solid var(--tv-gold-text); border-radius: 50%; background: var(--tv-surface); }
+.workspace-territory .tv-call-history-dot.is-resolved { border-color: var(--tv-ok); }
+.workspace-territory .tv-call-history li > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.workspace-territory .tv-call-history li strong { font-size: 10px; font-weight: 550; }
+.workspace-territory .tv-call-history li small,.workspace-territory .tv-call-history li time { color: var(--tv-text-3); font-size: 9px; }
+.workspace-territory .tv-call-history > p { margin: 12px 0 0; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-calls-load-more { width: calc(100% - 16px); min-height: 44px; margin: 0 8px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; cursor: pointer; }
+.workspace-territory .tv-calls-load-more:disabled { opacity: .6; cursor: progress; }
 .workspace-territory .tv-calls-load-more svg { width: 13px; height: 13px; }
-.workspace-territory .tv-service-calls-link { min-height: 44px; padding: 0 13px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
-.workspace-territory .tv-service-calls-link svg { width: 15px; height: 15px; color: var(--tv-gold-text); }
-.workspace-territory .tv-calls-loading { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.workspace-territory .tv-calls-loading span { min-height: 72px; border-radius: 12px; background: var(--tv-surface-2); animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-call-transfer-dialog { width: min(440px, calc(100vw - 30px)); max-width: none; padding: 0; overflow: visible; border: 1px solid var(--tv-line); border-radius: 18px; background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 24px 80px rgb(0 0 0 / .3); }
+.workspace-territory .tv-call-transfer-dialog::backdrop { background: rgb(10 10 9 / .62); backdrop-filter: blur(5px); }
+.workspace-territory .tv-call-transfer-head { position: relative; padding: 23px 24px 17px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-call-transfer-symbol { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-transfer-symbol svg { width: 18px; height: 18px; }
+.workspace-territory .tv-call-dialog-close { position: absolute; top: 18px; right: 18px; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text-2); cursor: pointer; }
+.workspace-territory .tv-call-dialog-close svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-transfer-head p { margin: 16px 0 4px; color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-call-transfer-head h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.025em; }
+.workspace-territory .tv-call-transfer-head > span:last-child { display: block; margin-top: 7px; color: var(--tv-text-3); font-size: 10px; line-height: 1.5; }
+.workspace-territory .tv-call-transfer-dialog form { padding: 20px 24px 24px; }
+.workspace-territory .tv-call-transfer-dialog label { display: block; margin-bottom: 7px; color: var(--tv-text-2); font-size: 10px; font-weight: 600; }
+.workspace-territory .tv-call-transfer-dialog select { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 12px; }
+.workspace-territory .tv-call-transfer-empty { margin: 10px 0 0; color: var(--tv-text-3); font-size: 10px; line-height: 1.5; }
+.workspace-territory .tv-call-transfer-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
+.workspace-territory .tv-call-transfer-actions .tv-call-button { min-height: 44px; }
+.workspace-territory .tv-calls-loading-content { width: 100%; }
+.workspace-territory .tv-calls-loading-navbar { display: none; }
+.workspace-territory .tv-calls-loading-header { margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.workspace-territory .tv-calls-skeleton-block,.workspace-territory .tv-calls-skeleton-line,.workspace-territory .tv-calls-skeleton-pill { display: block; flex: 0 0 auto; border-radius: 999px; background: var(--tv-surface-2); animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-skeleton-block { border-radius: 11px; }
+.workspace-territory .tv-calls-skeleton-line { height: 8px; }
+.workspace-territory .tv-calls-skeleton-pill { width: 58px; height: 18px; }
+.workspace-territory .tv-calls-loading-header .is-eyebrow { width: 132px; height: 7px; }
+.workspace-territory .tv-calls-loading-header .is-title { width: 194px; height: 30px; margin-top: 2px; border-radius: 9px; }
+.workspace-territory .tv-calls-loading-header .is-description { width: min(440px, 92%); height: 9px; margin-top: 2px; }
+.workspace-territory .tv-calls-loading-summary { cursor: default; }
+.workspace-territory .tv-calls-loading-summary:hover { transform: none; border-color: var(--tv-line); }
+.workspace-territory .tv-calls-loading-summary .tv-call-summary-icon { animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading-summary .is-summary-label { width: 72px; height: 7px; }
+.workspace-territory .tv-calls-loading-summary .is-summary-value { width: 34px; height: 24px; }
+.workspace-territory .tv-calls-loading-summary .is-summary-arrow { width: 14px; height: 14px; }
+.workspace-territory .tv-calls-loading .tv-calls-tools { pointer-events: none; }
+.workspace-territory .tv-calls-loading .tv-calls-live i { background: var(--tv-surface-2); box-shadow: none; animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading .is-live-label { width: 90px; }
+.workspace-territory .tv-calls-loading .tv-calls-sound { width: 126px; }
+.workspace-territory .tv-calls-loading .is-sound-icon { width: 15px; height: 15px; }
+.workspace-territory .tv-calls-loading .is-sound-label { width: 70px; }
+.workspace-territory .tv-calls-loading .is-list-heading { width: 155px; }
+.workspace-territory .tv-calls-loading .is-list-caption { width: 104px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-list-count { width: 56px; height: 7px; }
+.workspace-territory .tv-calls-loading-row { cursor: default; }
+.workspace-territory .tv-calls-loading-row:hover { background: transparent; }
+.workspace-territory .tv-calls-loading-row .tv-call-row-icon { animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading-row .is-table-number { width: 62px; height: 9px; }
+.workspace-territory .tv-calls-loading-row .tv-calls-skeleton-pill { width: 50px; height: 15px; }
+.workspace-territory .tv-calls-loading-row .is-row-detail { width: min(170px, 92%); height: 7px; }
+.workspace-territory .tv-calls-loading-row .is-row-assignee { width: 100px; height: 7px; }
+.workspace-territory .tv-calls-loading-row .is-row-time { width: 42px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-reference { width: 88px; height: 7px; }
+.workspace-territory .tv-calls-loading .tv-call-table-icon { animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading .is-table-caption { width: 102px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-table-title { width: 126px; height: 26px; margin-top: 3px; }
+.workspace-territory .tv-calls-loading .is-time-icon { width: 13px; height: 13px; }
+.workspace-territory .tv-calls-loading .is-detail-time { width: 208px; }
+.workspace-territory .tv-calls-loading .tv-call-timing-icon,.workspace-territory .tv-calls-loading .tv-call-assignment-icon { animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading .is-timing-label { width: 86px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-timing-value { width: 95px; height: 22px; }
+.workspace-territory .tv-calls-loading .is-timing-note { width: 160px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-assignment-label { width: 70px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-assignment-name { width: 138px; height: 9px; }
+.workspace-territory .tv-calls-loading .is-assignment-note { width: 112px; height: 7px; }
+.workspace-territory .tv-calls-loading-action { cursor: default; }
+.workspace-territory .tv-calls-loading .is-action-label { width: 104px; height: 8px; background: rgb(23 21 15 / .18); }
+.workspace-territory .tv-calls-loading .is-history-icon { width: 14px; height: 14px; }
+.workspace-territory .tv-calls-loading .is-history-title { width: 116px; }
+.workspace-territory .tv-calls-loading .tv-call-history-dot { animation: tv-calls-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-calls-loading .is-history-event { width: min(176px, 90%); height: 7px; }
+.workspace-territory .tv-calls-loading .is-history-actor { width: 102px; height: 7px; }
+.workspace-territory .tv-calls-loading .is-history-time { width: 42px; height: 7px; margin-left: auto; }
+.workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-call-summary-card:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-calls-load-more:focus-visible,.workspace-territory .tv-call-transfer-trigger:focus-visible,.workspace-territory .tv-call-button:focus-visible,.workspace-territory .tv-call-dialog-close:focus-visible,.workspace-territory .tv-call-transfer-dialog select:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 @keyframes tv-calls-pulse { to { opacity: .55; } }
+@keyframes tv-call-pulse { 50% { box-shadow: 0 0 0 7px transparent; } }
+@media (max-width: 900px) {
+  .workspace-territory .tv-calls-page { padding-right: 22px; padding-left: 22px; }
+  .workspace-territory .tv-calls-layout { grid-template-columns: minmax(285px, .9fr) minmax(0, 1.1fr); }
+  .workspace-territory .tv-call-detail { padding: 22px; }
+}
 @media (max-width: 767px) {
   .workspace-territory .tv-calls-page { padding: 14px 16px calc(76px + env(safe-area-inset-bottom)); }
-  .workspace-territory .tv-calls-toolbar { margin: 12px 0 9px; align-items: stretch; flex-direction: column; }
-  .workspace-territory .tv-calls-tabs button { flex: 1; min-height: 40px; }
-  .workspace-territory .tv-calls-sound { align-self: flex-start; }
+  .workspace-territory .tv-calls-summary { gap: 7px; margin: 15px 0 12px; }
+  .workspace-territory .tv-call-summary-card { min-height: 74px; padding: 10px 9px; gap: 7px; border-radius: 12px; }
+  .workspace-territory .tv-call-summary-icon { width: 30px; height: 30px; flex-basis: 30px; border-radius: 9px; }
+  .workspace-territory .tv-call-summary-icon svg { width: 15px; height: 15px; }
+  .workspace-territory .tv-call-summary-copy small { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-call-summary-copy strong { font-size: 20px; }
+  .workspace-territory .tv-calls-loading-summary .tv-call-summary-copy { min-width: 0; flex: 1; }
+  .workspace-territory .tv-calls-loading-summary .tv-calls-skeleton-line { max-width: 100%; flex-basis: auto; }
+  .workspace-territory .tv-calls-loading-summary .is-summary-label { width: min(72px, 100%); }
+  .workspace-territory .tv-calls-loading-summary .is-summary-value { width: min(34px, 100%); height: 20px; }
+  .workspace-territory .tv-call-summary-arrow { display: none; }
+  .workspace-territory .tv-calls-toolbar { min-height: 44px; }
+  .workspace-territory .tv-calls-tools { width: 100%; justify-content: space-between; }
+  .workspace-territory .tv-calls-live { font-size: 10px; }
+  .workspace-territory .tv-calls-sound { min-height: 44px; }
   .workspace-territory .tv-calls-layout { min-height: 0; grid-template-columns: minmax(0, 1fr); overflow: visible; }
   .workspace-territory .tv-calls-list-panel { border-right: 0; }
-  .workspace-territory .tv-calls-list { max-height: 34dvh; }
-  .workspace-territory .tv-call-detail { min-height: 250px; padding: 20px 12px; border-top: 1px solid var(--tv-line); }
+  .workspace-territory .tv-calls-list-head { min-height: 60px; padding: 10px 13px; }
+  .workspace-territory .tv-calls-list-head strong { font-size: 11px; }
+  .workspace-territory .tv-calls-list { max-height: 38dvh; padding: 6px; }
+  .workspace-territory .tv-call-row { min-height: 70px; padding: 9px; gap: 8px; }
+  .workspace-territory .tv-call-row-icon { width: 34px; height: 34px; flex-basis: 34px; }
+  .workspace-territory .tv-call-row time { font-size: 9px; }
+  .workspace-territory .tv-call-detail { min-height: 0; padding: 18px 13px 20px; border-top: 1px solid var(--tv-line); }
+  .workspace-territory .tv-call-table-heading { margin-top: 15px; }
+  .workspace-territory .tv-call-timing-card { min-height: 88px; padding: 13px; }
+  .workspace-territory .tv-call-timing-card strong { font-size: 21px; }
+  .workspace-territory .tv-call-assignment-card { padding: 10px; }
+  .workspace-territory .tv-call-transfer-trigger { width: 44px; min-height: 44px; padding: 0; overflow: hidden; font-size: 0; }
+  .workspace-territory .tv-call-transfer-trigger svg { width: 16px; height: 16px; flex: 0 0 16px; }
+  .workspace-territory .tv-call-transfer-dialog form { padding: 18px; }
+  .workspace-territory .tv-call-transfer-head { padding: 20px 18px 15px; }
+  .workspace-territory .tv-call-transfer-actions { flex-direction: column-reverse; }
+  .workspace-territory .tv-call-transfer-actions .tv-call-button { width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { .workspace-territory .tv-calls-loading span { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .workspace-territory .tv-call-summary-card,.workspace-territory .tv-call-row,.workspace-territory .tv-call-button { transition: none; }
+  .workspace-territory .tv-call-timing-pulse,.workspace-territory .tv-calls-loading .tv-calls-skeleton-block,.workspace-territory .tv-calls-loading .tv-calls-skeleton-line,.workspace-territory .tv-calls-loading .tv-calls-skeleton-pill,.workspace-territory .tv-calls-loading .tv-call-summary-icon,.workspace-territory .tv-calls-loading .tv-call-history-dot,.workspace-territory .tv-calls-loading .tv-calls-live i { animation: none; }
+}
+@media (max-width: 767px) {
+  .workspace-territory .tv-calls-loading-navbar { height: 44px; margin-bottom: 1px; display: flex; align-items: center; }
+  .workspace-territory .tv-calls-loading-navbar .is-back { width: 82px; height: 9px; }
+}

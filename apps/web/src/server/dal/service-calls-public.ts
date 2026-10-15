@@ -13,7 +13,7 @@ export async function requestServiceCall(input: unknown): Promise<ServiceCallReq
     await enforceRateLimit('service-call:start', `${await rateLimitIdentity()}:${token}`)
   } catch (error) {
     if (error instanceof RateLimitedError) {
-      // Still ask the RPC: it can return an existing pending call without
+      // Still ask the RPC: it can return an existing active call without
       // generating another notification. The flag blocks only new inserts.
       allowCreate = false
     } else {
@@ -37,13 +37,13 @@ export async function requestServiceCall(input: unknown): Promise<ServiceCallReq
     if (error.message === 'service_call_ip_limited') {
       throw new UserFacingError('Muitas tentativas nesta mesa. Aguarde um minuto e tente novamente.')
     }
-    console.error('[chamados] solicitação recusada', error.code, error.message)
+    console.error('[service-calls] public request rejected', error.code, error.message)
     throw new UserFacingError('Não foi possível chamar a equipe agora. Tente novamente.')
   }
   const row = data?.[0]
-  if (!row?.call_id || typeof row.table_number !== 'number' || row.status !== 'pending') {
-    console.error('[chamados] RPC sem resultado válido')
+  if (!row?.call_id || typeof row.table_number !== 'number' || (row.status !== 'pending' && row.status !== 'in_progress')) {
+    console.error('[service-calls] public RPC returned an invalid result')
     throw new UserFacingError('Não foi possível chamar a equipe agora. Tente novamente.')
   }
-  return { callId: row.call_id, tableNumber: row.table_number, status: 'pending', created: row.created }
+  return { callId: row.call_id, tableNumber: row.table_number, status: row.status, created: row.created }
 }
