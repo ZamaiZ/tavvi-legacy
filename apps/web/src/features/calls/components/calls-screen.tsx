@@ -16,6 +16,7 @@ import {
 import { PageHeader } from '@/components/shell/page-header'
 import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { SpinnerRing } from '@/components/ui/spinner'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from '@/components/ui/toast'
 import {
   serviceCallFromRow,
@@ -26,6 +27,8 @@ import {
   type ServiceCallTeamMemberDTO,
 } from '@/domain/service-call'
 import type { MemberRole } from '@/domain/invite'
+import type { OrderableMenuCategoryDTO } from '@/domain/orders'
+import type { TableAccountDTO } from '@/domain/table-account'
 import { fullDateTime, relativeTime } from '@/lib/relative-time'
 import {
   claimServiceCallAction,
@@ -40,6 +43,7 @@ import { ServiceCallTransferDialog } from './service-call-transfer-dialog'
 import { callServiceDuration, callWaitDuration, formatCallTime, formatElapsed } from '../service-call-time'
 import { disableServiceCallSound, enableServiceCallSoundFromGesture, isServiceCallSoundEnabled } from '../call-sound'
 import { useServiceCallsRealtimeContext } from '../service-calls-realtime-context'
+import { OrderEntry } from '@/features/orders/components/order-entry'
 
 const STATUS_LABELS: Record<ServiceCallStatus, string> = {
   pending: 'Aguardando',
@@ -61,6 +65,8 @@ export function CallsScreen({
   initialResolved,
   initialTeam,
   focusedCall,
+  orderableMenu,
+  initialAccount,
 }: {
   restaurantId: string
   userId: string
@@ -71,8 +77,11 @@ export function CallsScreen({
   initialResolved: ServiceCallPage
   initialTeam: ServiceCallTeamMemberDTO[]
   focusedCall: ServiceCallDTO | null
+  orderableMenu: OrderableMenuCategoryDTO[]
+  initialAccount: TableAccountDTO | null
 }) {
   const { subscribe, updatePendingCount, refreshPendingCount } = useServiceCallsRealtimeContext()
+  const mobile = useIsMobile()
   const [queues, setQueues] = useState<QueueData>({
     pending: initialPending,
     in_progress: initialInProgress,
@@ -98,6 +107,7 @@ export function CallsScreen({
   const [refreshing, setRefreshing] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [now, setNow] = useState(() => Date.parse(serverNow))
+  const [orderDraft, setOrderDraft] = useState(false)
 
   const allCalls = useMemo(
     () => [...queues.pending.items, ...queues.in_progress.items, ...queues.resolved.items],
@@ -350,8 +360,24 @@ export function CallsScreen({
   }
 
   function selectStatus(status: ServiceCallStatus) {
+    const selectedStaysInFilter = queues[status].items.some((call) => call.id === selectedId)
+    const nextCall = selectedStaysInFilter
+      ? selected
+      : queues[status].items[0] ?? null
+    if (selected && nextCall?.id !== selected.id && orderDraft
+      && !window.confirm('Há um pedido ainda não registrado. Descartar o rascunho e trocar de chamado?')) return
     setFilter(status)
-    if (!queues[status].items.some((call) => call.id === selectedId)) setSelectedId(queues[status].items[0]?.id ?? null)
+    if (!selectedStaysInFilter) {
+      setOrderDraft(false)
+      setSelectedId(nextCall?.id ?? null)
+    }
+  }
+
+  function selectCall(call: ServiceCallDTO) {
+    if (call.id !== selectedId && selected && orderDraft
+      && !window.confirm('Há um pedido ainda não registrado. Descartar o rascunho e trocar de chamado?')) return
+    if (call.id !== selectedId) setOrderDraft(false)
+    setSelectedId(call.id)
   }
 
   const callCount = (status: ServiceCallStatus) => `${queues[status].items.length}${queues[status].hasMore ? '+' : ''}`
@@ -386,7 +412,7 @@ export function CallsScreen({
           <div><strong>{filter === 'pending' ? 'Aguardando alguém da equipe' : filter === 'in_progress' ? 'Em atendimento agora' : 'Histórico de atendimentos'}</strong><span>{filter === 'resolved' ? 'Mais recentes primeiro' : 'Mais antigos primeiro'}</span></div>
           {refreshing ? <span className="tv-calls-refreshing"><SpinnerRing decorative /> Atualizando</span> : <span className="tv-calls-list-count">{callCount(filter)} {filter === 'resolved' ? 'itens' : 'na fila'}</span>}
         </div>
-        <CallList items={currentQueue.items} selectedId={selectedId} onSelect={(call) => setSelectedId(call.id)} status={filter} memberNames={memberNames} now={now} />
+        <CallList items={currentQueue.items} selectedId={selectedId} onSelect={selectCall} status={filter} memberNames={memberNames} now={now} />
         {currentQueue.nextCursor ? <button type="button" className="tv-calls-load-more" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? <SpinnerRing decorative /> : null}{loadingMore ? 'Carregando…' : 'Carregar mais chamados'}</button> : null}
       </section>
 
@@ -416,10 +442,24 @@ export function CallsScreen({
             {canTransfer && selected.status === 'in_progress' ? <button type="button" className="tv-call-transfer-trigger" disabled={busy} onClick={() => setTransferOpen(true)}><LuArrowRightLeft aria-hidden="true" />Transferir</button> : null}
           </div>
 
+          {selected.status === 'in_progress' && isAssignee && (role === 'attendant' || role === 'waiter') ? <OrderEntry
+            key={selected.id}
+            restaurantId={restaurantId}
+            call={selected}
+            menu={orderableMenu}
+            initialAccount={initialAccount?.tableNumber === selected.tableNumber ? initialAccount : null}
+            mobile={mobile}
+            onDraftChange={setOrderDraft}
+          /> : null}
+
           <div className="tv-call-action-area">
-            {selected.status === 'pending' ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => claim(selected)}>{busy ? <SpinnerRing decorative /> : <LuArrowDownLeft aria-hidden="true" />}{busy ? 'Assumindo chamado…' : 'Assumir chamado'}</button> : null}
-            {selected.status === 'in_progress' && isAssignee ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => resolve(selected)}>{busy ? <SpinnerRing decorative /> : <LuCheck aria-hidden="true" />}{busy ? 'Concluindo atendimento…' : 'Concluir atendimento'}</button> : null}
+            {selected.status === 'pending' ? <>
+              <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => claim(selected)}>{busy ? <SpinnerRing decorative /> : <LuArrowDownLeft aria-hidden="true" />}{busy ? 'Assumindo chamado…' : 'Assumir chamado'}</button>
+              {(role === 'attendant' || role === 'waiter') ? <p className="tv-call-order-next-step">Depois de assumir, o registro do pedido da mesa aparece aqui. Você pode incluir itens e observações antes de concluir o chamado.</p> : null}
+            </> : null}
+            {selected.status === 'in_progress' && isAssignee ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy || orderDraft} onClick={() => resolve(selected)}>{busy ? <SpinnerRing decorative /> : <LuCheck aria-hidden="true" />}{busy ? 'Concluindo atendimento…' : orderDraft ? 'Confirme ou limpe o pedido antes de concluir' : 'Concluir atendimento'}</button> : null}
             {selected.status === 'in_progress' && !isAssignee ? <p className="tv-call-permission-note">{selected.assignedTo ? 'A conclusão fica disponível para quem assumiu este chamado.' : 'Peça a um administrador para atribuir este chamado a alguém da equipe.'}</p> : null}
+            {selected.status === 'in_progress' && isAssignee && role !== 'attendant' && role !== 'waiter' ? <p className="tv-call-permission-note">O pedido é registrado pelo atendente ou garçom responsável pelo chamado.</p> : null}
             {selected.status === 'resolved' ? <p className="tv-call-completed-note"><LuCheckCheck aria-hidden="true" />Concluído {selected.resolvedAt ? relativeTime(selected.resolvedAt) : ''}{selectedActor ? ` por ${selectedActor}` : ''}</p> : null}
           </div>
 

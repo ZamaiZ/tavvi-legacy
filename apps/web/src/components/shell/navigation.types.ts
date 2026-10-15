@@ -9,6 +9,7 @@ export type NavIconName =
   | 'feedback'
   | 'tag'
   | 'bell'
+  | 'cash'
 
 export type NavLeaf = {
   kind: 'leaf'

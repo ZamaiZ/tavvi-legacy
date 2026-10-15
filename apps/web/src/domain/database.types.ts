@@ -6,6 +6,113 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+type FinancialTable<Row> = {
+  Row: Row
+  Insert: Partial<Row>
+  Update: Partial<Row>
+  Relationships: []
+}
+
+type CheckoutSettingsRow = {
+  restaurant_id: string
+  tip_mode: string
+  tip_percent_bps: number | null
+  tip_fixed_cents: number | null
+  updated_at: string
+}
+
+type RestaurantPaymentMethodRow = {
+  id: string
+  restaurant_id: string
+  method_type: string
+  name: string
+  is_active: boolean
+  position: number
+  created_at: string
+}
+
+type TableAccountRow = {
+  id: string
+  restaurant_id: string
+  table_number: number
+  status: string
+  tip_mode: string
+  tip_percent_bps: number | null
+  tip_fixed_cents: number | null
+  tip_accepted: boolean | null
+  tip_amount_cents: number
+  tip_decided_at: string | null
+  opened_at: string
+  opened_by: string
+  closed_at: string | null
+  closed_by: string | null
+}
+
+type OrderRow = {
+  id: string
+  restaurant_id: string
+  table_account_id: string
+  service_call_id: string
+  request_id: string
+  request_fingerprint: string
+  created_by: string
+  created_at: string
+}
+
+type OrderItemRow = {
+  id: string
+  restaurant_id: string
+  order_id: string
+  menu_item_id: string | null
+  menu_variant_id: string | null
+  category_name: string
+  item_name: string
+  variant_name: string | null
+  position: number
+  quantity: number
+  note: string | null
+  unit_price_cents: number
+  line_total_cents: number
+  cancelled_at: string | null
+  cancelled_by: string | null
+  cancel_reason: string | null
+}
+
+type TableAccountPaymentRow = {
+  id: string
+  restaurant_id: string
+  table_account_id: string
+  method_id: string
+  method_name: string
+  entry_type: string
+  amount_applied_cents: number
+  cash_received_cents: number | null
+  cash_change_cents: number
+  reverses_payment_id: string | null
+  reference: string | null
+  reason: string | null
+  request_id: string
+  request_fingerprint: string
+  created_by: string
+  created_at: string
+}
+
+type TableAccountEventRow = {
+  id: string
+  restaurant_id: string
+  table_account_id: string
+  event_type: string
+  actor_id: string
+  request_id: string | null
+  request_fingerprint: string | null
+  order_id: string | null
+  order_item_id: string | null
+  payment_id: string | null
+  reason: string | null
+  details: Json
+  created_at: string
+}
+
 export type Database = {
   graphql_public: {
     Tables: {
@@ -34,6 +141,13 @@ export type Database = {
   }
   public: {
     Tables: {
+      restaurant_checkout_settings: FinancialTable<CheckoutSettingsRow>
+      restaurant_payment_methods: FinancialTable<RestaurantPaymentMethodRow>
+      table_accounts: FinancialTable<TableAccountRow>
+      orders: FinancialTable<OrderRow>
+      order_items: FinancialTable<OrderItemRow>
+      table_account_payments: FinancialTable<TableAccountPaymentRow>
+      table_account_events: FinancialTable<TableAccountEventRow>
       app_server_keys: {
         Row: {
           key_hash: string
@@ -1196,6 +1310,40 @@ export type Database = {
         Returns: undefined
       }
       set_app_server_key: { Args: { p_key: string }; Returns: undefined }
+      record_table_order: {
+        Args: { p_call_id: string; p_request_id: string; p_items: Json }
+        Returns: Json
+      }
+      record_table_payment: {
+        Args: {
+          p_account_id: string
+          p_method_id: string
+          p_request_id: string
+          p_amount_applied_cents: number
+          p_cash_received_cents?: number | null
+        }
+        Returns: Json
+      }
+      decide_tip_and_close_table_account: {
+        Args: { p_account_id: string; p_tip_accepted: boolean; p_request_id: string }
+        Returns: Json
+      }
+      reopen_table_account: {
+        Args: { p_account_id: string; p_reason: string; p_request_id: string }
+        Returns: Json
+      }
+      reverse_table_account_payment: {
+        Args: { p_payment_id: string; p_amount_cents: number; p_reason: string; p_request_id: string }
+        Returns: Json
+      }
+      set_restaurant_payment_method_active: {
+        Args: { p_restaurant_id: string; p_method_id: string; p_is_active: boolean }
+        Returns: undefined
+      }
+      cancel_order_item: {
+        Args: { p_order_item_id: string; p_reason: string; p_request_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       media_kind: "image" | "video"

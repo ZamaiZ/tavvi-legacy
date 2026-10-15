@@ -9,6 +9,8 @@ import {
 } from '@/server/dal/service-calls'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 import { requireUser } from '@/server/dal/auth'
+import { getOrderableMenu } from '@/server/dal/menu-read'
+import { getTableAccountForTable } from '@/server/dal/table-accounts'
 
 export const metadata = { title: 'Chamados' }
 
@@ -44,6 +46,13 @@ export default async function Page({ params, searchParams }: {
       ? Promise.resolve(dashboard.selectedCall)
       : callId ? getServiceCall({ restaurantId, callId }) : Promise.resolve(null),
   ])
+  const canRecordOrders = workspace.role === 'attendant' || workspace.role === 'waiter'
+  const [orderableMenu, initialAccount] = await Promise.all([
+    canRecordOrders ? getOrderableMenu(restaurantId) : Promise.resolve([]),
+    canRecordOrders && focusedCall?.status === 'in_progress' && focusedCall.assignedTo === user.id
+      ? getTableAccountForTable({ restaurantId, tableNumber: focusedCall.tableNumber })
+      : Promise.resolve(null),
+  ])
 
   return <CallsScreen
     restaurantId={restaurantId}
@@ -55,5 +64,7 @@ export default async function Page({ params, searchParams }: {
     initialResolved={initialResolved}
     initialTeam={initialTeam}
     focusedCall={focusedCall}
+    orderableMenu={orderableMenu}
+    initialAccount={initialAccount}
   />
 }

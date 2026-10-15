@@ -1,0 +1,494 @@
+.workspace-territory .tv-cash-page {
+  width: 100%;
+  min-width: 0;
+  color: var(--tv-text);
+}
+.workspace-territory .tv-cash-toolbar {
+  min-height: 52px;
+  margin: 18px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.workspace-territory .tv-cash-live,
+.workspace-territory .tv-cash-toolbar > div,
+.workspace-territory .tv-cash-toolbar button {
+  display: inline-flex;
+  align-items: center;
+}
+.workspace-territory .tv-cash-live { gap: 9px; color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-cash-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--tv-ok); box-shadow: 0 0 0 4px var(--tv-ok-soft); }
+.workspace-territory .tv-cash-toolbar > div { gap: 8px; }
+.workspace-territory .tv-cash-toolbar button,
+.workspace-territory .tv-cash-print-button,
+.workspace-territory .tv-cash-mobile-back,
+.workspace-territory .tv-cash-secondary-button {
+  min-height: 44px;
+  padding: 0 13px;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--tv-line);
+  border-radius: 11px;
+  background: var(--tv-surface);
+  color: var(--tv-text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.workspace-territory .tv-cash-toolbar button svg,
+.workspace-territory .tv-cash-print-button svg,
+.workspace-territory .tv-cash-mobile-back svg { width: 17px; height: 17px; flex: none; }
+.workspace-territory .tv-cash-toolbar button:disabled,
+.workspace-territory .tv-cash-secondary-button:disabled { opacity: .55; cursor: progress; }
+.workspace-territory .tv-cash-error,
+.workspace-territory .tv-cash-inline-error,
+.workspace-territory .tv-cash-inline-hint {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--tv-danger) 30%, var(--tv-line));
+  border-radius: 12px;
+  background: var(--tv-danger-soft);
+  color: var(--tv-danger);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.workspace-territory .tv-cash-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-cash-error button { min-height: 40px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-weight: 650; text-decoration: underline; cursor: pointer; }
+.workspace-territory .tv-cash-inline-hint { border-color: color-mix(in srgb, var(--tv-gold) 32%, var(--tv-line)); background: var(--tv-gold-soft); color: var(--tv-text-2); }
+
+.workspace-territory .tv-cash-layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, .8fr) minmax(0, 1.65fr);
+  align-items: start;
+  gap: 18px;
+}
+.workspace-territory .tv-cash-accounts,
+.workspace-territory .tv-cash-detail {
+  min-width: 0;
+  border: 1px solid var(--tv-line);
+  border-radius: 17px;
+  background: var(--tv-surface);
+  box-shadow: var(--tv-shadow);
+}
+.workspace-territory .tv-cash-accounts { padding: 8px; }
+.workspace-territory .tv-cash-list-heading {
+  min-height: 68px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.workspace-territory .tv-cash-list-heading > div { display: grid; gap: 4px; }
+.workspace-territory .tv-cash-list-heading strong { color: var(--tv-text); font-size: 15px; font-weight: 650; }
+.workspace-territory .tv-cash-list-heading small { color: var(--tv-text-3); font-size: 12px; }
+.workspace-territory .tv-cash-list-heading .tv-spinner { width: 17px; height: 17px; }
+.workspace-territory .tv-cash-list-heading.is-recent { min-height: 58px; margin-top: 12px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-accounts ul { margin: 0; padding: 0; display: grid; gap: 5px; list-style: none; }
+.workspace-territory .tv-cash-accounts li { min-width: 0; }
+.workspace-territory .tv-cash-accounts li > button {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tv-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+.workspace-territory .tv-cash-accounts li > button.is-selected { border-color: color-mix(in srgb, var(--tv-gold) 42%, var(--tv-line)); background: var(--tv-gold-soft); }
+.workspace-territory .tv-cash-table-number {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--tv-line);
+  border-radius: 12px;
+  background: var(--tv-surface-2);
+  color: var(--tv-text);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-territory .tv-cash-table-number.is-closed { color: var(--tv-ok); }
+.workspace-territory .tv-cash-table-number svg { width: 18px; height: 18px; }
+.workspace-territory .tv-cash-account-copy { min-width: 0; flex: 1; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-account-copy strong { font-size: 14px; font-weight: 650; }
+.workspace-territory .tv-cash-account-copy small { overflow: hidden; color: var(--tv-text-2); font-size: 12px; line-height: 1.4; text-overflow: ellipsis; }
+.workspace-territory .tv-cash-account-arrow { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; border-radius: 8px; background: var(--tv-surface-2); color: var(--tv-text-3); }
+.workspace-territory .tv-cash-account-arrow svg { width: 16px; height: 16px; }
+.workspace-territory .tv-cash-list-empty { margin: 0; padding: 12px; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+
+.workspace-territory .tv-cash-detail { padding: clamp(18px, 2.2vw, 28px); }
+.workspace-territory .tv-cash-detail-heading { margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.workspace-territory .tv-cash-detail-heading > div { min-width: 0; }
+.workspace-territory .tv-cash-detail-heading h2 { margin: 6px 0 4px; color: var(--tv-text); font-size: clamp(25px, 2.5vw, 34px); font-weight: 680; letter-spacing: -.04em; line-height: 1.1; }
+.workspace-territory .tv-cash-detail-heading small { color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-cash-status { min-height: 26px; padding: 4px 9px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12px; font-weight: 650; }
+.workspace-territory .tv-cash-status.is-settling { background: var(--tv-warn-soft); color: var(--tv-warn); }
+.workspace-territory .tv-cash-status.is-closed { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-cash-print-button { flex: none; }
+.workspace-territory .tv-cash-empty { min-height: 360px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; text-align: center; }
+.workspace-territory .tv-cash-empty > span { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px; background: var(--tv-surface-2); color: var(--tv-text-3); }
+.workspace-territory .tv-cash-empty svg { width: 22px; height: 22px; }
+.workspace-territory .tv-cash-empty strong { font-size: 16px; }
+.workspace-territory .tv-cash-empty small { max-width: 300px; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+
+.workspace-territory .tv-pre-account {
+  padding: 22px;
+  border: 1px solid var(--tv-line);
+  border-radius: 15px;
+  background: var(--tv-bg);
+  color: var(--tv-text);
+  font-variant-numeric: tabular-nums;
+}
+.workspace-territory .tv-pre-account-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.workspace-territory .tv-pre-account-header > div:first-child { display: grid; gap: 5px; }
+.workspace-territory .tv-pre-account-header > div:first-child strong { font-size: 18px; font-weight: 700; }
+.workspace-territory .tv-pre-account-header small { color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-pre-account-table { min-width: 74px; padding: 8px 12px; display: grid; justify-items: center; gap: 2px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); }
+.workspace-territory .tv-pre-account-table strong { font-size: 21px; }
+.workspace-territory .tv-pre-account-meta { margin-top: 16px; padding-bottom: 13px; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--tv-line); color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-pre-account-orders { display: grid; gap: 16px; }
+.workspace-territory .tv-pre-account-orders > section { padding-top: 16px; }
+.workspace-territory .tv-pre-account-order-heading { margin-bottom: 7px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-pre-account-order-heading strong { font-size: 13px; font-weight: 650; }
+.workspace-territory .tv-pre-account-order-heading span { color: var(--tv-text-3); font-size: 11px; text-align: right; }
+.workspace-territory .tv-pre-account-item { min-height: 56px; padding: 10px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-pre-account-item > div { min-width: 0; display: grid; gap: 4px; }
+.workspace-territory .tv-pre-account-item strong { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.workspace-territory .tv-pre-account-item small { overflow-wrap: anywhere; color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-pre-account-item > span { flex: none; font-size: 14px; font-weight: 600; }
+.workspace-territory .tv-pre-account-item.is-cancelled { opacity: .58; }
+.workspace-territory .tv-pre-account-item.is-cancelled strong { text-decoration: line-through; }
+.workspace-territory .tv-pre-account-totals,
+.workspace-territory .tv-pre-account-payments,
+.workspace-territory .tv-pre-account-events { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-pre-account-totals > div,
+.workspace-territory .tv-pre-account-balance,
+.workspace-territory .tv-pre-account-payment { min-height: 36px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-pre-account-totals strong,
+.workspace-territory .tv-pre-account-balance strong,
+.workspace-territory .tv-pre-account-payment > strong { color: var(--tv-text); font-size: 14px; font-weight: 650; }
+.workspace-territory .tv-pre-account-totals .is-total { min-height: 48px; margin-top: 4px; border-top: 1px dashed var(--tv-line-2); color: var(--tv-text); font-size: 15px; font-weight: 650; }
+.workspace-territory .tv-pre-account-totals .is-total strong { font-size: 20px; font-weight: 750; }
+.workspace-territory .tv-pre-account-payments h3,
+.workspace-territory .tv-pre-account-events h3 { margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.workspace-territory .tv-pre-account-payment { min-height: 50px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-pre-account-payment > span { min-width: 0; display: grid; gap: 4px; color: var(--tv-text); }
+.workspace-territory .tv-pre-account-payment small,
+.workspace-territory .tv-pre-account-events small { color: var(--tv-text-3); font-size: 11px; line-height: 1.45; }
+.workspace-territory .tv-pre-account-payments > p { color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-pre-account-balance { min-height: 38px; }
+.workspace-territory .tv-pre-account-balance.is-due { margin-top: 3px; padding-top: 7px; border-top: 1px solid var(--tv-line); color: var(--tv-text); font-size: 14px; font-weight: 650; }
+.workspace-territory .tv-pre-account-balance.is-due strong { color: var(--tv-danger); font-size: 18px; }
+.workspace-territory .tv-pre-account-events > div { min-height: 42px; padding: 8px 0; display: flex; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-pre-account-events > div > span { display: grid; gap: 3px; }
+.workspace-territory .tv-pre-account-events > div strong { font-size: 12px; font-weight: 600; }
+.workspace-territory .tv-pre-account > footer { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--tv-line); color: var(--tv-text-3); font-size: 11px; line-height: 1.45; }
+
+.workspace-territory .tv-cash-settlement,
+.workspace-territory .tv-cash-settling-note,
+.workspace-territory .tv-cash-paid-note {
+  margin-top: 16px;
+  padding: 17px;
+  border: 1px solid var(--tv-line);
+  border-radius: 14px;
+  background: var(--tv-surface-2);
+}
+.workspace-territory .tv-cash-settlement > div:first-child { display: grid; gap: 6px; }
+.workspace-territory .tv-cash-settlement strong,
+.workspace-territory .tv-cash-settling-note strong { color: var(--tv-text); font-size: 15px; font-weight: 650; }
+.workspace-territory .tv-cash-settlement p,
+.workspace-territory .tv-cash-settling-note span,
+.workspace-territory .tv-cash-paid-note { color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-settlement p { margin: 0; }
+.workspace-territory .tv-cash-start-close,
+.workspace-territory .tv-cash-tip-options button,
+.workspace-territory .tv-cash-settlement > button:not(.tv-cash-secondary-button),
+.workspace-territory .tv-cash-reopen > div > div button:first-child {
+  min-height: 48px;
+  margin-top: 14px;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: var(--tv-btn);
+  color: var(--tv-btn-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.workspace-territory .tv-cash-tip-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.workspace-territory .tv-cash-tip-options button { flex: 1 1 200px; }
+.workspace-territory .tv-cash-tip-options button:first-child { border-color: var(--tv-line); background: var(--tv-surface); color: var(--tv-text); }
+.workspace-territory .tv-cash-settlement .tv-cash-secondary-button { margin: 12px 0 0; }
+.workspace-territory .tv-cash-settlement button:disabled,
+.workspace-territory .tv-cash-reopen button:disabled { opacity: .5; cursor: progress; }
+.workspace-territory .tv-cash-settling-note { display: grid; gap: 5px; border-color: color-mix(in srgb, var(--tv-warn) 35%, var(--tv-line)); background: var(--tv-warn-soft); }
+.workspace-territory .tv-cash-paid-note { margin-bottom: 0; }
+.workspace-territory .tv-cash-mobile-back { display: none; }
+
+.workspace-territory .tv-cash-payment-entry,
+.workspace-territory .tv-cash-corrections,
+.workspace-territory .tv-cash-reopen { margin-top: 16px; padding: 18px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-payment-heading { display: flex; align-items: center; gap: 12px; }
+.workspace-territory .tv-cash-payment-heading > span { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-cash-payment-heading > span svg { width: 20px; height: 20px; }
+.workspace-territory .tv-cash-payment-heading > div { display: grid; gap: 4px; }
+.workspace-territory .tv-cash-payment-heading strong { font-size: 16px; font-weight: 650; }
+.workspace-territory .tv-cash-payment-heading small { color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-cash-payment-explainer { margin: 12px 0 0; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-payment-fields { margin-top: 17px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.workspace-territory .tv-cash-payment-fields > label,
+.workspace-territory .tv-cash-settings-field,
+.workspace-territory .tv-cash-reopen label,
+.workspace-territory .tv-cash-custom-method label { min-width: 0; display: grid; gap: 7px; color: var(--tv-text-2); font-size: 13px; font-weight: 550; }
+.workspace-territory .tv-cash-payment-fields select,
+.workspace-territory .tv-cash-payment-fields input,
+.workspace-territory .tv-cash-settings-field select,
+.workspace-territory .tv-cash-settings-field > input,
+.workspace-territory .tv-cash-money-field,
+.workspace-territory .tv-cash-custom-method input,
+.workspace-territory .tv-cash-reopen input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--tv-line);
+  border-radius: 10px;
+  background: var(--tv-bg);
+  color: var(--tv-text);
+  font: inherit;
+  font-size: 15px;
+}
+.workspace-territory .tv-cash-money-field { display: flex; align-items: center; gap: 8px; }
+.workspace-territory .tv-cash-money-field b { flex: none; color: var(--tv-text-3); font-size: 14px; font-weight: 550; }
+.workspace-territory .tv-cash-money-field input { min-width: 0; min-height: 44px; flex: 1; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-change { min-height: 44px; margin-top: 12px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-cash-change strong { color: var(--tv-text); font-size: 15px; }
+.workspace-territory .tv-cash-register-payment { width: 100%; min-height: 50px; margin-top: 14px; padding: 0 14px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 11px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+.workspace-territory .tv-cash-register-payment:disabled { opacity: .48; cursor: default; }
+.workspace-territory .tv-cash-register-payment .tv-spinner { width: 17px; height: 17px; }
+.workspace-territory .tv-cash-payment-footnote { display: block; margin-top: 10px; color: var(--tv-text-3); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-cash-payment-empty { margin-top: 16px; padding: 14px; display: flex; align-items: flex-start; gap: 9px; border: 1px solid color-mix(in srgb, var(--tv-warn) 30%, var(--tv-line)); border-radius: 12px; background: var(--tv-warn-soft); color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-payment-empty svg { width: 18px; height: 18px; flex: none; color: var(--tv-warn); }
+.workspace-territory .tv-cash-subheading { margin-bottom: 10px; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-subheading strong { font-size: 15px; font-weight: 650; }
+.workspace-territory .tv-cash-subheading small { color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-cash-correction-row { padding: 13px 0; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-correction-summary { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-cash-correction-summary > span { min-width: 0; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-correction-summary strong { font-size: 14px; font-weight: 600; }
+.workspace-territory .tv-cash-correction-summary small { color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-cash-correction-summary > button,
+.workspace-territory .tv-cash-correction-form button { min-height: 44px; padding: 0 11px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-bg); color: var(--tv-text); font: inherit; font-size: 13px; font-weight: 550; cursor: pointer; }
+.workspace-territory .tv-cash-correction-form { margin-top: 12px; display: grid; gap: 9px; }
+.workspace-territory .tv-cash-correction-form label { display: grid; gap: 6px; color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-cash-correction-form input,
+.workspace-territory .tv-cash-correction-form textarea { width: 100%; min-height: 46px; padding: 10px 11px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-bg); color: var(--tv-text); font: inherit; font-size: 15px; }
+.workspace-territory .tv-cash-correction-form textarea { min-height: 84px; resize: vertical; line-height: 1.45; }
+.workspace-territory .tv-cash-correction-form > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.workspace-territory .tv-cash-correction-form button:first-child { border-color: transparent; background: var(--tv-btn); color: var(--tv-btn-text); }
+.workspace-territory .tv-cash-correction-form .tv-cash-correction-cancel { background: transparent; }
+.workspace-territory .tv-cash-reopen > div > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.workspace-territory .tv-cash-reopen > div > div button { margin-top: 12px; }
+.workspace-territory .tv-cash-reopen > div > div .tv-cash-secondary-button { margin-top: 12px; }
+
+.workspace-territory .tv-cash-dialog-backdrop { position: fixed; z-index: 70; inset: 0; background: var(--tv-scrim); -webkit-backdrop-filter: blur(18px) saturate(1.12); backdrop-filter: blur(18px) saturate(1.12); transition: opacity 180ms var(--tv-ease); }
+.workspace-territory .tv-cash-dialog-backdrop[data-starting-style],
+.workspace-territory .tv-cash-dialog-backdrop[data-ending-style] { opacity: 0; }
+.workspace-territory .tv-cash-settings-dialog { position: fixed; z-index: 71; top: 50%; left: 50%; width: min(760px, calc(100vw - 36px)); max-height: min(88dvh, 860px); display: flex; flex-direction: column; overflow: hidden; transform: translate(-50%, -50%); border: 1px solid var(--tv-line); border-radius: 20px; background: var(--tv-bg); color: var(--tv-text); box-shadow: var(--tv-shadow); outline: 0; transition: opacity 180ms var(--tv-ease), transform 180ms var(--tv-ease); }
+.workspace-territory .tv-cash-settings-dialog[data-starting-style],
+.workspace-territory .tv-cash-settings-dialog[data-ending-style] { opacity: 0; transform: translate(-50%, -50%) scale(.98); }
+.workspace-territory .tv-cash-settings-dialog-header { padding: 22px 24px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-settings-dialog-title { display: block; margin: 0; font-size: 20px; font-weight: 650; }
+.workspace-territory .tv-cash-settings-dialog-description { display: block; margin-top: 6px; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-dialog-close { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); cursor: pointer; }
+.workspace-territory .tv-cash-dialog-close svg { width: 18px; height: 18px; }
+.workspace-territory .tv-cash-settings-dialog-content { min-height: 0; padding: 18px 24px 24px; display: grid; gap: 20px; overflow-y: auto; overscroll-behavior: contain; }
+.workspace-territory .tv-cash-settings-mobile-content { padding-bottom: 12px; display: grid; gap: 20px; }
+.workspace-territory .tv-cash-settings-section { padding: 18px; display: grid; gap: 15px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-settings-section-heading { display: flex; align-items: flex-start; gap: 12px; }
+.workspace-territory .tv-cash-settings-section-heading > span { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-settings-section-heading > div { min-width: 0; }
+.workspace-territory .tv-cash-settings-section-heading h3 { margin: 0; font-size: 16px; font-weight: 650; }
+.workspace-territory .tv-cash-settings-section-heading p { margin: 5px 0 0; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-settings-hint { margin: 0; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-settings-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.workspace-territory .tv-cash-settings-actions button,
+.workspace-territory .tv-cash-custom-method > button { min-height: 46px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 10px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+.workspace-territory .tv-cash-settings-actions button:disabled,
+.workspace-territory .tv-cash-custom-method > button:disabled { opacity: .5; cursor: progress; }
+.workspace-territory .tv-cash-settings-saved { color: var(--tv-ok); font-size: 13px; }
+.workspace-territory .tv-cash-settings-section ul { margin: -4px 0 0; padding: 0; display: grid; list-style: none; }
+.workspace-territory .tv-cash-settings-section li { min-height: 64px; padding: 9px 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-settings-section li > span { min-width: 0; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-settings-section li strong { font-size: 14px; font-weight: 600; }
+.workspace-territory .tv-cash-settings-section li small { color: var(--tv-text-3); font-size: 12px; }
+.workspace-territory .tv-cash-switch { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; color: var(--tv-text-2); font-size: 13px; cursor: pointer; }
+.workspace-territory .tv-cash-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.workspace-territory .tv-cash-switch i { position: relative; width: 42px; height: 24px; flex: 0 0 42px; border: 1px solid var(--tv-line-2); border-radius: 999px; background: var(--tv-surface-2); transition: background-color 140ms ease; }
+.workspace-territory .tv-cash-switch i::after { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--tv-text-3); content: ''; transition: transform 140ms ease, background-color 140ms ease; }
+.workspace-territory .tv-cash-switch input:checked + i { border-color: var(--tv-gold); background: var(--tv-gold); }
+.workspace-territory .tv-cash-switch input:checked + i::after { transform: translateX(18px); background: var(--tv-btn-text); }
+.workspace-territory .tv-cash-switch input:focus-visible + i { outline: 2px solid var(--tv-gold); outline-offset: 3px; }
+.workspace-territory .tv-cash-switch input:disabled + i { opacity: .55; }
+.workspace-territory .tv-cash-custom-method { padding-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; border-top: 1px solid var(--tv-line); }
+
+.workspace-territory .tv-cash-loading { width: 100%; }
+.workspace-territory .tv-cash-skeleton,
+.workspace-territory .tv-cash-skeleton-line,
+.workspace-territory .tv-cash-skeleton-chip { display: block; border-radius: 999px; background: var(--tv-surface-2); animation: tv-cash-pulse 1.2s ease-in-out infinite alternate; }
+.workspace-territory .tv-cash-skeleton { border-radius: 12px; }
+.workspace-territory .tv-cash-loading-header { margin-bottom: 18px; display: grid; justify-items: start; gap: 9px; }
+.workspace-territory .tv-cash-loading-header .is-eyebrow { width: 158px; height: 8px; }
+.workspace-territory .tv-cash-loading-header .is-title { width: 130px; height: 32px; }
+.workspace-territory .tv-cash-loading-header .is-description { width: min(540px, 92%); height: 9px; }
+.workspace-territory .tv-cash-loading-toolbar { min-height: 52px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-cash-loading-toolbar .is-live { width: 170px; height: 10px; }
+.workspace-territory .tv-cash-loading-toolbar .is-action { width: 96px; height: 42px; border-radius: 10px; }
+.workspace-territory .tv-cash-loading-grid { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.65fr); align-items: start; gap: 18px; }
+.workspace-territory .tv-cash-loading-list,
+.workspace-territory .tv-cash-loading-detail { min-width: 0; padding: 16px; border: 1px solid var(--tv-line); border-radius: 17px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-loading-list-heading { width: 62%; height: 16px; margin: 3px 0 15px; }
+.workspace-territory .tv-cash-loading-row { min-height: 68px; margin: 6px 0; display: flex; align-items: center; gap: 11px; }
+.workspace-territory .tv-cash-loading-row .is-icon { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 12px; }
+.workspace-territory .tv-cash-loading-row > span:last-child { width: min(180px, 70%); height: 10px; }
+.workspace-territory .tv-cash-loading-detail-heading { height: 34px; width: 55%; margin-bottom: 18px; }
+.workspace-territory .tv-cash-loading-receipt { min-height: 420px; padding: 18px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-bg); }
+.workspace-territory .tv-cash-loading-receipt .is-receipt-title { width: 52%; height: 20px; margin-bottom: 20px; }
+.workspace-territory .tv-cash-loading-receipt .is-receipt-line { height: 10px; margin: 17px 0; }
+.workspace-territory .tv-cash-loading-receipt .is-receipt-line:nth-of-type(3n) { width: 78%; }
+.workspace-territory .tv-cash-loading-payment { height: 74px; margin-top: 16px; border-radius: 12px; }
+.workspace-territory .tv-cash-loading-navbar { display: none; }
+
+.workspace-territory .tv-cash-page :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-page :is(input, select):disabled { opacity: .55; cursor: not-allowed; }
+.workspace-territory .tv-cash-settings-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-settings-mobile-content :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+@keyframes tv-cash-pulse { to { opacity: .52; } }
+
+@media (hover: hover) {
+  .workspace-territory .tv-cash-toolbar button:hover:not(:disabled),
+  .workspace-territory .tv-cash-print-button:hover,
+  .workspace-territory .tv-cash-secondary-button:hover:not(:disabled) { border-color: var(--tv-line-2); background: var(--tv-surface-2); }
+  .workspace-territory .tv-cash-accounts li > button:hover { background: var(--tv-surface-2); }
+  .workspace-territory .tv-cash-accounts li > button.is-selected:hover { background: var(--tv-gold-soft); }
+  .workspace-territory .tv-cash-register-payment:hover:not(:disabled),
+  .workspace-territory .tv-cash-start-close:hover,
+  .workspace-territory .tv-cash-tip-options button:hover:not(:disabled) { opacity: .9; }
+}
+@media (max-width: 1023px) {
+  .workspace-territory .tv-cash-layout,
+  .workspace-territory .tv-cash-loading-grid { grid-template-columns: minmax(240px, .9fr) minmax(0, 1.4fr); gap: 12px; }
+  .workspace-territory .tv-cash-detail { padding: 20px; }
+  .workspace-territory .tv-pre-account { padding: 17px; }
+}
+@media (max-width: 767px) {
+  .workspace-territory .tv-cash-page { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .workspace-territory .tv-cash-toolbar { min-height: 44px; margin: 14px 0; align-items: flex-start; flex-direction: column; }
+  .workspace-territory .tv-cash-toolbar > div { width: 100%; }
+  .workspace-territory .tv-cash-toolbar button { min-width: 0; flex: 1; padding: 0 9px; font-size: 13px; }
+  .workspace-territory .tv-cash-live { font-size: 12px; }
+  .workspace-territory .tv-cash-layout { min-height: 0; display: block; }
+  .workspace-territory .tv-cash-accounts { padding: 7px; }
+  .workspace-territory .tv-cash-detail { padding: 16px 13px; border-radius: 15px; }
+  .workspace-territory .tv-cash-mobile-back { width: 100%; margin-bottom: 15px; display: flex; justify-content: flex-start; }
+  .workspace-territory .tv-cash-detail-heading { align-items: flex-start; flex-direction: column; }
+  .workspace-territory .tv-cash-detail-heading h2 { font-size: 29px; }
+  .workspace-territory .tv-cash-print-button { min-height: 44px; }
+  .workspace-territory .tv-pre-account { padding: 15px 12px; border-radius: 12px; }
+  .workspace-territory .tv-pre-account-header > div:first-child strong { font-size: 16px; }
+  .workspace-territory .tv-pre-account-meta { flex-direction: column; gap: 5px; }
+  .workspace-territory .tv-pre-account-order-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .workspace-territory .tv-pre-account-order-heading span { text-align: left; }
+  .workspace-territory .tv-pre-account-item { gap: 8px; }
+  .workspace-territory .tv-pre-account-item strong { font-size: 13px; }
+  .workspace-territory .tv-pre-account-item > span { font-size: 13px; }
+  .workspace-territory .tv-cash-settlement,
+  .workspace-territory .tv-cash-settling-note,
+  .workspace-territory .tv-cash-paid-note,
+  .workspace-territory .tv-cash-payment-entry,
+  .workspace-territory .tv-cash-corrections,
+  .workspace-territory .tv-cash-reopen { padding: 14px 12px; }
+  .workspace-territory .tv-cash-settlement p,
+  .workspace-territory .tv-cash-settling-note span,
+  .workspace-territory .tv-cash-paid-note { font-size: 14px; }
+  .workspace-territory .tv-cash-start-close,
+  .workspace-territory .tv-cash-settlement > button:not(.tv-cash-secondary-button),
+  .workspace-territory .tv-cash-tip-options button { width: 100%; min-height: 50px; }
+  .workspace-territory .tv-cash-tip-options { display: grid; }
+  .workspace-territory .tv-cash-payment-fields { grid-template-columns: minmax(0, 1fr); }
+  .workspace-territory .tv-cash-payment-heading strong { font-size: 15px; }
+  .workspace-territory .tv-cash-correction-summary { align-items: flex-start; flex-direction: column; }
+  .workspace-territory .tv-cash-correction-summary > button { width: 100%; }
+  .workspace-territory .tv-cash-custom-method { grid-template-columns: minmax(0, 1fr); }
+  .workspace-territory .tv-cash-custom-method > button { width: 100%; }
+  .workspace-territory .tv-cash-settings-dialog { display: none; }
+  .workspace-territory .tv-cash-settings-mobile-content { gap: 14px; }
+  .workspace-territory .tv-cash-settings-section { padding: 15px 13px; gap: 13px; }
+  .workspace-territory .tv-cash-settings-section-heading h3 { font-size: 15px; }
+  .workspace-territory .tv-cash-settings-section-heading p,
+  .workspace-territory .tv-cash-settings-hint { font-size: 13px; }
+  .workspace-territory .tv-cash-settings-actions { align-items: stretch; flex-direction: column; }
+  .workspace-territory .tv-cash-settings-actions button { width: 100%; min-height: 48px; }
+  .workspace-territory .tv-cash-loading-navbar { height: 44px; margin-bottom: 1px; display: flex; align-items: center; }
+  .workspace-territory .tv-cash-loading-navbar .is-back { width: 82px; height: 9px; }
+  .workspace-territory .tv-cash-loading-grid { display: block; }
+  .workspace-territory .tv-cash-loading-list { margin-bottom: 12px; }
+  .workspace-territory .tv-cash-loading-detail { display: none; }
+  .workspace-territory .tv-cash-loading-detail { padding: 14px; }
+  .workspace-territory .tv-cash-loading-receipt { min-height: 330px; padding: 14px; }
+  .workspace-territory .tv-cash-loading-toolbar .is-live { width: 145px; }
+  .workspace-territory .tv-cash-loading-toolbar { flex-wrap: wrap; justify-content: flex-start; }
+  .workspace-territory .tv-cash-loading-toolbar .is-live { width: 100%; }
+  .workspace-territory .tv-cash-loading-toolbar .is-action { width: calc(50% - 6px); flex: 1; }
+}
+@media (max-width: 390px) {
+  .workspace-territory .tv-cash-detail-heading { gap: 10px; }
+  .workspace-territory .tv-cash-account-copy small { font-size: 11px; }
+  .workspace-territory .tv-pre-account-header { gap: 8px; }
+  .workspace-territory .tv-pre-account-table { min-width: 60px; padding: 7px 9px; }
+  .workspace-territory .tv-cash-toolbar button { font-size: 12px; }
+}
+@media (min-width: 768px) {
+  .workspace-territory .tv-cash-settings-mobile-content { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-territory .tv-cash-accounts li > button,
+  .workspace-territory .tv-cash-switch i,
+  .workspace-territory .tv-cash-switch i::after,
+  .workspace-territory .tv-cash-settings-dialog,
+  .workspace-territory .tv-cash-dialog-backdrop { transition: none; }
+  .workspace-territory .tv-cash-skeleton,
+  .workspace-territory .tv-cash-skeleton-line,
+  .workspace-territory .tv-cash-skeleton-chip { animation: none; }
+}
+@media print {
+  .workspace-territory .tv-cash-toolbar,
+  .workspace-territory .tv-cash-page > nav,
+  .workspace-territory .tv-cash-page > header,
+  .workspace-territory .tv-cash-accounts,
+  .workspace-territory .tv-cash-settlement,
+  .workspace-territory .tv-cash-payment-entry,
+  .workspace-territory .tv-cash-corrections,
+  .workspace-territory .tv-cash-reopen,
+  .workspace-territory .tv-cash-mobile-back,
+  .workspace-territory .tv-cash-detail-heading .tv-cash-print-button { display: none !important; }
+  .workspace-territory .tv-cash-page { padding: 0; }
+  .workspace-territory .tv-cash-layout { display: block; }
+  .workspace-territory .tv-cash-detail { padding: 0; border: 0; box-shadow: none; }
+  .workspace-territory .tv-pre-account { padding: 0; border: 0; border-radius: 0; color: #111; box-shadow: none; }
+  .workspace-territory .tv-pre-account { background: #fff; }
+  .workspace-territory .tv-pre-account * { color: #111 !important; }
+}

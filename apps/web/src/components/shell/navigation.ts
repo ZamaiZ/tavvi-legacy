@@ -1,4 +1,5 @@
 import type { NavGroup, NavItem, NavLeaf } from './navigation.types'
+import type { MemberRole } from '@/domain/invite'
 import { toExternalPath } from '@/lib/route-paths'
 
 export function getAdminNavigation(): NavItem[] {
@@ -54,7 +55,7 @@ export function getPanelNavigation(): NavItem[] {
 
 export function getRestaurantNavigation(
   restaurantId: string,
-  canEdit: boolean,
+  role: MemberRole | null,
 ): NavItem[] {
   const root = `/restaurantes/${restaurantId}`
   const children: NavLeaf[] = [
@@ -75,7 +76,18 @@ export function getRestaurantNavigation(
     },
   ]
 
-  if (canEdit) {
+  if (role === 'admin' || role === 'cashier') {
+    children.push({
+      kind: 'leaf',
+      href: `${root}/cash`,
+      label: 'Caixa',
+      icon: 'cash',
+      description: 'Comandas, pagamentos e fechamento por mesa',
+      keywords: ['conta', 'comanda', 'recebimento', 'pagamento'],
+    })
+  }
+
+  if (role === 'admin') {
     children.push(
       {
         kind: 'leaf',

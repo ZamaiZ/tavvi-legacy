@@ -10,6 +10,7 @@ import {
   RiTeamLine,
   RiQrCodeLine,
   RiNotification3Line,
+  RiMoneyDollarCircleLine,
 } from 'react-icons/ri'
 import type { NavIconName } from './navigation.types'
 
@@ -24,6 +25,7 @@ export const NAV_ICONS: Record<NavIconName, IconType> = {
   feedback: RiMessage2Line,
   tag: RiQrCodeLine,
   bell: RiNotification3Line,
+  cash: RiMoneyDollarCircleLine,
 }
 
 export function getNavIcon(name: NavIconName) {

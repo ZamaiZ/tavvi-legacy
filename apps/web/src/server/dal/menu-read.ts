@@ -2,10 +2,11 @@ import 'server-only'
 import { cache } from 'react'
 import { slugSchema, uuidSchema } from '@/domain/common'
 import type { MenuCategoryDTO, OwnerMenuCategoryDTO, OwnerMenuItemDTO, PublicMenuDTO } from '@/domain/menu'
+import type { OrderableMenuCategoryDTO } from '@/domain/orders'
 import { parseContact } from '@/domain/restaurant'
 import { parseMenuPresentation } from '@/domain/menu-presentation'
 import { createUserClient } from './_client'
-import { currentTerritory, requireMember } from './auth'
+import { currentTerritory, myRole, requireMember, UserFacingError } from './auth'
 
 async function db() {
   return createUserClient(await currentTerritory())
@@ -259,6 +260,57 @@ export async function getMenuForOwner(
           item.is_visible && (item.menu_item_media ?? []).length === 0,
       })),
   }))
+}
+
+export async function getOrderableMenu(
+  restaurantId: unknown,
+): Promise<OrderableMenuCategoryDTO[]> {
+  const id = uuidSchema.parse(restaurantId)
+  const role = await myRole(id)
+  if (role !== 'attendant' && role !== 'waiter') {
+    throw new UserFacingError('Apenas atendentes e garçons podem registrar pedidos.')
+  }
+
+  const supabase = await db()
+  const { data, error } = await supabase
+    .from('menu_categories')
+    .select(`id, name, position, is_visible,
+      menu_items (
+        id, category_id, name, description, base_price_cents, position, is_available, is_visible,
+        menu_item_variants ( id, name, price_cents, position, is_available )
+      )`)
+    .eq('restaurant_id', id)
+    .eq('is_visible', true)
+    .order('position')
+
+  if (error) throw new Error(`Não foi possível carregar os itens para atendimento: ${error.message}`)
+
+  return (data ?? []).flatMap((category) => {
+    const items = (category.menu_items ?? [])
+      .filter((item) => item.is_visible && item.is_available)
+      .map((item) => {
+        const variants = (item.menu_item_variants ?? [])
+          .filter((variant) => variant.is_available)
+          .sort((a, b) => a.position - b.position)
+          .map((variant) => ({ id: variant.id, name: variant.name, priceCents: variant.price_cents }))
+        return { item, variants }
+      })
+      .filter(({ item, variants }) => {
+        const hasAnyVariant = (item.menu_item_variants ?? []).length > 0
+        return !hasAnyVariant || variants.length > 0
+      })
+      .sort((left, right) => left.item.position - right.item.position)
+      .map(({ item, variants }) => ({
+        id: item.id,
+        categoryId: category.id,
+        name: item.name,
+        description: item.description,
+        basePriceCents: item.base_price_cents,
+        variants,
+      }))
+
+    return items.length ? [{ id: category.id, name: category.name, items }] : []
+  })
 }
 
 export async function listCategories(restaurantId: unknown) {

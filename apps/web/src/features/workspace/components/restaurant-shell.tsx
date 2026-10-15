@@ -35,7 +35,7 @@ export async function RestaurantShell({ restaurantId, children }: { restaurantId
   if (!workspace) notFound()
   const cookieStore = await cookies()
   const initialRail = cookieStore.get('tv_rail')?.value === 'pinned' ? 'pinned' : 'collapsed'
-  const navigation = getRestaurantNavigation(restaurantId, workspace.canEdit)
+  const navigation = getRestaurantNavigation(restaurantId, workspace.role)
   const config = getRestaurantConsoleConfig({
     email: user?.email ?? null,
     displayName,
