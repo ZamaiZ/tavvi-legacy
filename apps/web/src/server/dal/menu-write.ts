@@ -132,18 +132,11 @@ export async function reorderCategories(
   await requireRestaurantAdmin(data.restaurantId)
 
   const supabase = await db()
-  for (const entry of data.order) {
-    const { error } = await supabase
-      .from('menu_categories')
-      .update({ position: entry.position })
-      .eq('id', entry.id)
-      // O filtro por restaurante impede reordenar categoria alheia mesmo
-      // que o id venha adulterado. A RLS ja negaria; este eq torna a
-      // intencao explicita na propria consulta.
-      .eq('restaurant_id', data.restaurantId)
-
-    if (error) throw new Error(`Não foi possível reordenar: ${error.message}`)
-  }
+  const { error } = await supabase.rpc('reorder_menu_categories', {
+    p_restaurant_id: data.restaurantId,
+    p_order: data.order,
+  })
+  if (error) throw new Error('Não foi possível reordenar categorias: ' + error.message)
   return getRestaurantRevalidationTarget(data.restaurantId)
 }
 
@@ -199,15 +192,11 @@ export async function reorderItems(input: unknown): Promise<RevalidationTarget> 
   await requireRestaurantAdmin(data.restaurantId)
 
   const supabase = await db()
-  for (const entry of data.order) {
-    const { error } = await supabase
-      .from('menu_items')
-      .update({ position: entry.position })
-      .eq('id', entry.id)
-      .eq('restaurant_id', data.restaurantId)
-
-    if (error) throw new Error(`Não foi possível reordenar: ${error.message}`)
-  }
+  const { error } = await supabase.rpc('reorder_menu_items', {
+    p_restaurant_id: data.restaurantId,
+    p_order: data.order,
+  })
+  if (error) throw new Error('Não foi possível reordenar itens: ' + error.message)
   return getRestaurantRevalidationTarget(data.restaurantId)
 }
 

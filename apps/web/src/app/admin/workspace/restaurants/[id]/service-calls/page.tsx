@@ -3,8 +3,9 @@ import { uuidSchema } from '@/domain/common'
 import { CallsScreen } from '@/features/calls/components/calls-screen'
 import {
   getServiceCall,
-  listServiceCallTeam,
+  getServiceCallsDashboard,
   listServiceCalls,
+  listServiceCallTeam,
 } from '@/server/dal/service-calls'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 import { requireUser } from '@/server/dal/auth'
@@ -26,23 +27,33 @@ export default async function Page({ params, searchParams }: {
 
   const query = await searchParams
   const callId = typeof query.c === 'string' && uuidSchema.safeParse(query.c).success ? query.c : null
-  const [pending, inProgress, resolved, team, focusedCall] = await Promise.all([
-    listServiceCalls({ restaurantId: workspace.restaurant.id, status: 'pending' }),
-    listServiceCalls({ restaurantId: workspace.restaurant.id, status: 'in_progress' }),
-    listServiceCalls({ restaurantId: workspace.restaurant.id, status: 'resolved' }),
-    listServiceCallTeam({ restaurantId: workspace.restaurant.id }),
-    callId ? getServiceCall({ restaurantId: workspace.restaurant.id, callId }) : Promise.resolve(null),
+  const dashboard = await getServiceCallsDashboard({
+    restaurantId: workspace.restaurant.id,
+    selectedCallId: callId,
+  })
+  for (const [field, error] of Object.entries(dashboard.errors)) {
+    console.error(`[service-calls] initial dashboard ${field} load failed`, error)
+  }
+  const restaurantId = workspace.restaurant.id
+  const [initialPending, initialInProgress, initialResolved, initialTeam, focusedCall] = await Promise.all([
+    dashboard.pending ?? listServiceCalls({ restaurantId, status: 'pending' }),
+    dashboard.inProgress ?? listServiceCalls({ restaurantId, status: 'in_progress' }),
+    dashboard.resolved ?? listServiceCalls({ restaurantId, status: 'resolved' }),
+    dashboard.team ?? listServiceCallTeam({ restaurantId }),
+    dashboard.selectedCall !== undefined
+      ? Promise.resolve(dashboard.selectedCall)
+      : callId ? getServiceCall({ restaurantId, callId }) : Promise.resolve(null),
   ])
 
   return <CallsScreen
-    restaurantId={workspace.restaurant.id}
+    restaurantId={restaurantId}
     userId={user.id}
     role={workspace.role}
     serverNow={new Date().toISOString()}
-    initialPending={pending}
-    initialInProgress={inProgress}
-    initialResolved={resolved}
-    initialTeam={team}
+    initialPending={initialPending}
+    initialInProgress={initialInProgress}
+    initialResolved={initialResolved}
+    initialTeam={initialTeam}
     focusedCall={focusedCall}
   />
 }

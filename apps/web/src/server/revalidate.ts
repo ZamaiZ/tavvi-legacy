@@ -27,6 +27,14 @@ export function revalidateRestaurant({ id, slug }: RevalidationTarget): void {
   revalidatePath(`/admin/restaurants/${id}`)
 }
 
+// Item/category changes affect the public menu and its editor page. They do
+// not change the restaurant shell or platform-admin summary, so avoid
+// invalidating either layout for these frequent writes.
+export function revalidateMenu({ id, slug }: RevalidationTarget): void {
+  revalidatePath(`/${slug}`)
+  revalidatePath(`/admin/workspace/restaurants/${id}`)
+}
+
 // Só o caminho público. Existe para um caso: quando a plataforma troca o
 // endereço, o slug ANTIGO também precisa ser invalidado, senão ele continua
 // servindo o cardápio de um endereço que já não existe.

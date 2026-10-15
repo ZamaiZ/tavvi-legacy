@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   LuArrowDownLeft,
   LuArrowRightLeft,
@@ -30,9 +29,8 @@ import type { MemberRole } from '@/domain/invite'
 import { fullDateTime, relativeTime } from '@/lib/relative-time'
 import {
   claimServiceCallAction,
-  getServiceCallAction,
+  getServiceCallsDashboardAction,
   listServiceCallEventsAction,
-  listServiceCallTeamAction,
   listServiceCallsAction,
   resolveServiceCallAction,
   transferServiceCallAction,
@@ -41,7 +39,7 @@ import { CallList } from './call-list'
 import { ServiceCallTransferDialog } from './service-call-transfer-dialog'
 import { callServiceDuration, callWaitDuration, formatCallTime, formatElapsed } from '../service-call-time'
 import { disableServiceCallSound, enableServiceCallSoundFromGesture, isServiceCallSoundEnabled } from '../call-sound'
-import { useServiceCallsRealtime } from '../use-service-calls-realtime'
+import { useServiceCallsRealtimeContext } from '../service-calls-realtime-context'
 
 const STATUS_LABELS: Record<ServiceCallStatus, string> = {
   pending: 'Aguardando',
@@ -74,7 +72,7 @@ export function CallsScreen({
   initialTeam: ServiceCallTeamMemberDTO[]
   focusedCall: ServiceCallDTO | null
 }) {
-  const router = useRouter()
+  const { subscribe, updatePendingCount, refreshPendingCount } = useServiceCallsRealtimeContext()
   const [queues, setQueues] = useState<QueueData>({
     pending: initialPending,
     in_progress: initialInProgress,
@@ -91,13 +89,13 @@ export function CallsScreen({
   const selectedIdRef = useRef(selectedId)
   selectedIdRef.current = selectedId
   const refreshRevision = useRef(0)
+  const eventsRevision = useRef(0)
   const [events, setEvents] = useState<ServiceCallEventDTO[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [busy, startTransition] = useTransition()
   const [soundEnabled, setSoundEnabled] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [eventRevision, setEventRevision] = useState(0)
   const [transferOpen, setTransferOpen] = useState(false)
   const [now, setNow] = useState(() => Date.parse(serverNow))
 
@@ -121,40 +119,40 @@ export function CallsScreen({
     return () => window.clearInterval(timer)
   }, [serverNow])
 
-  const refresh = useCallback(async (messages: unknown[] = []) => {
+  const refresh = useCallback(async (messages: unknown[] = [], includeEvents = false) => {
     const revision = ++refreshRevision.current
     try {
       const selectedCallId = selectedIdRef.current
-      const [pendingResult, inProgressResult, resolvedResult, teamResult, selectedResult] = await Promise.all([
-        listServiceCallsAction({ restaurantId, status: 'pending' }),
-        listServiceCallsAction({ restaurantId, status: 'in_progress' }),
-        listServiceCallsAction({ restaurantId, status: 'resolved' }),
-        listServiceCallTeamAction({ restaurantId }),
-        selectedCallId
-          ? getServiceCallAction({ restaurantId, callId: selectedCallId })
-          : Promise.resolve(null),
-      ])
+      const dashboardResult = await getServiceCallsDashboardAction({ restaurantId, selectedCallId, includeEvents })
       if (revision !== refreshRevision.current) return
+      if (!dashboardResult.ok) {
+        console.error('[service-calls] dashboard refresh failed', dashboardResult.error)
+        void refreshPendingCount()
+        return
+      }
+      const dashboard = dashboardResult.data
+      for (const [field, error] of Object.entries(dashboard.errors)) {
+        console.error(`[service-calls] dashboard ${field} refresh failed`, error)
+      }
       const refreshedQueues: Partial<QueueData> = {
-        ...(pendingResult.ok ? { pending: pendingResult.data } : {}),
-        ...(inProgressResult.ok ? { in_progress: inProgressResult.data } : {}),
-        ...(resolvedResult.ok ? { resolved: resolvedResult.data } : {}),
+        ...(dashboard.pending ? { pending: dashboard.pending } : {}),
+        ...(dashboard.inProgress ? { in_progress: dashboard.inProgress } : {}),
+        ...(dashboard.resolved ? { resolved: dashboard.resolved } : {}),
       }
       const latestById = new Map<string, ServiceCallDTO>()
       for (const message of messages) {
         const call = readServiceCallBroadcast(message)
         if (call?.restaurantId === restaurantId) latestById.set(call.id, call)
       }
-      if (selectedCallId && selectedIdRef.current === selectedCallId && selectedResult?.ok && selectedResult.data) {
-        latestById.set(selectedResult.data.id, selectedResult.data)
+      if (selectedCallId && selectedIdRef.current === selectedCallId && dashboard.selectedCall) {
+        latestById.set(dashboard.selectedCall.id, dashboard.selectedCall)
       }
       const removedSelectedCall = selectedCallId !== null
         && selectedIdRef.current === selectedCallId
-        && selectedResult?.ok === true
-        && selectedResult.data === null
+        && dashboard.selectedCall === null
 
-      if (selectedCallId && selectedIdRef.current === selectedCallId && selectedResult?.ok) {
-        setFocusedCallState(selectedResult.data)
+      if (selectedCallId && selectedIdRef.current === selectedCallId && dashboard.selectedCall !== undefined) {
+        setFocusedCallState(dashboard.selectedCall)
       }
       setQueues((current) => mergeQueues(
         current,
@@ -162,36 +160,58 @@ export function CallsScreen({
         [...latestById.values()],
         removedSelectedCall && selectedCallId ? [selectedCallId] : [],
       ))
-      if (!pendingResult.ok) console.error('[service-calls] pending refresh failed', pendingResult.error)
-      if (!inProgressResult.ok) console.error('[service-calls] in-progress refresh failed', inProgressResult.error)
-      if (!resolvedResult.ok) console.error('[service-calls] resolved refresh failed', resolvedResult.error)
-      if (selectedResult && !selectedResult.ok) console.error('[service-calls] selected call refresh failed', selectedResult.error)
-      if (teamResult.ok) setTeam(teamResult.data)
-      else console.error('[service-calls] team refresh failed', teamResult.error)
+      if (dashboard.team !== undefined) setTeam(dashboard.team)
+      if (dashboard.pendingCount !== undefined) updatePendingCount(dashboard.pendingCount)
+      else void refreshPendingCount()
+      if (includeEvents && dashboard.events !== undefined && selectedIdRef.current === selectedCallId) {
+        setEvents(dashboard.events)
+      }
     } catch (error) {
       if (revision === refreshRevision.current) console.error('[service-calls] refresh failed', error)
     } finally {
       if (revision === refreshRevision.current) setRefreshing(false)
     }
+  }, [restaurantId, refreshPendingCount, updatePendingCount])
+
+  const loadEvents = useCallback(async (callId: string) => {
+    const revision = ++eventsRevision.current
+    setEventsLoading(true)
+    try {
+      const result = await listServiceCallEventsAction({ restaurantId, callId })
+      if (revision !== eventsRevision.current || selectedIdRef.current !== callId) return
+      setEvents(result.ok ? result.data : [])
+      if (!result.ok) console.error('[service-calls] event history refresh failed', result.error)
+    } catch (error) {
+      if (revision === eventsRevision.current) {
+        setEvents([])
+        console.error('[service-calls] event history refresh failed', error)
+      }
+    } finally {
+      if (revision === eventsRevision.current) setEventsLoading(false)
+    }
   }, [restaurantId])
 
   const onRealtime = useCallback((messages?: unknown[]) => {
     setRefreshing(true)
-    void refresh(messages)
-    setEventRevision((current) => current + 1)
+    const selectedCallId = selectedIdRef.current
+    const shouldRefreshEvents = selectedCallId !== null && (
+      !messages?.length || messages.some((message) => readServiceCallBroadcast(message)?.id === selectedCallId)
+    )
+    void refresh(messages, shouldRefreshEvents)
   }, [refresh])
-  useServiceCallsRealtime(restaurantId, onRealtime)
+
+  useEffect(() => subscribe(onRealtime), [onRealtime, subscribe])
 
   useEffect(() => {
-    if (!selectedId) { setEvents([]); return }
-    let current = true
-    setEventsLoading(true)
-    void listServiceCallEventsAction({ restaurantId, callId: selectedId }).then((result) => {
-      if (!current) return
-      setEvents(result.ok ? result.data : [])
-    }).catch(() => { if (current) setEvents([]) }).finally(() => { if (current) setEventsLoading(false) })
-    return () => { current = false }
-  }, [eventRevision, restaurantId, selectedId])
+    if (!selectedId) {
+      eventsRevision.current += 1
+      setEvents([])
+      setEventsLoading(false)
+      return
+    }
+    void loadEvents(selectedId)
+    return () => { eventsRevision.current += 1 }
+  }, [loadEvents, selectedId])
 
   useEffect(() => {
     const inCurrentQueue = queues[filter].items.some((call) => call.id === selectedId)
@@ -229,9 +249,8 @@ export function CallsScreen({
     startTransition(async () => {
       try {
         const result = await claimServiceCallAction({ restaurantId, callId: call.id })
-        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh(); return }
+        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh([], true); return }
         updateCall(result.data.call)
-        setEventRevision((current) => current + 1)
         if (result.data.outcome === 'claim_conflict') {
           const owner = result.data.call.assignedTo ? memberNames.get(result.data.call.assignedTo) : null
           toast.add({
@@ -241,14 +260,14 @@ export function CallsScreen({
               : owner ? `Responsável atual: ${owner}.` : 'A fila foi sincronizada com o estado atual.',
             type: 'info',
           })
-          void refresh()
+          void refresh([], true)
           return
         }
         toast.add({ title: result.data.outcome === 'already_assigned' ? 'Este chamado já está com você.' : 'Chamado assumido.', type: 'success' })
-        router.refresh()
+        void refresh([], true)
       } catch {
         toast.add({ title: 'Não foi possível confirmar o aceite.', description: 'Atualizando a fila para conferir o responsável atual.', type: 'error' })
-        void refresh()
+        void refresh([], true)
       }
     })
   }
@@ -258,23 +277,22 @@ export function CallsScreen({
     startTransition(async () => {
       try {
         const result = await resolveServiceCallAction({ restaurantId, callId: call.id })
-        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh(); return }
+        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh([], true); return }
         updateCall(result.data.call)
-        setEventRevision((current) => current + 1)
         if (result.data.outcome === 'resolve_conflict') {
           toast.add({
             title: result.data.call.status === 'resolved' ? 'Outra pessoa concluiu este chamado.' : 'O responsável mudou antes da conclusão.',
             description: 'O chamado foi atualizado na fila.',
             type: 'info',
           })
-          void refresh()
+          void refresh([], true)
           return
         }
         toast.add({ title: result.data.outcome === 'already_resolved' ? 'Este chamado já foi concluído.' : 'Atendimento concluído.', type: 'success' })
-        router.refresh()
+        void refresh([], true)
       } catch {
         toast.add({ title: 'Não foi possível confirmar a conclusão.', description: 'Atualizando o estado do chamado.', type: 'error' })
-        void refresh()
+        void refresh([], true)
       }
     })
   }
@@ -284,20 +302,19 @@ export function CallsScreen({
     startTransition(async () => {
       try {
         const result = await transferServiceCallAction({ restaurantId, callId: selected.id, assigneeId })
-        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh(); return }
+        if (!result.ok) { toast.add({ title: result.error, type: 'error' }); void refresh([], true); return }
         updateCall(result.data.call)
-        setEventRevision((current) => current + 1)
         setTransferOpen(false)
         if (result.data.outcome === 'transfer_conflict') {
           toast.add({ title: 'Este chamado não está mais em atendimento.', description: 'A fila foi sincronizada com o estado atual.', type: 'info' })
-          void refresh()
+          void refresh([], true)
           return
         }
         toast.add({ title: result.data.outcome === 'already_assigned' ? 'Este membro já está responsável.' : 'Chamado transferido.', type: 'success' })
-        router.refresh()
+        void refresh([], true)
       } catch {
         toast.add({ title: 'Não foi possível confirmar a transferência.', description: 'Confira o responsável atual na fila.', type: 'error' })
-        void refresh()
+        void refresh([], true)
       }
     })
   }

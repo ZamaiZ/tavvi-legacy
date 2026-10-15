@@ -10,6 +10,7 @@ import type {
   ServiceCallRequest,
   ServiceCallTeamMemberDTO,
   ServiceCallDTO,
+  ServiceCallsDashboard,
   TransferServiceCallOutcome,
 } from '@/domain/service-call'
 import * as dal from '@/server/dal/service-calls'
@@ -32,6 +33,10 @@ export async function requestServiceCallAction(input: unknown): Promise<ActionRe
 
 export async function listServiceCallsAction(input: unknown): Promise<ActionResult<ServiceCallPage>> {
   return runAction(() => dal.listServiceCalls(input))
+}
+
+export async function getServiceCallsDashboardAction(input: unknown): Promise<ActionResult<ServiceCallsDashboard>> {
+  return runAction(() => dal.getServiceCallsDashboard(input))
 }
 
 export async function listServiceCallEventsAction(input: unknown): Promise<ActionResult<ServiceCallEventDTO[]>> {

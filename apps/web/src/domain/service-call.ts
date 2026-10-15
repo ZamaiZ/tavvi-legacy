@@ -7,6 +7,11 @@ export const requestServiceCallSchema = z.object({ token: tagTokenSchema })
 export const serviceCallStatusSchema = z.enum(['pending', 'in_progress', 'resolved'])
 export const serviceCallEventTypeSchema = z.enum(['claimed', 'transferred', 'resolved'])
 export const serviceCallRestaurantSchema = z.object({ restaurantId: uuidSchema })
+export const serviceCallsDashboardSchema = z.object({
+  restaurantId: uuidSchema,
+  selectedCallId: uuidSchema.nullable().optional(),
+  includeEvents: z.boolean().optional(),
+})
 export const listServiceCallsSchema = z.object({
   restaurantId: uuidSchema,
   status: serviceCallStatusSchema,
@@ -17,6 +22,7 @@ export const transferServiceCallSchema = serviceCallRefSchema.extend({ assigneeI
 
 export type ServiceCallStatus = z.infer<typeof serviceCallStatusSchema>
 export type ServiceCallEventType = z.infer<typeof serviceCallEventTypeSchema>
+export type ServiceCallsDashboardInput = z.infer<typeof serviceCallsDashboardSchema>
 
 export type ServiceCallDTO = {
   id: string
@@ -50,6 +56,24 @@ export type ServiceCallTeamMemberDTO = {
 }
 
 export type ServiceCallPage = { items: ServiceCallDTO[]; hasMore: boolean; nextCursor: { createdAt: string; id: string } | null }
+export type ServiceCallsDashboardField =
+  | 'pending'
+  | 'inProgress'
+  | 'resolved'
+  | 'team'
+  | 'pendingCount'
+  | 'selectedCall'
+  | 'events'
+export type ServiceCallsDashboard = {
+  pending?: ServiceCallPage
+  inProgress?: ServiceCallPage
+  resolved?: ServiceCallPage
+  team?: ServiceCallTeamMemberDTO[]
+  pendingCount?: number
+  selectedCall?: ServiceCallDTO | null
+  events?: ServiceCallEventDTO[]
+  errors: Partial<Record<ServiceCallsDashboardField, string>>
+}
 export type ServiceCallRequest = { callId: string; tableNumber: number; status: 'pending' | 'in_progress'; created: boolean }
 export type ClaimServiceCallOutcome = 'claimed' | 'already_assigned' | 'claim_conflict'
 export type TransferServiceCallOutcome = 'transferred' | 'already_assigned' | 'transfer_conflict'

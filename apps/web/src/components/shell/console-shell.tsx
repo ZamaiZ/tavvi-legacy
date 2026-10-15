@@ -14,6 +14,7 @@ import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 import { ACTIVE_PANEL_RESTAURANT_COOKIE, toExternalPath } from '@/lib/route-paths'
 import { countPendingServiceCallsAction } from '@/server/actions/service-calls'
 import { useServiceCallsRealtime } from '@/features/calls/use-service-calls-realtime'
+import { ServiceCallsRealtimeContext, type ServiceCallsRealtimeListener } from '@/features/calls/service-calls-realtime-context'
 import { NavigationProgress } from './navigation-progress'
 
 type InviteRequest = { email?: string; inviteId?: string }
@@ -98,24 +99,42 @@ export function ConsoleShell({
   const [serverPendingServiceCalls, setServerPendingServiceCalls] = useState(counts.pendingServiceCalls ?? 0)
   const pendingServiceCallsRef = useRef(counts.pendingServiceCalls ?? 0)
   const [callsArrivalKey, setCallsArrivalKey] = useState(0)
+  const serviceCallListeners = useRef(new Set<ServiceCallsRealtimeListener>())
   if ((counts.pendingServiceCalls ?? 0) !== serverPendingServiceCalls) {
     setServerPendingServiceCalls(counts.pendingServiceCalls ?? 0)
     setPendingServiceCalls(counts.pendingServiceCalls ?? 0)
     pendingServiceCallsRef.current = counts.pendingServiceCalls ?? 0
   }
+  const updatePendingCount = useCallback((count: number) => {
+    if (count > pendingServiceCallsRef.current) setCallsArrivalKey((key) => key + 1)
+    pendingServiceCallsRef.current = count
+    setPendingServiceCalls(count)
+  }, [])
   const refreshPendingServiceCalls = useCallback(async () => {
     const restaurantId = config.restaurant?.restaurantId
     if (!restaurantId) return
     const result = await countPendingServiceCallsAction({ restaurantId })
-    if (result.ok) {
-      if (result.data > pendingServiceCallsRef.current) setCallsArrivalKey((key) => key + 1)
-      pendingServiceCallsRef.current = result.data
-      setPendingServiceCalls(result.data)
-    }
+    if (result.ok) updatePendingCount(result.data)
     else console.error('[service-calls] navigation count failed', result.error)
-  }, [config.restaurant?.restaurantId])
-  const onServiceCallsRealtime = useCallback(() => { void refreshPendingServiceCalls() }, [refreshPendingServiceCalls])
+  }, [config.restaurant?.restaurantId, updatePendingCount])
+  const subscribeToServiceCalls = useCallback((listener: ServiceCallsRealtimeListener) => {
+    serviceCallListeners.current.add(listener)
+    return () => { serviceCallListeners.current.delete(listener) }
+  }, [])
+  const onServiceCallsRealtime = useCallback((messages: unknown[] = []) => {
+    const listeners = [...serviceCallListeners.current]
+    if (listeners.length === 0) {
+      void refreshPendingServiceCalls()
+      return
+    }
+    for (const listener of listeners) listener(messages)
+  }, [refreshPendingServiceCalls])
   useServiceCallsRealtime(config.restaurant?.restaurantId ?? '', onServiceCallsRealtime)
+  const serviceCallsRealtimeContext = useMemo(() => ({
+    subscribe: subscribeToServiceCalls,
+    updatePendingCount,
+    refreshPendingCount: refreshPendingServiceCalls,
+  }), [refreshPendingServiceCalls, subscribeToServiceCalls, updatePendingCount])
   const shellCounts = useMemo(() => ({ unreadFeedback, adjustUnreadFeedback }), [unreadFeedback, adjustUnreadFeedback])
 
   // Console = território admin; casca de restaurante = painel.
@@ -205,6 +224,7 @@ export function ConsoleShell({
         <RestaurantShellContext.Provider value={restaurantContext}>
         <NotificationsContext.Provider value={notifications}>
         <ShellCountsContext.Provider value={shellCounts}>
+        <ServiceCallsRealtimeContext.Provider value={serviceCallsRealtimeContext}>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
             items={navigationEntries}
@@ -254,6 +274,7 @@ export function ConsoleShell({
           {config.showNewInvite ? inviteOverlay : null}
           {surface === 'console' ? accountSheet : null}
         </div>
+        </ServiceCallsRealtimeContext.Provider>
         </ShellCountsContext.Provider>
         </NotificationsContext.Provider>
         </RestaurantShellContext.Provider>

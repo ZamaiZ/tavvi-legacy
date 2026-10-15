@@ -50,10 +50,24 @@ export const updateCategorySchema = z.object({
   isVisible: z.boolean(),
 })
 
-export const reorderSchema = z.object({
-  restaurantId: uuidSchema,
-  order: z.array(z.object({ id: uuidSchema, position: positionSchema })).min(1),
-})
+export const reorderSchema = z
+  .object({
+    restaurantId: uuidSchema,
+    order: z.array(z.object({ id: uuidSchema, position: positionSchema })).min(1),
+  })
+  .superRefine((data, ctx) => {
+    const seen = new Set<string>()
+    data.order.forEach((entry, index) => {
+      if (seen.has(entry.id)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['order', index, 'id'],
+          message: 'A ordem contém um registro repetido.',
+        })
+      }
+      seen.add(entry.id)
+    })
+  })
 
 // Os campos do item que as ações rápidas (Planilha, mover, mostrar/ocultar)
 // mandam de volta. Criar e editar pelo painel usam o `saveItemSchema`.

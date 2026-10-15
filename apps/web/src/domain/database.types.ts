@@ -1061,6 +1061,14 @@ export type Database = {
         Args: { p_feedback_id: string; p_key: string }
         Returns: undefined
       }
+      reorder_menu_categories: {
+        Args: { p_order: Json; p_restaurant_id: string }
+        Returns: undefined
+      }
+      reorder_menu_items: {
+        Args: { p_order: Json; p_restaurant_id: string }
+        Returns: undefined
+      }
       request_service_call: {
         Args: { p_key: string; p_token: string; p_allow_create?: boolean }
         Returns: { call_id: string; table_number: number; status: string; created: boolean }[]

@@ -5,6 +5,7 @@ import {
   serviceCallFromRow,
   serviceCallRefSchema,
   serviceCallRestaurantSchema,
+  serviceCallsDashboardSchema,
   transferServiceCallSchema,
   type ClaimServiceCallOutcome,
   type ResolveServiceCallOutcome,
@@ -12,14 +13,27 @@ import {
   type ServiceCallEventDTO,
   type ServiceCallMutationResult,
   type ServiceCallPage,
+  type ServiceCallStatus,
   type ServiceCallTeamMemberDTO,
+  type ServiceCallsDashboard,
   type TransferServiceCallOutcome,
 } from '@/domain/service-call'
 import { memberRoleSchema } from '@/domain/invite'
 import { createUserClient } from './_client'
-import { currentTerritory, requireMember, requireRestaurantAdmin, UserFacingError } from './auth'
+import { currentTerritory, requireMember, requireUser, UserFacingError } from './auth'
 
 const PAGE_SIZE = 100
+
+function settledDashboardField<T>(
+  field: keyof ServiceCallsDashboard['errors'],
+  result: PromiseSettledResult<T>,
+  errors: ServiceCallsDashboard['errors'],
+): T | undefined {
+  if (result.status === 'fulfilled') return result.value
+  console.error(`[service-calls] dashboard ${field} query failed`, result.reason)
+  errors[field] = 'Não foi possível atualizar esta seção.'
+  return undefined
+}
 
 async function db() {
   return createUserClient(await currentTerritory())
@@ -28,7 +42,17 @@ async function db() {
 export async function listServiceCalls(input: unknown): Promise<ServiceCallPage> {
   const { restaurantId, status, cursor } = listServiceCallsSchema.parse(input)
   await requireMember(restaurantId)
-  const supabase = await db()
+  return queryServiceCalls(await db(), restaurantId, status, cursor)
+}
+
+type ServiceCallClient = Awaited<ReturnType<typeof db>>
+
+async function queryServiceCalls(
+  supabase: ServiceCallClient,
+  restaurantId: string,
+  status: ServiceCallStatus,
+  cursor?: { createdAt: string; id: string },
+): Promise<ServiceCallPage> {
   let query = supabase
     .from('service_calls')
     .select('id, restaurant_id, tag_id, table_number, status, created_at, first_claimed_at, first_claimed_by, assigned_to, resolved_at, resolved_by')
@@ -50,6 +74,94 @@ export async function listServiceCalls(input: unknown): Promise<ServiceCallPage>
     items,
     hasMore: rows.length > PAGE_SIZE,
     nextCursor: rows.length > PAGE_SIZE && last ? { createdAt: last.createdAt, id: last.id } : null,
+  }
+}
+
+async function dashboardTeam(
+  supabase: ServiceCallClient,
+  restaurantId: string,
+): Promise<ServiceCallTeamMemberDTO[]> {
+  const { data, error } = await supabase.rpc('list_restaurant_members', { p_restaurant_id: restaurantId })
+  if (error) throw new Error(`Não foi possível carregar a equipe: ${error.message}`)
+  return (data ?? []).flatMap((row) => {
+    const role = memberRoleSchema.safeParse(row.member_role)
+    if (!role.success) return []
+    return [{
+      userId: row.user_id,
+      displayName: row.display_name?.trim() || 'Membro da equipe',
+      role: role.data,
+    }]
+  })
+}
+
+async function dashboardSelectedCall(
+  supabase: ServiceCallClient,
+  restaurantId: string,
+  callId: string,
+): Promise<ServiceCallDTO | null> {
+  const { data, error } = await supabase
+    .from('service_calls')
+    .select('id, restaurant_id, tag_id, table_number, status, created_at, first_claimed_at, first_claimed_by, assigned_to, resolved_at, resolved_by')
+    .eq('restaurant_id', restaurantId)
+    .eq('id', callId)
+    .maybeSingle()
+  if (error) throw new Error(`Não foi possível localizar o chamado: ${error.message}`)
+  return data ? serviceCallFromRow(data) : null
+}
+
+async function dashboardEvents(
+  supabase: ServiceCallClient,
+  restaurantId: string,
+  callId: string,
+): Promise<ServiceCallEventDTO[]> {
+  const { data, error } = await supabase
+    .from('service_call_events')
+    .select('id, call_id, restaurant_id, event_type, actor_id, previous_assignee_id, next_assignee_id, created_at')
+    .eq('restaurant_id', restaurantId)
+    .eq('call_id', callId)
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
+  if (error) throw new Error(`NÃ£o foi possÃ­vel carregar o histÃ³rico do chamado: ${error.message}`)
+  return (data ?? []).map(serviceCallEventFromRow).filter((event): event is ServiceCallEventDTO => event !== null)
+}
+
+export async function getServiceCallsDashboard(input: unknown): Promise<ServiceCallsDashboard> {
+  const { restaurantId, selectedCallId, includeEvents } = serviceCallsDashboardSchema.parse(input)
+  await requireMember(restaurantId)
+  const supabase = await db()
+  const results = await Promise.allSettled([
+    queryServiceCalls(supabase, restaurantId, 'pending'),
+    queryServiceCalls(supabase, restaurantId, 'in_progress'),
+    queryServiceCalls(supabase, restaurantId, 'resolved'),
+    dashboardTeam(supabase, restaurantId),
+    (async () => {
+      const { count, error } = await supabase.from('service_calls').select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurantId).eq('status', 'pending')
+      if (error) throw new Error(`Não foi possível contar os chamados pendentes: ${error.message}`)
+      return count ?? 0
+    })(),
+    selectedCallId ? dashboardSelectedCall(supabase, restaurantId, selectedCallId) : Promise.resolve(null),
+    includeEvents && selectedCallId
+      ? dashboardEvents(supabase, restaurantId, selectedCallId)
+      : Promise.resolve(undefined),
+  ])
+  const errors: ServiceCallsDashboard['errors'] = {}
+  const pending = settledDashboardField('pending', results[0], errors)
+  const inProgress = settledDashboardField('inProgress', results[1], errors)
+  const resolved = settledDashboardField('resolved', results[2], errors)
+  const team = settledDashboardField('team', results[3], errors)
+  const pendingCount = settledDashboardField('pendingCount', results[4], errors)
+  const selectedCall = settledDashboardField('selectedCall', results[5], errors)
+  const events = settledDashboardField('events', results[6], errors)
+  return {
+    ...(pending ? { pending } : {}),
+    ...(inProgress ? { inProgress } : {}),
+    ...(resolved ? { resolved } : {}),
+    ...(team ? { team } : {}),
+    ...(pendingCount !== undefined ? { pendingCount } : {}),
+    ...(selectedCall !== undefined ? { selectedCall } : {}),
+    ...(events !== undefined ? { events } : {}),
+    errors,
   }
 }
 
@@ -125,7 +237,7 @@ export async function claimServiceCall(
   input: unknown,
 ): Promise<ServiceCallMutationResult<ClaimServiceCallOutcome>> {
   const { restaurantId, callId } = serviceCallRefSchema.parse(input)
-  await requireMember(restaurantId)
+  await requireUser()
   const supabase = await db()
   const { data, error } = await supabase.rpc('claim_service_call', { p_call_id: callId })
   if (error) throw mapServiceCallRpcError(error.message)
@@ -136,7 +248,7 @@ export async function transferServiceCall(
   input: unknown,
 ): Promise<ServiceCallMutationResult<TransferServiceCallOutcome>> {
   const { restaurantId, callId, assigneeId } = transferServiceCallSchema.parse(input)
-  await requireRestaurantAdmin(restaurantId)
+  await requireUser()
   const supabase = await db()
   const { data, error } = await supabase.rpc('transfer_service_call', {
     p_call_id: callId,
@@ -150,7 +262,7 @@ export async function resolveServiceCall(
   input: unknown,
 ): Promise<ServiceCallMutationResult<ResolveServiceCallOutcome>> {
   const { restaurantId, callId } = serviceCallRefSchema.parse(input)
-  await requireMember(restaurantId)
+  await requireUser()
   const supabase = await db()
   const { data, error } = await supabase.rpc('resolve_service_call', { p_call_id: callId })
   if (error) throw mapServiceCallRpcError(error.message)

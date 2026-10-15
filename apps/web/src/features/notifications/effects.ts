@@ -34,7 +34,6 @@ export function onNotificationInserted(notification: NotificationDTO, context: N
     case 'service_call_received': {
       if (context.territory !== 'painel') return
       playServiceCallSoundIfEnabled()
-      if (notification.restaurantId === context.restaurantId && isUnder(context.pathname, `/restaurantes/${context.restaurantId}/service-calls`)) context.refresh()
       return
     }
     case 'restaurant_joined': {
