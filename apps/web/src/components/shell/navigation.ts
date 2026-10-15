@@ -76,7 +76,7 @@ export function getRestaurantNavigation(
     },
   ]
 
-  if (role === 'admin' || role === 'cashier') {
+  if (role) {
     children.push({
       kind: 'leaf',
       href: `${root}/cash`,

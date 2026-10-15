@@ -4467,17 +4467,6 @@ as $fn$
         on m.restaurant_id = a.restaurant_id
        and m.user_id = (select auth.uid())
      where a.id = p_account_id
-       and (
-         m.role in ('admin', 'cashier')
-         or (a.status in ('open', 'settling') and exists (
-           select 1
-             from public.service_calls c
-            where c.restaurant_id = a.restaurant_id
-              and c.table_number = a.table_number
-              and c.status = 'in_progress'
-              and c.assigned_to = (select auth.uid())
-         ))
-       )
   );
 $fn$;
 
@@ -4595,7 +4584,7 @@ grant select on public.table_accounts, public.orders, public.order_items,
 drop policy if exists restaurant_checkout_settings_select_cash_roles on public.restaurant_checkout_settings;
 create policy restaurant_checkout_settings_select_cash_roles on public.restaurant_checkout_settings
   for select to authenticated
-  using (public.my_role(restaurant_id) in ('admin', 'cashier'));
+  using (public.my_role(restaurant_id) is not null);
 drop policy if exists restaurant_checkout_settings_update_admin on public.restaurant_checkout_settings;
 create policy restaurant_checkout_settings_update_admin on public.restaurant_checkout_settings
   for update to authenticated
@@ -4605,7 +4594,7 @@ create policy restaurant_checkout_settings_update_admin on public.restaurant_che
 drop policy if exists restaurant_payment_methods_select_cash_roles on public.restaurant_payment_methods;
 create policy restaurant_payment_methods_select_cash_roles on public.restaurant_payment_methods
   for select to authenticated
-  using (public.my_role(restaurant_id) in ('admin', 'cashier'));
+  using (public.my_role(restaurant_id) is not null);
 drop policy if exists restaurant_payment_methods_insert_admin on public.restaurant_payment_methods;
 create policy restaurant_payment_methods_insert_admin on public.restaurant_payment_methods
   for insert to authenticated
@@ -4681,6 +4670,12 @@ create trigger table_account_payments_broadcast after insert on public.table_acc
 drop trigger if exists table_account_events_broadcast on public.table_account_events;
 create trigger table_account_events_broadcast after insert on public.table_account_events
   for each row execute function public.table_accounts_broadcast();
+drop trigger if exists checkout_settings_broadcast on public.restaurant_checkout_settings;
+create trigger checkout_settings_broadcast after update on public.restaurant_checkout_settings
+  for each row execute function public.table_accounts_broadcast();
+drop trigger if exists payment_methods_broadcast on public.restaurant_payment_methods;
+create trigger payment_methods_broadcast after insert or update on public.restaurant_payment_methods
+  for each row execute function public.table_accounts_broadcast();
 revoke all on function public.table_accounts_broadcast() from public, anon, authenticated;
 
 drop policy if exists table_accounts_receive_cash_topic on realtime.messages;
@@ -4689,7 +4684,7 @@ create policy table_accounts_receive_cash_topic on realtime.messages
   using (
     realtime.messages.extension = 'broadcast'
     and (select realtime.topic()) ~ '^table_accounts:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
-    and public.my_role(substring((select realtime.topic()) from 16)::uuid) in ('admin', 'cashier')
+    and public.my_role(substring((select realtime.topic()) from 16)::uuid) is not null
   );
 
 create or replace function public.record_table_order(
@@ -4751,7 +4746,7 @@ begin
     from public.memberships m
    where m.restaurant_id = v_restaurant_id and m.user_id = v_uid
    for share;
-  if not found or v_role not in ('attendant', 'waiter') then
+  if not found then
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
@@ -4778,6 +4773,17 @@ begin
 
   if v_call.status <> 'in_progress' or v_call.assigned_to <> v_uid then
     raise exception 'call_conflict';
+  end if;
+
+  -- A finalized visit cannot be reopened by an older, still active call.
+  if exists (
+    select 1 from public.table_accounts closed_account
+     where closed_account.restaurant_id = v_restaurant_id
+       and closed_account.table_number = v_call.table_number
+       and closed_account.status = 'closed'
+       and closed_account.closed_at >= v_call.created_at
+  ) then
+    raise exception 'account_closed';
   end if;
 
   select s.* into v_settings
@@ -4869,7 +4875,10 @@ begin
         on c.id = i.category_id and c.restaurant_id = i.restaurant_id
      where i.id = v_item_id and i.restaurant_id = v_restaurant_id;
     if not found or v_item_available is not true or v_item_visible is not true
-       or v_category_visible is not true then
+       or v_category_visible is not true or not exists (
+         select 1 from public.menu_item_media media
+          where media.item_id = v_item_id and media.restaurant_id = v_restaurant_id
+       ) then
       raise exception 'menu_stale';
     end if;
 
@@ -4964,7 +4973,7 @@ begin
   if not found then raise exception 'account_not_found'; end if;
   select m.role into v_role from public.memberships m
    where m.restaurant_id = v_account.restaurant_id and m.user_id = v_uid for share;
-  if not found or v_role not in ('admin', 'cashier') then
+  if not found then
     raise exception 'forbidden' using errcode = '42501';
   end if;
 
@@ -5077,7 +5086,7 @@ begin
   if not found then raise exception 'account_not_found'; end if;
   select m.role into v_role from public.memberships m
    where m.restaurant_id = v_account.restaurant_id and m.user_id = v_uid for share;
-  if not found or v_role not in ('admin', 'cashier') then raise exception 'forbidden' using errcode = '42501'; end if;
+  if not found then raise exception 'forbidden' using errcode = '42501'; end if;
 
   v_fingerprint := md5(concat_ws(':', p_account_id::text, p_tip_accepted::text));
   select e.* into v_existing from public.table_account_events e
@@ -5222,7 +5231,7 @@ begin
   select a.* into v_account from public.table_accounts a where a.id = v_original.table_account_id for update;
   select m.role into v_role from public.memberships m
    where m.restaurant_id = v_account.restaurant_id and m.user_id = v_uid for share;
-  if not found or v_role not in ('admin', 'cashier') then raise exception 'forbidden' using errcode = '42501'; end if;
+  if not found then raise exception 'forbidden' using errcode = '42501'; end if;
   v_fingerprint := md5(concat_ws(':', p_payment_id::text, p_amount_cents::text, v_reason));
   select p.* into v_existing from public.table_account_payments p
    where p.restaurant_id = v_account.restaurant_id and p.request_id = p_request_id;

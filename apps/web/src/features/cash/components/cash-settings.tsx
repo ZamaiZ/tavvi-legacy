@@ -6,6 +6,7 @@ import { LuX } from 'react-icons/lu'
 import type { CheckoutSettingsDTO, TipMode } from '@/domain/table-account'
 import { digitsToCents, formatCentsInput } from '@/lib/money'
 import { SpinnerRing } from '@/components/ui/spinner'
+import { Combobox } from '@/components/ui/combobox'
 import { MobileSheet, MobileSheetNav, useSheetBusy } from '@/components/shell/mobile-sheet'
 import { useTerritoryContainer } from '@/features/workspace/components/use-territory-container'
 import {
@@ -93,9 +94,7 @@ export function CashSettings({ restaurantId, settings, mobile, open, onOpenChang
   const sections = <>
     <section className="tv-cash-settings-section">
       <div className="tv-cash-settings-section-heading"><span>01</span><div><h3>Gorjeta da comanda</h3><p>Uma decisão por comanda, quando a equipe iniciar o fechamento.</p></div></div>
-      <label className="tv-cash-settings-field"><span>Critério aplicado às novas comandas</span><select value={tipMode} disabled={busy} onChange={(event) => { setTipMode(event.target.value as TipMode); setSaved(false) }}>
-        <option value="disabled">Desativada</option><option value="percentage">Percentual sobre o subtotal</option><option value="fixed">Valor fixo por comanda</option>
-      </select></label>
+      <div className="tv-cash-settings-field"><span>Critério aplicado às novas comandas</span><Combobox label="Critério de gorjeta" value={tipMode} options={[{ value: 'disabled', label: 'Desativada' }, { value: 'percentage', label: 'Percentual sobre o subtotal' }, { value: 'fixed', label: 'Valor fixo por comanda' }]} disabled={busy} onValueChange={(value) => { setTipMode(value as TipMode); setSaved(false) }} /></div>
       {tipMode === 'percentage' ? <label className="tv-cash-settings-field"><span>Percentual (%)</span><input inputMode="decimal" value={percent} disabled={busy} onChange={(event) => { setPercent(event.target.value); setSaved(false) }} placeholder="10" /></label> : null}
       {tipMode === 'fixed' ? <label className="tv-cash-settings-field"><span>Valor fixo</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={fixed} disabled={busy} onChange={(event) => { setFixed(event.target.value); setSaved(false) }} onBlur={() => { const cents = digitsToCents(fixed); if (cents !== null) setFixed(formatCentsInput(cents)) }} /></span></label> : null}
       <p className="tv-cash-settings-hint">A regra fica registrada na abertura de cada comanda. O cliente pode recusar a gorjeta no fechamento.</p>

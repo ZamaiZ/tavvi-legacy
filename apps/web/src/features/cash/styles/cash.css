@@ -1,11 +1,13 @@
 .workspace-territory .tv-cash-page {
-  width: 100%;
+  width: min(100%, 1400px);
   min-width: 0;
+  margin: 0 auto;
+  padding: 26px 32px 72px;
   color: var(--tv-text);
 }
 .workspace-territory .tv-cash-toolbar {
-  min-height: 52px;
-  margin: 18px 0 16px;
+  min-height: 32px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -19,6 +21,11 @@
 }
 .workspace-territory .tv-cash-live { gap: 9px; color: var(--tv-text-2); font-size: 13px; }
 .workspace-territory .tv-cash-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--tv-ok); box-shadow: 0 0 0 4px var(--tv-ok-soft); }
+.workspace-territory .tv-cash-live:is(.is-connecting, .is-disconnected) i { background: var(--tv-gold); box-shadow: 0 0 0 4px var(--tv-gold-soft); }
+.workspace-territory .tv-cash-settings-trigger { min-height: 44px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.workspace-territory .tv-cash-settings-trigger svg { width: 16px; height: 16px; }
+.workspace-territory .tv-cash-settings-trigger:hover { border-color: var(--tv-line-2); background: var(--tv-surface-2); }
+.workspace-territory .tv-cash-settings-trigger:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 .workspace-territory .tv-cash-toolbar > div { gap: 8px; }
 .workspace-territory .tv-cash-toolbar button,
 .workspace-territory .tv-cash-print-button,
@@ -250,12 +257,11 @@
 .workspace-territory .tv-cash-payment-explainer { margin: 12px 0 0; color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
 .workspace-territory .tv-cash-payment-fields { margin-top: 17px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .workspace-territory .tv-cash-payment-fields > label,
+.workspace-territory .tv-cash-payment-field,
 .workspace-territory .tv-cash-settings-field,
 .workspace-territory .tv-cash-reopen label,
 .workspace-territory .tv-cash-custom-method label { min-width: 0; display: grid; gap: 7px; color: var(--tv-text-2); font-size: 13px; font-weight: 550; }
-.workspace-territory .tv-cash-payment-fields select,
 .workspace-territory .tv-cash-payment-fields input,
-.workspace-territory .tv-cash-settings-field select,
 .workspace-territory .tv-cash-settings-field > input,
 .workspace-territory .tv-cash-money-field,
 .workspace-territory .tv-cash-custom-method input,
@@ -271,6 +277,8 @@
   font: inherit;
   font-size: 15px;
 }
+.workspace-territory .tv-cash-payment-field .tv-combo-trigger,
+.workspace-territory .tv-cash-settings-field .tv-combo-trigger { width: 100%; min-height: 48px; padding: 0 12px; border-radius: 10px; background: var(--tv-bg); font-size: 15px; }
 .workspace-territory .tv-cash-money-field { display: flex; align-items: center; gap: 8px; }
 .workspace-territory .tv-cash-money-field b { flex: none; color: var(--tv-text-3); font-size: 14px; font-weight: 550; }
 .workspace-territory .tv-cash-money-field input { min-width: 0; min-height: 44px; flex: 1; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; }
@@ -350,10 +358,11 @@
 .workspace-territory .tv-cash-skeleton-line,
 .workspace-territory .tv-cash-skeleton-chip { display: block; border-radius: 999px; background: var(--tv-surface-2); animation: tv-cash-pulse 1.2s ease-in-out infinite alternate; }
 .workspace-territory .tv-cash-skeleton { border-radius: 12px; }
-.workspace-territory .tv-cash-loading-header { margin-bottom: 18px; display: grid; justify-items: start; gap: 9px; }
+.workspace-territory .tv-cash-loading-header { position: relative; margin-bottom: 18px; display: grid; justify-items: start; gap: 9px; }
 .workspace-territory .tv-cash-loading-header .is-eyebrow { width: 158px; height: 8px; }
 .workspace-territory .tv-cash-loading-header .is-title { width: 130px; height: 32px; }
 .workspace-territory .tv-cash-loading-header .is-description { width: min(540px, 92%); height: 9px; }
+.workspace-territory .tv-cash-loading-header .is-action { position: absolute; top: 0; right: 0; width: 170px; height: 44px; }
 .workspace-territory .tv-cash-loading-toolbar { min-height: 52px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .workspace-territory .tv-cash-loading-toolbar .is-live { width: 170px; height: 10px; }
 .workspace-territory .tv-cash-loading-toolbar .is-action { width: 96px; height: 42px; border-radius: 10px; }
@@ -372,10 +381,10 @@
 .workspace-territory .tv-cash-loading-payment { height: 74px; margin-top: 16px; border-radius: 12px; }
 .workspace-territory .tv-cash-loading-navbar { display: none; }
 
-.workspace-territory .tv-cash-page :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
-.workspace-territory .tv-cash-page :is(input, select):disabled { opacity: .55; cursor: not-allowed; }
-.workspace-territory .tv-cash-settings-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
-.workspace-territory .tv-cash-settings-mobile-content :is(button, input, select):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-page :is(button, input):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-page input:disabled { opacity: .55; cursor: not-allowed; }
+.workspace-territory .tv-cash-settings-dialog :is(button, input):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-settings-mobile-content :is(button, input):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 @keyframes tv-cash-pulse { to { opacity: .52; } }
 
 @media (hover: hover) {
@@ -395,8 +404,15 @@
   .workspace-territory .tv-pre-account { padding: 17px; }
 }
 @media (max-width: 767px) {
-  .workspace-territory .tv-cash-page { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-  .workspace-territory .tv-cash-toolbar { min-height: 44px; margin: 14px 0; align-items: flex-start; flex-direction: column; }
+  .workspace-territory .tv-cash-page { padding: 14px 16px calc(var(--tv-dock-space) + 28px); }
+  .workspace-territory .tv-cash-page-header { align-items: center; flex-direction: row; gap: 10px; }
+  .workspace-territory .tv-cash-page-header > div:first-child { min-width: 0; }
+  .workspace-territory .tv-cash-page-header > div:first-child p { display: none; }
+  .workspace-territory .tv-cash-page-header h1 { font-size: 28px; line-height: 1.15; }
+  .workspace-territory .tv-cash-page-header > div:last-child { flex: none; }
+  .workspace-territory .tv-cash-settings-trigger { padding: 0 10px; font-size: 12px; }
+  .workspace-territory .tv-cash-loading-header .is-action { width: 142px; }
+  .workspace-territory .tv-cash-toolbar { min-height: 30px; margin: 0 0 14px; align-items: flex-start; flex-direction: column; }
   .workspace-territory .tv-cash-toolbar > div { width: 100%; }
   .workspace-territory .tv-cash-toolbar button { min-width: 0; flex: 1; padding: 0 9px; font-size: 13px; }
   .workspace-territory .tv-cash-live { font-size: 12px; }
@@ -452,7 +468,6 @@
   .workspace-territory .tv-cash-loading-toolbar .is-live { width: 145px; }
   .workspace-territory .tv-cash-loading-toolbar { flex-wrap: wrap; justify-content: flex-start; }
   .workspace-territory .tv-cash-loading-toolbar .is-live { width: 100%; }
-  .workspace-territory .tv-cash-loading-toolbar .is-action { width: calc(50% - 6px); flex: 1; }
 }
 @media (max-width: 390px) {
   .workspace-territory .tv-cash-detail-heading { gap: 10px; }

@@ -22,9 +22,9 @@ import { createUserClient } from './_client'
 type Db = Awaited<ReturnType<typeof createUserClient>>
 type AccountRow = Tables<'table_accounts'>
 
-function ensureCashRole(role: string | null): asserts role is 'admin' | 'cashier' {
-  if (role !== 'admin' && role !== 'cashier') {
-    throw new UserFacingError('Apenas o caixa e a administração podem acessar as comandas.')
+function ensureCashRole(role: string | null): asserts role is 'admin' | 'cashier' | 'attendant' | 'waiter' {
+  if (!role) {
+    throw new UserFacingError('Você não tem acesso às comandas deste restaurante.')
   }
 }
 

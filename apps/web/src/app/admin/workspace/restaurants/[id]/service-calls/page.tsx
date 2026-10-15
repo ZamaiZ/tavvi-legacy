@@ -46,7 +46,7 @@ export default async function Page({ params, searchParams }: {
       ? Promise.resolve(dashboard.selectedCall)
       : callId ? getServiceCall({ restaurantId, callId }) : Promise.resolve(null),
   ])
-  const canRecordOrders = workspace.role === 'attendant' || workspace.role === 'waiter'
+  const canRecordOrders = !!workspace.role
   const [orderableMenu, initialAccount] = await Promise.all([
     canRecordOrders ? getOrderableMenu(restaurantId) : Promise.resolve([]),
     canRecordOrders && focusedCall?.status === 'in_progress' && focusedCall.assignedTo === user.id

@@ -26,7 +26,6 @@ export function AccountCorrections({
   const [pendingRetry, setPendingRetry] = useState<string | null>(null)
   const [busy, startTransition] = useTransition()
   const requestIds = useRef(new Map<string, string>())
-  const canRefund = role === 'admin' || role === 'cashier'
   const refundable = (paymentId: string, amount: number) => Math.max(amount - account.payments
     .filter((entry) => entry.entryType === 'refunded' && entry.reversesPaymentId === paymentId)
     .reduce((sum, entry) => sum + entry.amountAppliedCents, 0), 0)
@@ -103,7 +102,6 @@ export function AccountCorrections({
     })
   }
 
-  if (!canRefund && role !== 'admin') return null
   return <section className="tv-cash-corrections">
     <div className="tv-cash-subheading"><strong>Correções e estornos</strong><small>Os lançamentos originais são mantidos no histórico.</small></div>
     {account.payments.filter((payment) => payment.entryType === 'received').map((payment) => {

@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from 'react'
 import { LuBanknote, LuCircleAlert } from 'react-icons/lu'
 import type { PaymentMethodDTO, TableAccountDTO } from '@/domain/table-account'
 import { digitsToCents, formatCents, formatCentsInput } from '@/lib/money'
 import { SpinnerRing } from '@/components/ui/spinner'
+import { Combobox } from '@/components/ui/combobox'
 import { recordAccountPaymentAction } from '@/server/actions/table-accounts'
 
 export function PaymentEntry({
@@ -25,6 +26,7 @@ export function PaymentEntry({
   const [retryRequired, setRetryRequired] = useState(false)
   const [busy, startTransition] = useTransition()
   const requestIds = useRef(new Map<string, string>())
+  const previousBalance = useRef(account.balanceDueCents)
   const method = methods.find((entry) => entry.id === methodId) ?? null
   const appliedCents = digitsToCents(amountText)
   const receivedCents = method?.methodType === 'cash' ? digitsToCents(cashText) : null
@@ -35,6 +37,18 @@ export function PaymentEntry({
     && (method.methodType !== 'cash' || (receivedCents !== null && receivedCents >= appliedCents && receivedCents <= 2_147_483_647))
 
   const defaultDisplay = useMemo(() => formatCents(account.balanceDueCents), [account.balanceDueCents])
+
+  useEffect(() => {
+    const before = previousBalance.current
+    previousBalance.current = account.balanceDueCents
+    if (before === account.balanceDueCents || retryRequired) return
+    setAmountText((current) => digitsToCents(current) === before ? formatCentsInput(account.balanceDueCents) : current)
+    setCashText((current) => digitsToCents(current) === before ? formatCentsInput(account.balanceDueCents) : current)
+  }, [account.balanceDueCents, retryRequired])
+
+  useEffect(() => {
+    if (!methods.some((entry) => entry.id === methodId)) setMethodId(methods[0]?.id ?? '')
+  }, [methodId, methods])
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -82,11 +96,9 @@ export function PaymentEntry({
     <div className="tv-cash-payment-heading"><span><LuBanknote aria-hidden="true" /></span><div><strong>Registrar pagamento recebido</strong><small>Saldo atual: {defaultDisplay}</small></div></div>
     <p className="tv-cash-payment-explainer">Registre cada parte separadamente para combinar formas de pagamento. Um recebimento parcial atualiza o saldo e mantém a comanda aberta.</p>
     <div className="tv-cash-payment-fields">
-      <label><span>Forma de pagamento</span><select value={methodId} disabled={retryRequired} onChange={(event) => setMethodId(event.target.value)}>
-        {methods.map((entry) => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
-      </select></label>
-      <label><span>Valor aplicado à conta</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={amountText} disabled={retryRequired} onChange={(event) => setAmountText(event.target.value)} onBlur={() => { const cents = digitsToCents(amountText); if (cents !== null) setAmountText(formatCentsInput(cents)) }} /></span></label>
-      {method?.methodType === 'cash' ? <label><span>Valor recebido em dinheiro</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={cashText} disabled={retryRequired} onChange={(event) => setCashText(event.target.value)} onBlur={() => { const cents = digitsToCents(cashText); if (cents !== null) setCashText(formatCentsInput(cents)) }} /></span></label> : null}
+      <div className="tv-cash-payment-field"><span>Forma de pagamento</span><Combobox label="Forma de pagamento" value={methodId || null} options={methods.map((entry) => ({ value: entry.id, label: entry.name }))} disabled={retryRequired || busy} onValueChange={setMethodId} /></div>
+      <label><span>Valor aplicado à conta</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={amountText} disabled={retryRequired || busy} onChange={(event) => setAmountText(event.target.value)} onBlur={() => { const cents = digitsToCents(amountText); if (cents !== null) setAmountText(formatCentsInput(cents)) }} /></span></label>
+      {method?.methodType === 'cash' ? <label><span>Valor recebido em dinheiro</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={cashText} disabled={retryRequired || busy} onChange={(event) => setCashText(event.target.value)} onBlur={() => { const cents = digitsToCents(cashText); if (cents !== null) setCashText(formatCentsInput(cents)) }} /></span></label> : null}
     </div>
     {method?.methodType === 'cash' ? <div className="tv-cash-change"><span>Troco</span><strong>{formatCents(changeCents)}</strong></div> : null}
     {error ? <p className="tv-cash-inline-error" role="alert">{error}</p> : null}
@@ -98,7 +110,7 @@ export function PaymentEntry({
 
 function isDefinitivePaymentRejection(message: string): boolean {
   return [
-    'Apenas o caixa e a administração',
+    'Você não tem acesso às comandas deste restaurante',
     'Você não tem acesso a este restaurante',
     'A comanda não está disponível neste restaurante',
     'A comanda não foi encontrada',

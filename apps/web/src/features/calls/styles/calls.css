@@ -110,8 +110,8 @@
 .workspace-territory .tv-calls-load-more { width: calc(100% - 16px); min-height: 44px; margin: 0 8px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; cursor: pointer; }
 .workspace-territory .tv-calls-load-more:disabled { opacity: .6; cursor: progress; }
 .workspace-territory .tv-calls-load-more svg { width: 13px; height: 13px; }
-.workspace-territory .tv-call-transfer-dialog { width: min(440px, calc(100vw - 30px)); max-width: none; padding: 0; overflow: visible; border: 1px solid var(--tv-line); border-radius: 18px; background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 24px 80px rgb(0 0 0 / .3); }
-.workspace-territory .tv-call-transfer-dialog::backdrop { background: rgb(10 10 9 / .62); backdrop-filter: blur(5px); }
+.workspace-territory .tv-call-transfer-dialog { position: fixed; z-index: 71; top: 50%; left: 50%; width: min(440px, calc(100vw - 30px)); max-width: none; padding: 0; overflow: visible; transform: translate(-50%, -50%); border: 1px solid var(--tv-line); border-radius: 18px; background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 24px 80px rgb(0 0 0 / .3); }
+.workspace-territory .tv-call-transfer-backdrop { position: fixed; z-index: 70; inset: 0; background: rgb(10 10 9 / .62); backdrop-filter: blur(5px); }
 .workspace-territory .tv-call-transfer-head { position: relative; padding: 23px 24px 17px; border-bottom: 1px solid var(--tv-line); }
 .workspace-territory .tv-call-transfer-symbol { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
 .workspace-territory .tv-call-transfer-symbol svg { width: 18px; height: 18px; }
@@ -119,10 +119,12 @@
 .workspace-territory .tv-call-dialog-close svg { width: 15px; height: 15px; }
 .workspace-territory .tv-call-transfer-head p { margin: 16px 0 4px; color: var(--tv-text-3); font-size: 10px; }
 .workspace-territory .tv-call-transfer-head h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.025em; }
-.workspace-territory .tv-call-transfer-head > span:last-child { display: block; margin-top: 7px; color: var(--tv-text-3); font-size: 10px; line-height: 1.5; }
+.workspace-territory .tv-call-transfer-description { display: block; margin: 7px 0 0; color: var(--tv-text-3); font-size: 10px; line-height: 1.5; }
 .workspace-territory .tv-call-transfer-dialog form { padding: 20px 24px 24px; }
 .workspace-territory .tv-call-transfer-dialog label { display: block; margin-bottom: 7px; color: var(--tv-text-2); font-size: 10px; font-weight: 600; }
-.workspace-territory .tv-call-transfer-dialog select { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 12px; }
+.workspace-territory .tv-call-transfer-field > span { display: block; margin-bottom: 7px; color: var(--tv-text-2); font-size: 10px; font-weight: 600; }
+.workspace-territory .tv-call-transfer-field .tv-combo-trigger { width: 100%; min-height: 46px; }
+.workspace-territory .tv-call-transfer-mobile form { padding: 18px; }
 .workspace-territory .tv-call-transfer-empty { margin: 10px 0 0; color: var(--tv-text-3); font-size: 10px; line-height: 1.5; }
 .workspace-territory .tv-call-transfer-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
 .workspace-territory .tv-call-transfer-actions .tv-call-button { min-height: 44px; }
@@ -180,7 +182,7 @@
 .workspace-territory .tv-calls-loading .is-history-event { width: min(176px, 90%); height: 7px; }
 .workspace-territory .tv-calls-loading .is-history-actor { width: 102px; height: 7px; }
 .workspace-territory .tv-calls-loading .is-history-time { width: 42px; height: 7px; margin-left: auto; }
-.workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-call-summary-card:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-calls-load-more:focus-visible,.workspace-territory .tv-call-transfer-trigger:focus-visible,.workspace-territory .tv-call-button:focus-visible,.workspace-territory .tv-call-dialog-close:focus-visible,.workspace-territory .tv-call-transfer-dialog select:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-call-summary-card:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-calls-load-more:focus-visible,.workspace-territory .tv-call-transfer-trigger:focus-visible,.workspace-territory .tv-call-button:focus-visible,.workspace-territory .tv-call-dialog-close:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 @keyframes tv-calls-pulse { to { opacity: .55; } }
 @keyframes tv-call-pulse { 50% { box-shadow: 0 0 0 7px transparent; } }
 @media (max-width: 900px) {

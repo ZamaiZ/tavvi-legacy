@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const parsed = uuidSchema.safeParse(id)
   if (!parsed.success) notFound()
   const workspace = await getRestaurantWorkspace(parsed.data)
-  if (!workspace || (workspace.role !== 'admin' && workspace.role !== 'cashier')) notFound()
+  if (!workspace?.role) notFound()
   const restaurantId = workspace.restaurant.id
   const [accounts, settings] = await Promise.all([
     listCashAccounts(restaurantId),

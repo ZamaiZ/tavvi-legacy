@@ -267,8 +267,8 @@ export async function getOrderableMenu(
 ): Promise<OrderableMenuCategoryDTO[]> {
   const id = uuidSchema.parse(restaurantId)
   const role = await myRole(id)
-  if (role !== 'attendant' && role !== 'waiter') {
-    throw new UserFacingError('Apenas atendentes e garçons podem registrar pedidos.')
+  if (!role) {
+    throw new UserFacingError('Você não tem acesso a este restaurante.')
   }
 
   const supabase = await db()
@@ -277,7 +277,8 @@ export async function getOrderableMenu(
     .select(`id, name, position, is_visible,
       menu_items (
         id, category_id, name, description, base_price_cents, position, is_available, is_visible,
-        menu_item_variants ( id, name, price_cents, position, is_available )
+        menu_item_variants ( id, name, price_cents, position, is_available ),
+        menu_item_media ( id )
       )`)
     .eq('restaurant_id', id)
     .eq('is_visible', true)
@@ -287,7 +288,7 @@ export async function getOrderableMenu(
 
   return (data ?? []).flatMap((category) => {
     const items = (category.menu_items ?? [])
-      .filter((item) => item.is_visible && item.is_available)
+      .filter((item) => item.is_visible && item.is_available && (item.menu_item_media ?? []).length > 0)
       .map((item) => {
         const variants = (item.menu_item_variants ?? [])
           .filter((variant) => variant.is_available)

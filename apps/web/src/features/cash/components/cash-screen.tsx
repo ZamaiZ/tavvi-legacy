@@ -1,16 +1,18 @@
 'use client'
 
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react'
-import { LuArrowDownLeft, LuArrowLeft, LuCheck, LuPrinter, LuRefreshCw, LuSettings2 } from 'react-icons/lu'
+import { LuArrowDownLeft, LuArrowLeft, LuCheck, LuPrinter, LuSettings2 } from 'react-icons/lu'
 import type { MemberRole } from '@/domain/invite'
 import type { CheckoutSettingsDTO, TableAccountDTO } from '@/domain/table-account'
 import { formatCents } from '@/lib/money'
 import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { PageHeader } from '@/components/shell/page-header'
+import { Button } from '@/components/ui/button'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   decideTipAndCloseAction,
+  getCheckoutSettingsAction,
   listCashAccountsAction,
   reopenTableAccountAction,
 } from '@/server/actions/table-accounts'
@@ -49,6 +51,7 @@ export function CashScreen({
   const [refreshing, setRefreshing] = useState(false)
   const [busy, startTransition] = useTransition()
   const settlementRequestIds = useRef(new Map<string, string>())
+  const refreshRevision = useRef(0)
 
   const selected = active.find((account) => account.accountId === selectedId)
     ?? recentClosed.find((account) => account.accountId === selectedId)
@@ -57,10 +60,17 @@ export function CashScreen({
   const methods = settings.paymentMethods.filter((method) => method.isActive)
 
   const refresh = useCallback(async () => {
+    const revision = ++refreshRevision.current
     setRefreshing(true)
     try {
-      const result = await listCashAccountsAction(restaurantId)
+      const [result, settingsResult] = await Promise.all([
+        listCashAccountsAction(restaurantId),
+        getCheckoutSettingsAction(restaurantId),
+      ])
+      if (revision !== refreshRevision.current) return
       if (!result.ok) { setError(result.error); return }
+      if (settingsResult.ok) setSettings(settingsResult.data)
+      setError(settingsResult.ok ? null : settingsResult.error)
       setActive(result.data.active)
       setRecentClosed(result.data.recentClosed)
       setSelectedId((currentId) => currentId
@@ -69,14 +79,16 @@ export function CashScreen({
         ? currentId
         : result.data.active[0]?.accountId ?? result.data.recentClosed[0]?.accountId ?? null)
     } catch {
-      setError('Não foi possível atualizar as comandas agora.')
+      if (revision === refreshRevision.current) setError('Não foi possível atualizar as comandas agora.')
     } finally {
-      setRefreshing(false)
+      if (revision === refreshRevision.current) setRefreshing(false)
     }
   }, [restaurantId])
-  useTableAccountsRealtime(restaurantId, refresh)
+  const realtimeStatus = useTableAccountsRealtime(restaurantId, refresh)
 
   function applyAccount(account: TableAccountDTO) {
+    refreshRevision.current++
+    setRefreshing(false)
     setActive((current) => account.status === 'closed'
       ? current.filter((item) => item.accountId !== account.accountId)
       : [account, ...current.filter((item) => item.accountId !== account.accountId)].sort((a, b) => a.tableNumber - b.tableNumber))
@@ -144,13 +156,9 @@ export function CashScreen({
 
   return <div className="tv-cash-page">
     <MobileNavBar backHref={`/restaurantes/${restaurantId}`} backLabel="Cardápio" />
-    <PageHeader eyebrow="Comandas e recebimentos" title="Caixa" description="Acompanhe contas por mesa, registre pagamentos recebidos e confira o demonstrativo antes de encerrar." />
+    <PageHeader className="tv-cash-page-header" eyebrow="Comandas e recebimentos" title="Caixa" description="Acompanhe contas por mesa, registre pagamentos recebidos e confira o demonstrativo antes de encerrar." actions={role === 'admin' ? <Button type="button" variant="outline" size="lg" className="tv-cash-settings-trigger" aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurações do caixa</Button> : undefined} />
     <div className="tv-cash-toolbar">
-      <span className="tv-cash-live"><i aria-hidden="true" />Sincronizado com o restaurante</span>
-      <div>
-        <button type="button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? <SpinnerRing decorative /> : <LuRefreshCw aria-hidden="true" />}Atualizar</button>
-        {role === 'admin' ? <button type="button" aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurar caixa</button> : null}
-      </div>
+      <span className={`tv-cash-live is-${realtimeStatus}`} role="status"><i aria-hidden="true" />{realtimeStatus === 'connected' ? 'Atualizado ao vivo' : realtimeStatus === 'connecting' ? 'Conectando ao tempo real' : 'Conexão interrompida · atualiza ao voltar à página'}</span>
     </div>
 
     {error ? <p className="tv-cash-error" role="alert">{error}<button type="button" onClick={() => setError(null)}>Fechar</button></p> : null}

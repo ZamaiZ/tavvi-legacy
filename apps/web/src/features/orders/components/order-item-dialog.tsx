@@ -5,6 +5,7 @@ import { Dialog } from '@base-ui/react/dialog'
 import type { OrderableMenuItemDTO } from '@/domain/orders'
 import { formatCents } from '@/lib/money'
 import { MobileSheet, MobileSheetNav } from '@/components/shell/mobile-sheet'
+import { Combobox } from '@/components/ui/combobox'
 import { useTerritoryContainer } from '@/features/workspace/components/use-territory-container'
 
 export type OrderableMenuItemWithCategory = OrderableMenuItemDTO & { categoryName: string }
@@ -47,13 +48,10 @@ export function OrderItemDialog({
       {item.description ? <p>{item.description}</p> : null}
     </div>
 
-    {item.variants.length ? <label className="tv-order-item-field">
+    {item.variants.length ? <div className="tv-order-item-field">
       <span>Variação <i>Obrigatória</i></span>
-      <select value={variantId} disabled={disabled} onChange={(event) => onVariantChange(event.target.value)}>
-        <option value="">Escolha uma variação</option>
-        {item.variants.map((variant) => <option key={variant.id} value={variant.id}>{variant.name} · {formatCents(variant.priceCents)}</option>)}
-      </select>
-    </label> : null}
+      <Combobox label="Variação" value={variantId || null} placeholder="Escolha uma variação" options={item.variants.map((variant) => ({ value: variant.id, label: `${variant.name} · ${formatCents(variant.priceCents)}` }))} disabled={disabled} onValueChange={onVariantChange} />
+    </div> : null}
 
     <label className="tv-order-item-field">
       <span>Observação <small>Opcional</small></span>

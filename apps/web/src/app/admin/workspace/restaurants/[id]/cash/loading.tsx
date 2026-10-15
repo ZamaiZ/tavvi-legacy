@@ -6,11 +6,10 @@ export default function Loading() {
       <span className="tv-cash-skeleton-line is-eyebrow" />
       <span className="tv-cash-skeleton is-title" />
       <span className="tv-cash-skeleton-line is-description" />
+      <span className="tv-cash-skeleton is-action" />
     </header>
     <div className="tv-cash-loading-toolbar" aria-hidden="true">
       <span className="tv-cash-skeleton-line is-live" />
-      <span className="tv-cash-skeleton is-action" />
-      <span className="tv-cash-skeleton is-action" />
     </div>
     <div className="tv-cash-loading-grid" aria-hidden="true">
       <section className="tv-cash-loading-list">

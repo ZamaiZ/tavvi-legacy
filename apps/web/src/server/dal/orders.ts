@@ -7,8 +7,8 @@ import { currentTerritory } from './auth'
 export async function recordTableOrder(input: unknown): Promise<RecordTableOrderResult> {
   const data = recordTableOrderSchema.parse(input)
   const [user, role] = await Promise.all([requireUser(), myRole(data.restaurantId)])
-  if (role !== 'attendant' && role !== 'waiter') {
-    throw new UserFacingError('Apenas atendentes e garçons podem registrar pedidos.')
+  if (!role) {
+    throw new UserFacingError('Você não tem acesso a este restaurante.')
   }
 
   const supabase = await createUserClient(await currentTerritory())

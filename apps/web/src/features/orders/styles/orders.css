@@ -98,7 +98,8 @@
   line-height: 1.5;
 }
 .workspace-territory .tv-order-filters { margin: 24px 0 10px; display: grid; gap: 14px; }
-.workspace-territory .tv-order-filters label {
+.workspace-territory .tv-order-filters label,
+.workspace-territory .tv-order-filter-field {
   min-width: 0;
   display: grid;
   gap: 7px;
@@ -106,7 +107,6 @@
   font-size: 13px;
   font-weight: 550;
 }
-.workspace-territory .tv-order-filters select,
 .workspace-territory .tv-order-search-input {
   width: 100%;
   min-height: 48px;
@@ -118,7 +118,7 @@
   font: inherit;
   font-size: 14px;
 }
-.workspace-territory .tv-order-filters select { cursor: pointer; }
+.workspace-territory .tv-order-filter-field .tv-combo-trigger { width: 100%; min-height: 48px; padding: 0 14px; border-radius: 11px; background: var(--tv-bg); font-size: 14px; }
 .workspace-territory .tv-order-search-input { display: flex; align-items: center; gap: 10px; }
 .workspace-territory .tv-order-search-input svg { flex: none; width: 18px; height: 18px; color: var(--tv-text-3); }
 .workspace-territory .tv-order-search-input input { width: 100%; min-width: 0; min-height: 44px; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 14px; }
@@ -259,8 +259,8 @@
 .workspace-territory .tv-order-item-field > span { display: flex; align-items: baseline; gap: 8px; }
 .workspace-territory .tv-order-item-field i { color: var(--tv-danger, #a53630); font-size: 12px; font-style: normal; font-weight: 500; }
 .workspace-territory .tv-order-item-field > span small { color: var(--tv-text-2); font-size: 12px; font-weight: 450; }
-.workspace-territory .tv-order-item-field select,
 .workspace-territory .tv-order-item-field textarea { width: 100%; min-height: 48px; padding: 11px 13px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 15px; }
+.workspace-territory .tv-order-item-field .tv-combo-trigger { width: 100%; min-height: 48px; padding: 0 13px; border-radius: 11px; font-size: 15px; }
 .workspace-territory .tv-order-item-field textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
 .workspace-territory .tv-order-item-help { color: var(--tv-text-2); font-size: 12px; font-weight: 400; line-height: 1.4; }
 .workspace-territory .tv-order-item-controls { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -278,14 +278,11 @@
 .workspace-territory .tv-order-item-sheet .tv-order-item-cancel { grid-row: 2; }
 .workspace-territory .tv-order-item-sheet .tv-order-item-add { grid-row: 1; min-height: 52px; }
 
-.workspace-territory .tv-order-entry select:focus-visible,
 .workspace-territory .tv-order-entry input:focus-visible,
 .workspace-territory .tv-order-entry textarea:focus-visible,
 .workspace-territory .tv-order-entry button:focus-visible,
-.workspace-territory .tv-order-item-dialog select:focus-visible,
 .workspace-territory .tv-order-item-dialog textarea:focus-visible,
 .workspace-territory .tv-order-item-dialog button:focus-visible,
-.workspace-territory .tv-order-item-sheet select:focus-visible,
 .workspace-territory .tv-order-item-sheet textarea:focus-visible,
 .workspace-territory .tv-order-item-sheet button:focus-visible {
   outline: 2px solid var(--tv-gold);
@@ -314,7 +311,6 @@
   .workspace-territory .tv-order-cart-heading > span { font-size: 17px; }
   .workspace-territory .tv-order-cart-heading button { margin-left: auto; }
   .workspace-territory .tv-order-item-sheet .tv-order-item-product > strong { font-size: 20px; }
-  .workspace-territory .tv-order-item-sheet .tv-order-item-field select,
   .workspace-territory .tv-order-item-sheet .tv-order-item-field textarea { font-size: 16px; }
 }
 @media (max-width: 390px) {

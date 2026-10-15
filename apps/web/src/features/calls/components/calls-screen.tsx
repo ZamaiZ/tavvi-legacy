@@ -9,6 +9,7 @@ import {
   LuCheckCheck,
   LuClock3,
   LuHistory,
+  LuTrash2,
   LuUserRound,
   LuVolume2,
   LuBellOff,
@@ -44,6 +45,7 @@ import { callServiceDuration, callWaitDuration, formatCallTime, formatElapsed } 
 import { disableServiceCallSound, enableServiceCallSoundFromGesture, isServiceCallSoundEnabled } from '../call-sound'
 import { useServiceCallsRealtimeContext } from '../service-calls-realtime-context'
 import { OrderEntry } from '@/features/orders/components/order-entry'
+import { PanelConfirm } from '@/features/workspace/components/panel-confirm'
 
 const STATUS_LABELS: Record<ServiceCallStatus, string> = {
   pending: 'Aguardando',
@@ -103,6 +105,8 @@ export function CallsScreen({
   const [eventsLoading, setEventsLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [busy, startTransition] = useTransition()
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const pendingSelection = useRef<(() => void) | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
@@ -308,7 +312,7 @@ export function CallsScreen({
   }
 
   function transfer(assigneeId: string) {
-    if (busy || !selected || selected.status !== 'in_progress' || !canTransfer) return
+    if (busy || orderDraft || !selected || selected.status !== 'in_progress' || !canTransfer) return
     startTransition(async () => {
       try {
         const result = await transferServiceCallAction({ restaurantId, callId: selected.id, assigneeId })
@@ -364,20 +368,32 @@ export function CallsScreen({
     const nextCall = selectedStaysInFilter
       ? selected
       : queues[status].items[0] ?? null
-    if (selected && nextCall?.id !== selected.id && orderDraft
-      && !window.confirm('Há um pedido ainda não registrado. Descartar o rascunho e trocar de chamado?')) return
-    setFilter(status)
-    if (!selectedStaysInFilter) {
-      setOrderDraft(false)
-      setSelectedId(nextCall?.id ?? null)
+    const apply = () => {
+      setFilter(status)
+      if (!selectedStaysInFilter) {
+        setOrderDraft(false)
+        setSelectedId(nextCall?.id ?? null)
+      }
     }
+    if (selected && nextCall?.id !== selected.id && orderDraft) {
+      pendingSelection.current = apply
+      setDiscardOpen(true)
+      return
+    }
+    apply()
   }
 
   function selectCall(call: ServiceCallDTO) {
-    if (call.id !== selectedId && selected && orderDraft
-      && !window.confirm('Há um pedido ainda não registrado. Descartar o rascunho e trocar de chamado?')) return
-    if (call.id !== selectedId) setOrderDraft(false)
-    setSelectedId(call.id)
+    const apply = () => {
+      if (call.id !== selectedId) setOrderDraft(false)
+      setSelectedId(call.id)
+    }
+    if (call.id !== selectedId && selected && orderDraft) {
+      pendingSelection.current = apply
+      setDiscardOpen(true)
+      return
+    }
+    apply()
   }
 
   const callCount = (status: ServiceCallStatus) => `${queues[status].items.length}${queues[status].hasMore ? '+' : ''}`
@@ -439,10 +455,10 @@ export function CallsScreen({
           <div className="tv-call-assignment-card">
             <span className="tv-call-assignment-icon"><LuUserRound aria-hidden="true" /></span>
             <div><small>{selected.status === 'pending' ? 'Responsável' : 'Responsável atual'}</small><strong>{selectedOwner ?? (selected.status === 'pending' ? 'Aguardando alguém assumir' : 'Responsável indisponível')}</strong>{selected.firstClaimedAt ? <span>Assumido {relativeTime(selected.firstClaimedAt)}{selected.firstClaimedBy && memberNames.get(selected.firstClaimedBy) ? ` por ${memberNames.get(selected.firstClaimedBy)}` : ''}</span> : null}</div>
-            {canTransfer && selected.status === 'in_progress' ? <button type="button" className="tv-call-transfer-trigger" disabled={busy} onClick={() => setTransferOpen(true)}><LuArrowRightLeft aria-hidden="true" />Transferir</button> : null}
+            {canTransfer && selected.status === 'in_progress' ? <button type="button" className="tv-call-transfer-trigger" disabled={busy || orderDraft} title={orderDraft ? 'Confirme ou limpe o pedido antes de transferir' : undefined} onClick={() => setTransferOpen(true)}><LuArrowRightLeft aria-hidden="true" />Transferir</button> : null}
           </div>
 
-          {selected.status === 'in_progress' && isAssignee && (role === 'attendant' || role === 'waiter') ? <OrderEntry
+          {selected.status === 'in_progress' && isAssignee ? <OrderEntry
             key={selected.id}
             restaurantId={restaurantId}
             call={selected}
@@ -455,11 +471,10 @@ export function CallsScreen({
           <div className="tv-call-action-area">
             {selected.status === 'pending' ? <>
               <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => claim(selected)}>{busy ? <SpinnerRing decorative /> : <LuArrowDownLeft aria-hidden="true" />}{busy ? 'Assumindo chamado…' : 'Assumir chamado'}</button>
-              {(role === 'attendant' || role === 'waiter') ? <p className="tv-call-order-next-step">Depois de assumir, o registro do pedido da mesa aparece aqui. Você pode incluir itens e observações antes de concluir o chamado.</p> : null}
+              <p className="tv-call-order-next-step">Depois de assumir, registre os itens e observações da mesa antes de concluir o atendimento.</p>
             </> : null}
             {selected.status === 'in_progress' && isAssignee ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy || orderDraft} onClick={() => resolve(selected)}>{busy ? <SpinnerRing decorative /> : <LuCheck aria-hidden="true" />}{busy ? 'Concluindo atendimento…' : orderDraft ? 'Confirme ou limpe o pedido antes de concluir' : 'Concluir atendimento'}</button> : null}
             {selected.status === 'in_progress' && !isAssignee ? <p className="tv-call-permission-note">{selected.assignedTo ? 'A conclusão fica disponível para quem assumiu este chamado.' : 'Peça a um administrador para atribuir este chamado a alguém da equipe.'}</p> : null}
-            {selected.status === 'in_progress' && isAssignee && role !== 'attendant' && role !== 'waiter' ? <p className="tv-call-permission-note">O pedido é registrado pelo atendente ou garçom responsável pelo chamado.</p> : null}
             {selected.status === 'resolved' ? <p className="tv-call-completed-note"><LuCheckCheck aria-hidden="true" />Concluído {selected.resolvedAt ? relativeTime(selected.resolvedAt) : ''}{selectedActor ? ` por ${selectedActor}` : ''}</p> : null}
           </div>
 
@@ -475,7 +490,8 @@ export function CallsScreen({
       </section>
     </div>
 
-    <ServiceCallTransferDialog open={transferOpen} call={selected} team={team} busy={busy} onClose={() => setTransferOpen(false)} onTransfer={transfer} />
+    <ServiceCallTransferDialog open={transferOpen} call={selected} team={team} busy={busy} mobile={mobile} onClose={() => setTransferOpen(false)} onTransfer={transfer} />
+    <PanelConfirm open={discardOpen} onOpenChange={setDiscardOpen} icon={<LuTrash2 />} title="Descartar pedido em andamento?" description="Os itens e observações ainda não confirmados serão perdidos." confirmLabel="Descartar e continuar" destructive onConfirm={() => { const apply = pendingSelection.current; pendingSelection.current = null; apply?.() }} />
   </div>
 }
 

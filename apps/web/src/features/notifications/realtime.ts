@@ -23,13 +23,17 @@ type Handlers = {
   onMessage: (event: 'INSERT' | 'UPDATE' | 'DELETE', message: unknown) => void
   /** O canal caiu e voltou: o que chegou no intervalo precisa ser relido. */
   onResync: () => void
+  onStatus?: (status: 'connected' | 'disconnected') => void
 }
 
 // Devolve a função que fecha o canal. Sem sessão, não abre nada: a central
 // continua funcionando pelas ações, só sem o tempo real.
 export async function openNotificationsChannel(handlers: Handlers): Promise<() => void> {
   const first = await currentSession()
-  if (!first) return () => undefined
+  if (!first) {
+    handlers.onStatus?.('disconnected')
+    return () => undefined
+  }
   return openPrivateBroadcastChannel(`notifications:${first.territory}:${first.userId}`, ['INSERT', 'UPDATE', 'DELETE'], handlers)
 }
 
@@ -40,7 +44,10 @@ export async function openPrivateBroadcastChannel(
   onSubscribed?: () => void,
 ): Promise<() => void> {
   const first = await currentSession()
-  if (!first) return () => undefined
+  if (!first) {
+    handlers.onStatus?.('disconnected')
+    return () => undefined
+  }
 
   // O cliente quer o endereço WebSocket, sem o `/websocket` do fim (ele
   // acrescenta). O supabase-js faz a mesma troca de http por ws.
@@ -66,14 +73,17 @@ export async function openPrivateBroadcastChannel(
   let subscribedOnce = false
   channel.subscribe((status, error) => {
     if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
+      handlers.onStatus?.('connected')
       if (subscribedOnce) handlers.onResync()
       else onSubscribed?.()
       subscribedOnce = true
       return
     }
     if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR || status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT) {
+      handlers.onStatus?.('disconnected')
       console.error('[notificações] canal', status, error?.message)
     }
+    if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) handlers.onStatus?.('disconnected')
   })
 
   return () => {
