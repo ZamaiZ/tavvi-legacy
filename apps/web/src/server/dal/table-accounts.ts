@@ -61,10 +61,10 @@ async function hydrateAccounts(db: Db, rows: AccountRow[]): Promise<TableAccount
   const orderIds = orderRows.map((order) => order.id)
   const { data: itemRows, error: itemsError } = orderIds.length
     ? await db.from('order_items').select('*').in('order_id', orderIds).order('position')
-    : { data: [], error: null }
+    : { data: [] as Tables<'order_items'>[], error: null }
   if (itemsError) throw new Error(`Não foi possível carregar os itens da comanda: ${itemsError.message}`)
 
-  const itemsByOrder = new Map<string, NonNullable<typeof itemRows>>()
+  const itemsByOrder = new Map<string, Tables<'order_items'>[]>()
   for (const item of itemRows ?? []) {
     const group = itemsByOrder.get(item.order_id) ?? []
     group.push(item)

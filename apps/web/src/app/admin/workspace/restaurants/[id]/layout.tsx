@@ -42,7 +42,7 @@ export async function generateMetadata({
   if (!parsed.success) return { title: 'Painel' }
   const workspace = await getRestaurantWorkspace(parsed.data)
   return workspace
-    ? { title: { template: `%s · ${workspace.restaurant.name} · Tavvi` } }
+    ? { title: { default: workspace.restaurant.name, template: `%s · ${workspace.restaurant.name} · Tavvi` } }
     : { title: 'Painel' }
 }
 

@@ -190,7 +190,7 @@ export async function listPlatformInvites(): Promise<PlatformInviteDTO[]> {
   if (error) {
     throw new Error(`Não foi possível listar convites: ${error.message}`)
   }
-  return ((data ?? []) as PlatformInviteRow[])
+  return (data ?? [])
     .map(toPlatformInviteDTO)
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
 }
@@ -206,7 +206,7 @@ export async function getPlatformInvite(
     p_invite_id: id,
   })
   if (error) throw new Error('Não foi possível carregar o convite.', { cause: error })
-  const row = (data?.[0] ?? null) as PlatformInviteRow | null
+  const row = data?.[0] ?? null
   return row ? toPlatformInviteDTO(row) : null
 }
 
@@ -239,7 +239,7 @@ export async function rotatePlatformInvite(
   const protocol =
     requestHeaders.get('x-forwarded-proto') === 'https' ? 'https:' : 'http:'
   return {
-    id: row.id as string,
+    id: row.id,
     link: `${originFor('painel', protocol)}/convite/${token}`,
   }
 }

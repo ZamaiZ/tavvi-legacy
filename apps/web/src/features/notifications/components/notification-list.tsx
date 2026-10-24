@@ -36,7 +36,7 @@ const cardEnter = {
   initial: { opacity: 0, y: -10, scale: 0.97, height: 0 },
   animate: { opacity: 1, y: 0, scale: 1, height: 'auto', transition: {
     height: { duration: 0.38, ease: EASE_OUT },
-    opacity: { duration: 0.3, ease: 'easeOut', delay: 0.09 },
+    opacity: { duration: 0.3, ease: 'easeOut' as const, delay: 0.09 },
     y: { duration: 0.46, ease: EASE_OUT, delay: 0.04 },
     scale: { duration: 0.46, ease: EASE_OUT, delay: 0.04 },
   } },
@@ -46,7 +46,7 @@ const groupEnter = {
   initial: { opacity: 0, y: -10, scale: 0.97, height: 0 },
   animate: { opacity: 1, y: 0, scale: 1, height: 'auto', transition: {
     height: { duration: 0.38, ease: EASE_OUT },
-    opacity: { duration: 0.3, ease: 'easeOut' },
+    opacity: { duration: 0.3, ease: 'easeOut' as const },
     y: { duration: 0.46, ease: EASE_OUT },
     scale: { duration: 0.46, ease: EASE_OUT },
   } },

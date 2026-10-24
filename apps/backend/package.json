@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx/esm --watch src/index.ts",
     "compile": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "push:keys": "web-push generate-vapid-keys"
   },

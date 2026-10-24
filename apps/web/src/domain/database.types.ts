@@ -6,6 +6,22 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+type PlatformAdminInviteRow = {
+  id: string
+  email: string | null
+  expires_at: string
+  redeemed_at: string | null
+  revoked_at: string | null
+  created_at: string
+  created_by_email: string
+  redeemed_by_email: string | null
+}
+
+type RotatedPlatformAdminInviteRow = Pick<
+  PlatformAdminInviteRow,
+  'id' | 'email' | 'expires_at'
+>
+
 type FinancialTable<Row> = {
   Row: Row
   Insert: Partial<Row>
@@ -1129,6 +1145,10 @@ export type Database = {
         Returns: number
       }
       feedback_photo_upload_allowed: { Args: { p_name: string }; Returns: boolean }
+      get_platform_admin_invite: {
+        Args: { p_invite_id: string }
+        Returns: PlatformAdminInviteRow[]
+      }
       is_category_visible: { Args: { cid: string }; Returns: boolean }
       is_member: { Args: { rid: string }; Returns: boolean }
       is_menu_item_public: { Args: { iid: string }; Returns: boolean }
@@ -1136,6 +1156,10 @@ export type Database = {
       is_restaurant_admin: { Args: { rid: string }; Returns: boolean }
       is_restaurant_public: { Args: { rid: string }; Returns: boolean }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }
+      list_platform_admin_invites: {
+        Args: never
+        Returns: PlatformAdminInviteRow[]
+      }
       my_role: {
         Args: { rid: string }
         Returns: Database["public"]["Enums"]["member_role"] | null
@@ -1258,6 +1282,10 @@ export type Database = {
           p_reason?: string | null
         }
         Returns: string | null
+      }
+      rotate_platform_admin_invite: {
+        Args: { p_invite_id: string; p_token_hash: string }
+        Returns: RotatedPlatformAdminInviteRow[]
       }
       list_menu_tag_nfc_events: {
         Args: { p_tag_id: string }

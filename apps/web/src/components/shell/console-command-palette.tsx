@@ -21,6 +21,7 @@ const icons: Record<ConsoleIcon, IconType> = {
   feedback: LuMessageSquareText,
   tag: getNavIcon('tag'),
   bell: getNavIcon('bell'),
+  cash: getNavIcon('cash'),
 }
 
 type PaletteRow =

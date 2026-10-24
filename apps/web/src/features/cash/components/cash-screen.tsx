@@ -199,12 +199,12 @@ export function CashScreen({
 
           {selected.status === 'settling' ? <div className="tv-cash-settling-note"><strong>Fechamento iniciado</strong><span>Novos pedidos estão bloqueados. Registre as formas de pagamento até o saldo chegar a zero.</span></div> : null}
 
-          {selected.status !== 'closed' && selectedSummary.due > 0 ? <PaymentEntry key={selected.accountId} restaurantId={restaurantId} account={selected} methods={methods} onUpdated={applyAccount} /> : null}
+          {selected.status !== 'closed' && selectedSummary.due > 0 ? <PaymentEntry key={`payment-entry:${selected.accountId}`} restaurantId={restaurantId} account={selected} methods={methods} onUpdated={applyAccount} /> : null}
           {selected.status === 'open' && selectedSummary.due === 0 ? <p className="tv-cash-paid-note">Saldo atual zerado. A comanda continua aberta para novos pedidos; inicie o fechamento somente quando a mesa terminar o consumo.</p> : null}
           {selected.status === 'closed' ? <p className="tv-cash-paid-note">Comanda encerrada. Os pagamentos e correções permanecem no histórico.</p> : null}
 
           {selected.payments.length || (role === 'admin' && selected.status === 'open') ? <AccountCorrections
-            key={selected.accountId}
+            key={`account-corrections:${selected.accountId}`}
             restaurantId={restaurantId}
             account={selected}
             role={role}

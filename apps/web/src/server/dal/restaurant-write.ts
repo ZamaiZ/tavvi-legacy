@@ -1,5 +1,6 @@
 import 'server-only'
 import { uuidSchema } from '@/domain/common'
+import type { Json } from '@/domain/database.types'
 import type { GoogleReviewOutcome, GoogleReviewStatus } from '@/domain/google-review'
 import { completeOnboardingSchema, generateGoogleReviewSchema, parseContact, setPublishedSchema, setRestaurantStatusSchema, updateIdentitySchema, updateRestaurantProfileSchema, updateSlugSchema, type GoogleReview, type UpdateRestaurantProfileInput } from '@/domain/restaurant'
 import type { RevalidationTarget } from '@/server/revalidate'
@@ -24,9 +25,9 @@ async function db() {
 function storedContact(
   contact: UpdateRestaurantProfileInput['contact'],
   googleReview: GoogleReview | null,
-): Record<string, unknown> {
+): Json {
   const { address, legacyAddress, ...rest } = contact
-  const stored: Record<string, unknown> = { ...rest }
+  const stored: { [key: string]: Json | undefined } = { ...rest }
   if (address) stored.address = address
   else if (legacyAddress) stored.address = legacyAddress
   if (googleReview) stored.googleReview = googleReview
@@ -55,7 +56,7 @@ async function decideGoogleReview(
   return { review: null, status: resolved.status }
 }
 
-async function readContact(restaurantId: string): Promise<unknown> {
+async function readContact(restaurantId: string): Promise<Json> {
   const supabase = await db()
   const { data, error } = await supabase.from('restaurants').select('contact').eq('id', restaurantId).maybeSingle()
   if (error) throw new Error(`Não foi possível ler o contato: ${error.message}`)
@@ -114,8 +115,8 @@ export async function generateGoogleReview(input: unknown): Promise<ProfileSaveR
   await enforceRateLimit('maps:resolve', `user:${user.id}`)
   const resolved = await resolveGoogleReview(mapsUrl)
 
-  const next: Record<string, unknown> =
-    raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...(raw as Record<string, unknown>) } : {}
+  const next: { [key: string]: Json | undefined } =
+    raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {}
   if (resolved.status === 'ok') next.googleReview = { url: resolved.url, mapsUrl }
   else delete next.googleReview
 

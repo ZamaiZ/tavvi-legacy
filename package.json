@@ -1,12 +1,13 @@
 {
   "name": "tavvi-workspace",
   "private": true,
-  "packageManager": "pnpm@10.34.5",
+  "packageManager": "pnpm@12.14.0",
   "scripts": {
     "approve-build": "pnpm approve-builds",
     "back": "pnpm --filter ./apps/backend dev",
     "web": "pnpm --filter ./apps/web dev",
     "dev": "pnpm --recursive --parallel --stream --filter ./apps/backend --filter ./apps/web run dev",
-    "ngrok": "pnpm --filter ./apps/backend exec ngrok http 3002"
+    "ngrok": "pnpm --filter ./apps/backend exec ngrok http 3002",
+    "typecheck": "pnpm --recursive --no-bail --filter @tavvi/web --filter tavvi-backend run typecheck"
   }
 }
