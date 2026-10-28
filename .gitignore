@@ -23,6 +23,7 @@ yarn-error.*
 # local files
 .superpowers/
 superpowers/
+.worktrees/
 
 # typescript
 *.tsbuildinfo
