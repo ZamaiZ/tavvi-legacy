@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { uuidSchema } from '@/domain/common'
 import { CashScreen } from '@/features/cash/components/cash-screen'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
-import { getCheckoutSettings, listCashAccounts } from '@/server/dal/table-accounts'
+import { getCheckoutSettings, getTableAccountDetails, listCashAccounts } from '@/server/dal/table-accounts'
 
 export const metadata = { title: 'Caixa' }
 
@@ -17,12 +17,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     listCashAccounts(restaurantId),
     getCheckoutSettings(restaurantId),
   ])
+  const firstAccount = accounts.active[0] ?? accounts.recentClosed[0] ?? null
+  const initialSelectedAccount = firstAccount
+    ? await getTableAccountDetails({ restaurantId, accountId: firstAccount.accountId })
+    : null
   return <CashScreen
     restaurantId={restaurantId}
     restaurantName={workspace.restaurant.name}
     role={workspace.role}
     initialActive={accounts.active}
     initialRecentClosed={accounts.recentClosed}
+    initialSelectedAccount={initialSelectedAccount}
     initialSettings={settings}
   />
 }

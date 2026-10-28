@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState, useTransition } from 'react'
-import { LuArrowDownLeft, LuArrowLeft, LuCheck, LuPrinter, LuSettings2 } from 'react-icons/lu'
+import { useCallback, useRef, useState, useTransition } from 'react'
+import { LuArrowLeft, LuPrinter, LuSettings2 } from 'react-icons/lu'
 import type { MemberRole } from '@/domain/invite'
-import type { CheckoutSettingsDTO, TableAccountDTO } from '@/domain/table-account'
-import { formatCents } from '@/lib/money'
+import type { CheckoutSettingsDTO, TableAccountDTO, TableAccountSummaryDTO } from '@/domain/table-account'
 import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { PageHeader } from '@/components/shell/page-header'
 import { Button } from '@/components/ui/button'
@@ -12,15 +11,15 @@ import { SpinnerRing } from '@/components/ui/spinner'
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
   decideTipAndCloseAction,
+  getTableAccountDetailsAction,
   getCheckoutSettingsAction,
   listCashAccountsAction,
   reopenTableAccountAction,
 } from '@/server/actions/table-accounts'
 import { useTableAccountsRealtime } from '../use-table-accounts-realtime'
-import { PaymentEntry } from './payment-entry'
 import { CashSettings } from './cash-settings'
-import { PreAccount } from './pre-account'
-import { AccountCorrections } from './account-corrections'
+import { CashAccountList } from './cash-account-list'
+import { CashAccountTabs, type CashOperationState, type CashTab } from './cash-account-tabs'
 
 export function CashScreen({
   restaurantId,
@@ -28,36 +27,68 @@ export function CashScreen({
   role,
   initialActive,
   initialRecentClosed,
+  initialSelectedAccount,
   initialSettings,
 }: {
   restaurantId: string
   restaurantName: string
   role: MemberRole
-  initialActive: TableAccountDTO[]
-  initialRecentClosed: TableAccountDTO[]
+  initialActive: TableAccountSummaryDTO[]
+  initialRecentClosed: TableAccountSummaryDTO[]
+  initialSelectedAccount: TableAccountDTO | null
   initialSettings: CheckoutSettingsDTO
 }) {
   const mobile = useIsMobile()
-  const [active, setActive] = useState(initialActive)
+  const [active, setActive] = useState<TableAccountSummaryDTO[]>(initialActive)
   const [recentClosed, setRecentClosed] = useState(initialRecentClosed)
   const [settings, setSettings] = useState(initialSettings)
-  const [selectedId, setSelectedId] = useState(initialActive[0]?.accountId ?? initialRecentClosed[0]?.accountId ?? null)
+  const [selectedId, setSelectedId] = useState(initialSelectedAccount?.accountId ?? initialActive[0]?.accountId ?? initialRecentClosed[0]?.accountId ?? null)
+  const [selectedAccount, setSelectedAccount] = useState<TableAccountDTO | null>(initialSelectedAccount)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileAccountsOpen, setMobileAccountsOpen] = useState(true)
+  const [selectedTab, setSelectedTab] = useState<CashTab>('conta')
+  const [operationState, setOperationState] = useState<CashOperationState>('idle')
+  const [listFilter, setListFilter] = useState<'active' | 'closed'>(initialActive.length ? 'active' : initialRecentClosed.length ? 'closed' : 'active')
+  const [detailLoading, setDetailLoading] = useState(false)
   const [showTipDecision, setShowTipDecision] = useState(false)
   const [reopenReason, setReopenReason] = useState('')
   const [reopenOpen, setReopenOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [busy, startTransition] = useTransition()
+  const operationStateRef = useRef<CashOperationState>('idle')
+  const parentMutationRef = useRef(false)
+  const operationLockedRef = useRef(false)
   const settlementRequestIds = useRef(new Map<string, string>())
   const refreshRevision = useRef(0)
+  const detailRevision = useRef(0)
+  const selectedIdRef = useRef(selectedId)
+  const selectedStatusRef = useRef(initialSelectedAccount?.status ?? null)
 
-  const selected = active.find((account) => account.accountId === selectedId)
-    ?? recentClosed.find((account) => account.accountId === selectedId)
-    ?? null
-  const showMobileAccounts = mobile && (mobileAccountsOpen || !selected)
+  const selected = selectedAccount?.accountId === selectedId ? selectedAccount : null
+  const showMobileAccounts = mobile && (mobileAccountsOpen || !selectedId)
   const methods = settings.paymentMethods.filter((method) => method.isActive)
+
+  const loadSelectedAccount = useCallback(async (accountId: string) => {
+    const revision = ++detailRevision.current
+    setDetailLoading(true)
+    try {
+      const result = await getTableAccountDetailsAction({ restaurantId, accountId })
+      if (revision !== detailRevision.current || selectedIdRef.current !== accountId) return
+      if (!result.ok) { setError(result.error); setSelectedAccount(null); return }
+      if (!result.data) { setError('Esta comanda não está mais disponível. Atualize a lista de mesas.'); setSelectedAccount(null); return }
+      setSelectedAccount(result.data)
+      selectedStatusRef.current = result.data.status
+      setError(null)
+    } catch {
+      if (revision === detailRevision.current && selectedIdRef.current === accountId) {
+        setSelectedAccount(null)
+        setError('Não foi possível carregar os detalhes desta comanda.')
+      }
+    } finally {
+      if (revision === detailRevision.current && selectedIdRef.current === accountId) setDetailLoading(false)
+    }
+  }, [restaurantId])
 
   const refresh = useCallback(async () => {
     const revision = ++refreshRevision.current
@@ -73,11 +104,45 @@ export function CashScreen({
       setError(settingsResult.ok ? null : settingsResult.error)
       setActive(result.data.active)
       setRecentClosed(result.data.recentClosed)
-      setSelectedId((currentId) => currentId
-        && (result.data.active.some((account) => account.accountId === currentId)
-          || result.data.recentClosed.some((account) => account.accountId === currentId))
-        ? currentId
-        : result.data.active[0]?.accountId ?? result.data.recentClosed[0]?.accountId ?? null)
+      let accountId = selectedIdRef.current
+      const previousStatus = selectedStatusRef.current
+      const stillAvailable = accountId && (result.data.active.some((account) => account.accountId === accountId)
+        || result.data.recentClosed.some((account) => account.accountId === accountId))
+      if (!stillAvailable && !operationLockedRef.current) {
+        accountId = result.data.active[0]?.accountId ?? result.data.recentClosed[0]?.accountId ?? null
+        selectedIdRef.current = accountId
+        setSelectedId(accountId)
+        setError('A comanda selecionada não está mais na lista. A seleção foi atualizada.')
+      }
+      if (accountId) {
+        const detailRequest = ++detailRevision.current
+        setDetailLoading(true)
+        try {
+          const detailResult = await getTableAccountDetailsAction({ restaurantId, accountId })
+          if (revision !== refreshRevision.current || detailRequest !== detailRevision.current || selectedIdRef.current !== accountId) return
+          if (!detailResult.ok) { setError(detailResult.error); return }
+          if (detailResult.data) {
+            setSelectedAccount(detailResult.data)
+            selectedStatusRef.current = detailResult.data.status
+            if (previousStatus && previousStatus !== detailResult.data.status) {
+              setListFilter(detailResult.data.status === 'closed' ? 'closed' : 'active')
+            }
+          } else {
+            setSelectedAccount(null)
+            selectedStatusRef.current = null
+            setError('Esta comanda não está mais disponível. Atualize a lista de mesas.')
+          }
+        } finally {
+          if (detailRequest === detailRevision.current && selectedIdRef.current === accountId) setDetailLoading(false)
+        }
+      } else {
+        detailRevision.current++
+        selectedIdRef.current = null
+        setSelectedId(null)
+        setSelectedAccount(null)
+        selectedStatusRef.current = null
+        setDetailLoading(false)
+      }
     } catch {
       if (revision === refreshRevision.current) setError('Não foi possível atualizar as comandas agora.')
     } finally {
@@ -86,16 +151,39 @@ export function CashScreen({
   }, [restaurantId])
   const realtimeStatus = useTableAccountsRealtime(restaurantId, refresh)
 
+  function updateOperationState(state: CashOperationState) {
+    operationStateRef.current = state
+    operationLockedRef.current = parentMutationRef.current || state !== 'idle'
+    setOperationState(state)
+  }
+
+  function beginParentMutation() {
+    parentMutationRef.current = true
+    operationLockedRef.current = true
+  }
+
+  function endParentMutation() {
+    parentMutationRef.current = false
+    operationLockedRef.current = operationStateRef.current !== 'idle'
+  }
+
   function applyAccount(account: TableAccountDTO) {
     refreshRevision.current++
     setRefreshing(false)
+    const summary = toSummary(account)
+    detailRevision.current++
+    setDetailLoading(false)
+    setSelectedAccount(account)
+    selectedStatusRef.current = account.status
+    selectedIdRef.current = account.accountId
     setActive((current) => account.status === 'closed'
       ? current.filter((item) => item.accountId !== account.accountId)
-      : [account, ...current.filter((item) => item.accountId !== account.accountId)].sort((a, b) => a.tableNumber - b.tableNumber))
+      : [summary, ...current.filter((item) => item.accountId !== account.accountId)].sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.accountId.localeCompare(b.accountId)))
     setRecentClosed((current) => account.status === 'closed'
-      ? [account, ...current.filter((item) => item.accountId !== account.accountId)].slice(0, 25)
+      ? [summary, ...current.filter((item) => item.accountId !== account.accountId)].slice(0, 25)
       : current.filter((item) => item.accountId !== account.accountId))
     setSelectedId(account.accountId)
+    setListFilter(account.status === 'closed' ? 'closed' : 'active')
     setShowTipDecision(false)
     setReopenOpen(false)
     setReopenReason('')
@@ -103,9 +191,33 @@ export function CashScreen({
   }
 
   function selectAccount(accountId: string) {
+    if (operationState !== 'idle' || busy) {
+      setError('Conclua ou repita a operação pendente antes de trocar de mesa.')
+      return
+    }
+    if (accountId === selectedIdRef.current) {
+      setMobileAccountsOpen(false)
+      return
+    }
+    selectedIdRef.current = accountId
     setSelectedId(accountId)
+    setSelectedAccount(null)
+    selectedStatusRef.current = null
+    setError(null)
     setMobileAccountsOpen(false)
     setShowTipDecision(false)
+    setReopenOpen(false)
+    setReopenReason('')
+    setSelectedTab('conta')
+    void loadSelectedAccount(accountId)
+  }
+
+  function changeTab(tab: CashTab) {
+    if (operationState !== 'idle' || busy) {
+      setError('Conclua ou repita a operação pendente antes de trocar de área.')
+      return
+    }
+    setSelectedTab(tab)
   }
 
   function decideTip(accepted: boolean) {
@@ -114,6 +226,7 @@ export function CashScreen({
     const key = `${selected.accountId}:${accepted}`
     const requestId = settlementRequestIds.current.get(key) ?? crypto.randomUUID()
     settlementRequestIds.current.set(key, requestId)
+    beginParentMutation()
     startTransition(async () => {
       try {
         const result = await decideTipAndCloseAction({
@@ -124,6 +237,8 @@ export function CashScreen({
         applyAccount(result.data)
       } catch {
         setError('Não foi possível iniciar o fechamento. Atualize a comanda e confira o saldo.')
+      } finally {
+        endParentMutation()
       }
     })
   }
@@ -133,6 +248,7 @@ export function CashScreen({
     const key = `${selected.accountId}:reopen:${reopenReason.trim()}`
     const requestId = settlementRequestIds.current.get(key) ?? crypto.randomUUID()
     settlementRequestIds.current.set(key, requestId)
+    beginParentMutation()
     startTransition(async () => {
       try {
         const result = await reopenTableAccountAction({
@@ -143,78 +259,57 @@ export function CashScreen({
         applyAccount(result.data)
       } catch {
         setError('Não foi possível confirmar a reabertura. Tente novamente com o mesmo motivo.')
+      } finally {
+        endParentMutation()
       }
     })
   }
 
-  const selectedSummary = useMemo(() => selected ? {
-    subtotal: selected.subtotalCents,
-    tip: selected.tipCents,
-    paid: selected.paidCents,
-    due: selected.balanceDueCents,
-  } : null, [selected])
-
-  return <div className="tv-cash-page">
+  return <div className={`tv-cash-page${mobile && !showMobileAccounts ? ' is-detail-open' : ''}`}>
     <MobileNavBar backHref={`/restaurantes/${restaurantId}`} backLabel="Cardápio" />
-    <PageHeader className="tv-cash-page-header" eyebrow="Comandas e recebimentos" title="Caixa" description="Acompanhe contas por mesa, registre pagamentos recebidos e confira o demonstrativo antes de encerrar." actions={role === 'admin' ? <Button type="button" variant="outline" size="lg" className="tv-cash-settings-trigger" aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurações do caixa</Button> : undefined} />
+    <PageHeader className="tv-cash-page-header" eyebrow="Comandas e recebimentos" title="Caixa" description="Acompanhe contas por mesa, registre pagamentos recebidos e confira o demonstrativo antes de encerrar." actions={role === 'admin' ? <Button type="button" variant="outline" size="lg" className="tv-cash-settings-trigger" disabled={operationState !== 'idle' || busy} aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurações do caixa</Button> : undefined} />
     <div className="tv-cash-toolbar">
       <span className={`tv-cash-live is-${realtimeStatus}`} role="status"><i aria-hidden="true" />{realtimeStatus === 'connected' ? 'Atualizado ao vivo' : realtimeStatus === 'connecting' ? 'Conectando ao tempo real' : 'Conexão interrompida · atualiza ao voltar à página'}</span>
     </div>
 
     {error ? <p className="tv-cash-error" role="alert">{error}<button type="button" onClick={() => setError(null)}>Fechar</button></p> : null}
     <div className={`tv-cash-layout${mobile ? ' is-mobile' : ''}`}>
-      {(!mobile || showMobileAccounts) ? <aside className="tv-cash-accounts" aria-label="Comandas por mesa">
-        <div className="tv-cash-list-heading"><div><strong>Em aberto</strong><small>{active.length} {active.length === 1 ? 'comanda' : 'comandas'}</small></div>{refreshing ? <SpinnerRing decorative /> : null}</div>
-        {active.length ? <ul>{active.map((account) => <li key={account.accountId}><button type="button" className={selectedId === account.accountId ? 'is-selected' : ''} onClick={() => selectAccount(account.accountId)}>
-          <span className="tv-cash-table-number">{account.tableNumber}</span><span className="tv-cash-account-copy"><strong>Mesa {account.tableNumber}</strong><small>{account.status === 'settling' ? 'Fechamento iniciado' : 'Conta aberta'} · {formatCents(account.balanceDueCents)} pendente</small></span><span className="tv-cash-account-arrow"><LuArrowDownLeft aria-hidden="true" /></span>
-        </button></li>)}</ul> : <p className="tv-cash-list-empty">Nenhuma comanda em aberto.</p>}
-        <div className="tv-cash-list-heading is-recent"><div><strong>Fechadas recentemente</strong><small>Últimos registros</small></div></div>
-        {recentClosed.length ? <ul>{recentClosed.map((account) => <li key={account.accountId}><button type="button" className={selectedId === account.accountId ? 'is-selected' : ''} onClick={() => selectAccount(account.accountId)}>
-          <span className="tv-cash-table-number is-closed"><LuCheck aria-hidden="true" /></span><span className="tv-cash-account-copy"><strong>Mesa {account.tableNumber}</strong><small>{account.closedAt ? new Date(account.closedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Conta encerrada'} · {formatCents(account.totalCents)}</small></span>
-        </button></li>)}</ul> : <p className="tv-cash-list-empty">As contas encerradas aparecerão aqui.</p>}
-      </aside> : null}
+      {(!mobile || showMobileAccounts) ? <CashAccountList
+        active={active}
+        recentClosed={recentClosed}
+        selectedId={selectedId}
+        filter={listFilter}
+        refreshing={refreshing}
+        navigationLocked={operationState !== 'idle' || busy}
+        onFilterChange={setListFilter}
+        onSelect={selectAccount}
+      /> : null}
 
       {(!mobile || !showMobileAccounts) ? <main className="tv-cash-detail">
-        {mobile && selected ? <button type="button" className="tv-cash-mobile-back" onClick={() => setMobileAccountsOpen(true)}><LuArrowLeft aria-hidden="true" />Todas as comandas</button> : null}
-        {selected && selectedSummary ? <>
-          <div className="tv-cash-detail-heading"><div><span className={`tv-cash-status is-${selected.status}`}>{selected.status === 'open' ? 'Aberta' : selected.status === 'settling' ? 'Fechamento iniciado' : 'Fechada'}</span><h2>Mesa {selected.tableNumber}</h2><small>Aberta em {new Date(selected.openedAt).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
-            <button type="button" className="tv-cash-print-button" onClick={() => window.print()}><LuPrinter aria-hidden="true" />Imprimir pré-conta</button>
-          </div>
-
-          <PreAccount restaurantName={restaurantName} account={selected} />
-
-          {selected.status === 'open' ? <section className="tv-cash-settlement">
-            {!showTipDecision ? <>
-              <div><strong>Quando a mesa terminar o consumo</strong><p>Use “Registrar pagamento recebido” para pagamentos parciais. Iniciar o fechamento define a gorjeta e bloqueia novos pedidos para esta mesa.</p></div>
-              <button type="button" className="tv-cash-start-close" onClick={() => setShowTipDecision(true)}>Encerrar consumo e fechar comanda</button>
-            </> : <>
-              <div><strong>Confirmar encerramento do consumo</strong><p>Depois desta decisão, novos pedidos ficam bloqueados. O caixa ainda pode registrar os pagamentos que faltarem. A gorjeta é única para a comanda e pode ser recusada.</p></div>
-              {selected.tipMode === 'disabled' || selected.subtotalCents <= 0 ? <button type="button" disabled={busy} onClick={() => decideTip(false)}>{busy ? <SpinnerRing decorative /> : null}Fechar comanda sem gorjeta</button> : <div className="tv-cash-tip-options">
-                <button type="button" disabled={busy} onClick={() => decideTip(false)}>Recusar gorjeta e fechar · {formatCents(0)}</button>
-                <button type="button" disabled={busy} onClick={() => decideTip(true)}>Aceitar gorjeta e fechar · {formatCents(estimateTip(selected))}</button>
-              </div>}
-              <button type="button" className="tv-cash-secondary-button" disabled={busy} onClick={() => setShowTipDecision(false)}>Voltar</button>
-            </>}
-          </section> : null}
-
-          {selected.status === 'settling' ? <div className="tv-cash-settling-note"><strong>Fechamento iniciado</strong><span>Novos pedidos estão bloqueados. Registre as formas de pagamento até o saldo chegar a zero.</span></div> : null}
-
-          {selected.status !== 'closed' && selectedSummary.due > 0 ? <PaymentEntry key={`payment-entry:${selected.accountId}`} restaurantId={restaurantId} account={selected} methods={methods} onUpdated={applyAccount} /> : null}
-          {selected.status === 'open' && selectedSummary.due === 0 ? <p className="tv-cash-paid-note">Saldo atual zerado. A comanda continua aberta para novos pedidos; inicie o fechamento somente quando a mesa terminar o consumo.</p> : null}
-          {selected.status === 'closed' ? <p className="tv-cash-paid-note">Comanda encerrada. Os pagamentos e correções permanecem no histórico.</p> : null}
-
-          {selected.payments.length || (role === 'admin' && selected.status === 'open') ? <AccountCorrections
-            key={`account-corrections:${selected.accountId}`}
-            restaurantId={restaurantId}
-            account={selected}
-            role={role}
-            onUpdated={applyAccount}
-          /> : null}
-
-          {role === 'admin' && selected.status !== 'open' ? <section className="tv-cash-reopen">
-            {!reopenOpen ? <button type="button" className="tv-cash-secondary-button" onClick={() => setReopenOpen(true)}>Reabrir comanda</button> : <div><label>Motivo da reabertura<input value={reopenReason} maxLength={500} onChange={(event) => setReopenReason(event.target.value)} placeholder="Ex.: fechamento iniciado por engano" /></label><div><button type="button" disabled={busy || reopenReason.trim().length < 3} onClick={reopen}>{busy ? <SpinnerRing decorative /> : null}Confirmar reabertura</button><button type="button" className="tv-cash-secondary-button" disabled={busy} onClick={() => setReopenOpen(false)}>Cancelar</button></div></div>}
-          </section> : null}
-        </> : <div className="tv-cash-empty"><span><LuPrinter aria-hidden="true" /></span><strong>Selecione uma comanda</strong><small>Os pedidos, pagamentos e saldo da mesa aparecerão aqui.</small></div>}
+        {mobile ? <button type="button" className="tv-cash-mobile-back" disabled={operationState !== 'idle' || busy} onClick={() => setMobileAccountsOpen(true)}><LuArrowLeft aria-hidden="true" />Todas as comandas</button> : null}
+        {detailLoading && selectedId ? <div className="tv-cash-detail-loading" role="status" aria-busy="true"><SpinnerRing decorative /><span>Carregando a comanda…</span></div> : null}
+        {selected ? <CashAccountTabs
+          account={selected}
+          restaurantId={restaurantId}
+          restaurantName={restaurantName}
+          role={role}
+          methods={methods}
+          selectedTab={selectedTab}
+          onTabChange={changeTab}
+          onUpdated={applyAccount}
+          onOperationStateChange={updateOperationState}
+          operationState={operationState}
+          navigationLocked={operationState !== 'idle' || busy}
+          busy={busy}
+          showTipDecision={showTipDecision}
+          onShowTipDecisionChange={setShowTipDecision}
+          onDecideTip={decideTip}
+          reopenOpen={reopenOpen}
+          onReopenOpenChange={setReopenOpen}
+          reopenReason={reopenReason}
+          onReopenReasonChange={setReopenReason}
+          onReopen={reopen}
+        /> : !detailLoading ? <div className="tv-cash-empty"><span><LuPrinter aria-hidden="true" /></span><strong>{selectedId ? 'Comanda indisponível' : 'Selecione uma comanda'}</strong><small>{selectedId ? 'Não foi possível carregar os detalhes desta mesa.' : 'Os pedidos, pagamentos e saldo da mesa aparecerão aqui.'}</small></div> : null}
       </main> : null}
     </div>
     {role === 'admin' && settingsOpen ? <CashSettings
@@ -228,9 +323,23 @@ export function CashScreen({
   </div>
 }
 
-function estimateTip(account: TableAccountDTO): number {
-  if (account.subtotalCents <= 0) return 0
-  if (account.tipMode === 'percentage') return Math.round(account.subtotalCents * (account.tipPercentBps ?? 0) / 10000)
-  if (account.tipMode === 'fixed') return account.tipFixedCents ?? 0
-  return 0
+function toSummary(account: TableAccountDTO): TableAccountSummaryDTO {
+  return {
+    accountId: account.accountId,
+    restaurantId: account.restaurantId,
+    tableNumber: account.tableNumber,
+    status: account.status,
+    tipMode: account.tipMode,
+    tipPercentBps: account.tipPercentBps,
+    tipFixedCents: account.tipFixedCents,
+    tipAccepted: account.tipAccepted,
+    tipAmountCents: account.tipAmountCents,
+    openedAt: account.openedAt,
+    closedAt: account.closedAt,
+    subtotalCents: account.subtotalCents,
+    tipCents: account.tipCents,
+    totalCents: account.totalCents,
+    paidCents: account.paidCents,
+    balanceDueCents: account.balanceDueCents,
+  }
 }

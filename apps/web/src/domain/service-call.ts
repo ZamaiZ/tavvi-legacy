@@ -62,6 +62,8 @@ export type ServiceCallsDashboardField =
   | 'resolved'
   | 'team'
   | 'pendingCount'
+  | 'inProgressCount'
+  | 'resolvedCount'
   | 'selectedCall'
   | 'events'
 export type ServiceCallsDashboard = {
@@ -70,6 +72,7 @@ export type ServiceCallsDashboard = {
   resolved?: ServiceCallPage
   team?: ServiceCallTeamMemberDTO[]
   pendingCount?: number
+  statusCounts?: Partial<Record<ServiceCallStatus, number>>
   selectedCall?: ServiceCallDTO | null
   events?: ServiceCallEventDTO[]
   errors: Partial<Record<ServiceCallsDashboardField, string>>

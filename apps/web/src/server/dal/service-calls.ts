@@ -140,6 +140,18 @@ export async function getServiceCallsDashboard(input: unknown): Promise<ServiceC
       if (error) throw new Error(`Não foi possível contar os chamados pendentes: ${error.message}`)
       return count ?? 0
     })(),
+    (async () => {
+      const { count, error } = await supabase.from('service_calls').select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurantId).eq('status', 'in_progress')
+      if (error) throw new Error(`Não foi possível contar os chamados em atendimento: ${error.message}`)
+      return count ?? 0
+    })(),
+    (async () => {
+      const { count, error } = await supabase.from('service_calls').select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurantId).eq('status', 'resolved')
+      if (error) throw new Error(`Não foi possível contar os chamados concluídos: ${error.message}`)
+      return count ?? 0
+    })(),
     selectedCallId ? dashboardSelectedCall(supabase, restaurantId, selectedCallId) : Promise.resolve(null),
     includeEvents && selectedCallId
       ? dashboardEvents(supabase, restaurantId, selectedCallId)
@@ -151,14 +163,22 @@ export async function getServiceCallsDashboard(input: unknown): Promise<ServiceC
   const resolved = settledDashboardField('resolved', results[2], errors)
   const team = settledDashboardField('team', results[3], errors)
   const pendingCount = settledDashboardField('pendingCount', results[4], errors)
-  const selectedCall = settledDashboardField('selectedCall', results[5], errors)
-  const events = settledDashboardField('events', results[6], errors)
+  const inProgressCount = settledDashboardField('inProgressCount', results[5], errors)
+  const resolvedCount = settledDashboardField('resolvedCount', results[6], errors)
+  const selectedCall = settledDashboardField('selectedCall', results[7], errors)
+  const events = settledDashboardField('events', results[8], errors)
+  const statusCounts: Partial<Record<ServiceCallStatus, number>> = {
+    ...(pendingCount !== undefined ? { pending: pendingCount } : {}),
+    ...(inProgressCount !== undefined ? { in_progress: inProgressCount } : {}),
+    ...(resolvedCount !== undefined ? { resolved: resolvedCount } : {}),
+  }
   return {
     ...(pending ? { pending } : {}),
     ...(inProgress ? { inProgress } : {}),
     ...(resolved ? { resolved } : {}),
     ...(team ? { team } : {}),
     ...(pendingCount !== undefined ? { pendingCount } : {}),
+    ...(Object.keys(statusCounts).length ? { statusCounts } : {}),
     ...(selectedCall !== undefined ? { selectedCall } : {}),
     ...(events !== undefined ? { events } : {}),
     errors,

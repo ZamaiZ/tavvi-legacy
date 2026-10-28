@@ -1,6 +1,6 @@
 'use client'
 
-import { LuBell, LuCheck, LuClock3, LuUserRound } from 'react-icons/lu'
+import { LuBell, LuCheck, LuClock3, LuSearch, LuUserRound } from 'react-icons/lu'
 import type { ServiceCallDTO, ServiceCallStatus } from '@/domain/service-call'
 import { callServiceDuration, callWaitDuration, formatCallTime, formatElapsed } from '../service-call-time'
 
@@ -10,18 +10,22 @@ const STATUS_LABELS: Record<ServiceCallStatus, string> = {
   resolved: 'Concluído',
 }
 
-export function CallList({ items, selectedId, onSelect, status, memberNames, now }: {
+export function CallList({ items, selectedId, onSelect, status, memberNames, now, hasMore, emptyReason = 'queue', onClearSearch }: {
   items: ServiceCallDTO[]
   selectedId: string | null
   onSelect: (call: ServiceCallDTO) => void
   status: ServiceCallStatus
   memberNames: Map<string, string>
   now: number
+  hasMore: boolean
+  emptyReason?: 'queue' | 'search'
+  onClearSearch?: () => void
 }) {
   if (!items.length) return <div className="tv-calls-empty">
-    <span aria-hidden="true">{status === 'resolved' ? <LuCheck /> : <LuBell />}</span>
-    <strong>{status === 'pending' ? 'Tudo em dia' : status === 'in_progress' ? 'Nenhum chamado em atendimento' : 'Ainda não há chamados concluídos'}</strong>
-    <small>{status === 'pending' ? 'Novos pedidos das mesas aparecem aqui em tempo real.' : status === 'in_progress' ? 'Os chamados assumidos pela equipe aparecem nesta lista.' : 'Os atendimentos concluídos ficam disponíveis neste histórico.'}</small>
+    <span aria-hidden="true">{emptyReason === 'search' ? <LuSearch /> : status === 'resolved' ? <LuCheck /> : <LuBell />}</span>
+    <strong>{emptyReason === 'search' ? 'Nenhuma mesa encontrada' : status === 'pending' ? 'Tudo em dia' : status === 'in_progress' ? 'Nenhum chamado em atendimento' : 'Ainda não há chamados concluídos'}</strong>
+    <small>{emptyReason === 'search' ? hasMore ? 'A busca considera os chamados já carregados. Carregue mais para procurar nos próximos.' : 'Tente outro número de mesa ou limpe a busca para voltar à fila.' : status === 'pending' ? 'Novos pedidos das mesas aparecem aqui em tempo real.' : status === 'in_progress' ? 'Os chamados assumidos pela equipe aparecem nesta lista.' : 'Os atendimentos concluídos ficam disponíveis neste histórico.'}</small>
+    {emptyReason === 'search' && onClearSearch ? <button type="button" className="tv-calls-empty-clear" onClick={onClearSearch}>Limpar busca</button> : null}
   </div>
 
   return <ul className="tv-calls-list" aria-label={`Chamados: ${STATUS_LABELS[status]}`}>

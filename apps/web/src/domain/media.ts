@@ -77,6 +77,58 @@ export const itemUploadTicketSchema = z.object({
   mimeType: z.string().min(1).max(100),
 })
 
+// Autorização de todos os arquivos novos de uma criação em massa. Os IDs e
+// chaves identificam a mídia no rascunho; caminhos continuam sendo gerados
+// exclusivamente pelo servidor.
+export const itemBatchUploadTicketsSchema = z.object({
+  restaurantId: uuidSchema,
+  files: z.array(z.object({
+    itemId: uuidSchema,
+    mediaKey: uuidSchema,
+    kind: mediaKindSchema,
+    mimeType: z.string().min(1).max(100),
+    posterMimeType: z.string().min(1).max(100).optional(),
+  })).min(1).max(300),
+}).superRefine((data, ctx) => {
+  const seen = new Set<string>()
+  const perItem = new Map<string, number>()
+  data.files.forEach((file, index) => {
+    const key = `${file.itemId}:${file.mediaKey}`
+    if (seen.has(key)) {
+      ctx.addIssue({ code: 'custom', path: ['files', index, 'mediaKey'], message: 'Mídia repetida no lote.' })
+    }
+    if (file.kind === 'image' && file.posterMimeType) {
+      ctx.addIssue({ code: 'custom', path: ['files', index, 'posterMimeType'], message: 'Fotos não têm capa de vídeo.' })
+    }
+    const itemCount = (perItem.get(file.itemId) ?? 0) + 1
+    if (itemCount > MAX_MEDIA_PER_ITEM) {
+      ctx.addIssue({ code: 'custom', path: ['files', index, 'itemId'], message: `Use no máximo ${MAX_MEDIA_PER_ITEM} mídias por item.` })
+    }
+    perItem.set(file.itemId, itemCount)
+    seen.add(key)
+  })
+})
+
+export const discardItemBatchUploadsSchema = z.object({
+  restaurantId: uuidSchema,
+  files: z.array(z.object({
+    itemId: uuidSchema,
+    kind: mediaKindSchema,
+    path: z.string().min(1).max(400),
+  })).min(1).max(600),
+})
+
+export type ItemBatchUploadTicketsInput = z.input<typeof itemBatchUploadTicketsSchema>
+export type BatchUploadTicket = {
+  itemId: string
+  mediaKey: string
+  kind: MediaKind
+  bucket: string
+  path: string
+  signedUrl: string
+  poster?: { bucket: string; path: string; signedUrl: string }
+}
+
 // Arquivos que subiram para um salvamento que não chegou ao banco.
 export const discardUploadsSchema = z.object({
   restaurantId: uuidSchema,

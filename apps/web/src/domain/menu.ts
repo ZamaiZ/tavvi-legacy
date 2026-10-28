@@ -6,11 +6,12 @@ import {
   priceCentsSchema,
   uuidSchema,
 } from './common'
-import { focalSchema, MAX_VIDEO_DURATION_MS, mediaKindSchema } from './media'
+import { focalSchema, MAX_MEDIA_PER_ITEM, MAX_VIDEO_DURATION_MS, mediaKindSchema } from './media'
 import type { RestaurantContact } from './restaurant'
 import type { MenuPresentation } from './menu-presentation'
 
 export const MAX_CATEGORIES_PER_BATCH = 20
+export const MAX_ITEMS_PER_BATCH = 50
 
 // Criar várias categorias de uma vez. Nome repetido DENTRO do lote é
 // recusado (é erro de digitação, quase sempre); igual a uma categoria que já
@@ -212,25 +213,26 @@ const variantInputSchema = z.object({
   isAvailable: z.boolean(),
 })
 
+const newMediaInputSchema = z.object({
+  source: z.literal('new'),
+  kind: mediaKindSchema,
+  storagePath: z.string().min(1).max(400),
+  posterPath: z.string().min(1).max(400).optional(),
+  width: z.int().min(1).max(10_000).optional(),
+  height: z.int().min(1).max(10_000).optional(),
+  durationMs: z.int().min(1).max(MAX_VIDEO_DURATION_MS).optional(),
+  focalX: focalSchema,
+  focalY: focalSchema,
+})
+
 const mediaInputSchema = z.discriminatedUnion('source', [
   z.object({ source: z.literal('saved'), id: uuidSchema, focalX: focalSchema, focalY: focalSchema }),
-  z.object({
-    source: z.literal('new'),
-    kind: mediaKindSchema,
-    storagePath: z.string().min(1).max(400),
-    posterPath: z.string().min(1).max(400).optional(),
-    width: z.int().min(1).max(10_000).optional(),
-    height: z.int().min(1).max(10_000).optional(),
-    durationMs: z.int().min(1).max(MAX_VIDEO_DURATION_MS).optional(),
-    focalX: focalSchema,
-    focalY: focalSchema,
-  }),
+  newMediaInputSchema,
 ])
 
 // Tudo o que o "Salvar"/"Criar" do item grava, numa chamada só
 // (`save_menu_item`). A ordem de `variants` e de `media` é a posição.
-export const saveItemSchema = z
-  .object({
+const saveItemBaseSchema = z.object({
     mode: z.enum(['create', 'update']),
     restaurantId: uuidSchema,
     itemId: uuidSchema,
@@ -254,7 +256,8 @@ export const saveItemSchema = z
     // vale quando algo é acrescentado, e quem confere é a função no banco.
     media: z.array(mediaInputSchema).max(10),
   })
-  .superRefine((data, ctx) => {
+
+export const saveItemSchema = saveItemBaseSchema.superRefine((data, ctx) => {
     if (data.pricing.mode !== 'variants') return
     const seen = new Set<string>()
     data.pricing.variants.forEach((variant, index) => {
@@ -271,3 +274,61 @@ export const saveItemSchema = z
   })
 
 export type SaveItemInput = z.input<typeof saveItemSchema>
+
+const batchItemSchema = saveItemBaseSchema
+  .extend({ mode: z.literal('create'), media: z.array(newMediaInputSchema).max(MAX_MEDIA_PER_ITEM) })
+  .omit({ restaurantId: true })
+  .superRefine((data, ctx) => {
+    if (data.pricing.mode !== 'variants') return
+    const seen = new Set<string>()
+    data.pricing.variants.forEach((variant, index) => {
+      const key = comparableText(variant.name)
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['pricing', 'variants', index, 'name'],
+          message: `Variação repetida: '${variant.name}'.`,
+        })
+      }
+      seen.add(key)
+    })
+  })
+
+export const saveMenuItemsBatchSchema = z.object({
+  restaurantId: uuidSchema,
+  categories: z.array(z.object({
+    id: uuidSchema,
+    name: plainTextSchema(80, 2),
+    description: plainTextSchema(300).optional(),
+  })).max(MAX_CATEGORIES_PER_BATCH),
+  items: z.array(batchItemSchema).max(MAX_ITEMS_PER_BATCH),
+}).superRefine((data, ctx) => {
+  if (data.categories.length === 0 && data.items.length === 0) {
+    ctx.addIssue({ code: 'custom', path: ['items'], message: 'Adicione uma categoria ou um item ao lote.' })
+  }
+
+  const seenIds = new Set<string>()
+  data.categories.forEach((category, index) => {
+    if (seenIds.has(category.id)) {
+      ctx.addIssue({ code: 'custom', path: ['categories', index, 'id'], message: 'Identificador repetido no lote.' })
+    }
+    seenIds.add(category.id)
+  })
+  data.items.forEach((item, index) => {
+    if (seenIds.has(item.itemId)) {
+      ctx.addIssue({ code: 'custom', path: ['items', index, 'itemId'], message: 'Identificador repetido no lote.' })
+    }
+    seenIds.add(item.itemId)
+  })
+
+  const seenNames = new Set<string>()
+  data.categories.forEach((category, index) => {
+    const key = comparableText(category.name)
+    if (seenNames.has(key)) {
+      ctx.addIssue({ code: 'custom', path: ['categories', index, 'name'], message: `Nome repetido neste lote: '${category.name}'.` })
+    }
+    seenNames.add(key)
+  })
+})
+
+export type SaveMenuItemsBatchInput = z.infer<typeof saveMenuItemsBatchSchema>

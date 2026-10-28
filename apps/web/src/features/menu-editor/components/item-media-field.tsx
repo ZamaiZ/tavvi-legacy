@@ -41,6 +41,7 @@ export function ItemMediaField({
   variant = 'panel',
   notices,
   inspecting,
+  blockWhileInspecting = false,
   error,
   onAddFiles,
   onRemove,
@@ -52,6 +53,7 @@ export function ItemMediaField({
   variant?: 'panel' | 'mobile'
   notices: string[]
   inspecting: boolean
+  blockWhileInspecting?: boolean
   error?: string
   onAddFiles: (files: File[]) => void
   onRemove: (key: string) => void
@@ -62,6 +64,7 @@ export function ItemMediaField({
   const sensors = usePanelSensors()
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const remaining = Math.max(0, MAX_MEDIA_PER_ITEM - media.length)
+  const controlsDisabled = disabled || (blockWhileInspecting && inspecting)
   const keys = media.map((entry) => entry.key)
   const active = media.find((entry) => entry.key === activeKey) ?? null
   const newCount = media.filter((entry) => entry.source.type === 'new').length
@@ -79,7 +82,7 @@ export function ItemMediaField({
 
   return (
     <div className={`tv-media${variant === 'mobile' ? ' is-mobile' : ''}`} aria-busy={inspecting || undefined}>
-      <MediaDropzone onFiles={onAddFiles} acceptedTypes={ACCEPTED_MEDIA_TYPES} disabled={disabled} remaining={remaining}>
+      <MediaDropzone onFiles={onAddFiles} acceptedTypes={ACCEPTED_MEDIA_TYPES} disabled={controlsDisabled} remaining={remaining}>
         {(openPicker) => (
           <DndContext
             id={dndId}
@@ -103,14 +106,14 @@ export function ItemMediaField({
                       status={status}
                       progress={progress}
                       cover={index === 0}
-                      disabled={disabled}
+                      disabled={controlsDisabled}
                       onRemove={() => onRemove(entry.key)}
                       onMakeCover={() => onMakeCover(entry.key)}
                     />
                   )
                 })}
                 {remaining > 0 ? (
-                  <button type="button" className="tv-media-add" disabled={disabled} onClick={openPicker} aria-label={`Adicionar fotos ou vídeos. Cabem mais ${remaining}.`}>
+                  <button type="button" className="tv-media-add" disabled={controlsDisabled} onClick={openPicker} aria-label={`Adicionar fotos ou vídeos. Cabem mais ${remaining}.`}>
                     {variant === 'mobile' ? <LuCamera aria-hidden="true" /> : <LuImagePlus aria-hidden="true" />}Adicionar
                   </button>
                 ) : null}

@@ -25,6 +25,7 @@
 .workspace-territory .tv-cash-settings-trigger { min-height: 44px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .workspace-territory .tv-cash-settings-trigger svg { width: 16px; height: 16px; }
 .workspace-territory .tv-cash-settings-trigger:hover { border-color: var(--tv-line-2); background: var(--tv-surface-2); }
+.workspace-territory .tv-cash-settings-trigger:disabled { opacity: .55; cursor: progress; }
 .workspace-territory .tv-cash-settings-trigger:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 .workspace-territory .tv-cash-toolbar > div { gap: 8px; }
 .workspace-territory .tv-cash-toolbar button,
@@ -279,6 +280,7 @@
 }
 .workspace-territory .tv-cash-payment-field .tv-combo-trigger,
 .workspace-territory .tv-cash-settings-field .tv-combo-trigger { width: 100%; min-height: 48px; padding: 0 12px; border-radius: 10px; background: var(--tv-bg); font-size: 15px; }
+.workspace-territory .tv-cash-payment-method-readonly { min-height: 48px; padding: 0 12px; display: flex; align-items: center; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 14px; font-weight: 600; }
 .workspace-territory .tv-cash-money-field { display: flex; align-items: center; gap: 8px; }
 .workspace-territory .tv-cash-money-field b { flex: none; color: var(--tv-text-3); font-size: 14px; font-weight: 550; }
 .workspace-territory .tv-cash-money-field input { min-width: 0; min-height: 44px; flex: 1; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; }
@@ -304,6 +306,8 @@
 .workspace-territory .tv-cash-correction-form label { display: grid; gap: 6px; color: var(--tv-text-2); font-size: 12px; }
 .workspace-territory .tv-cash-correction-form input,
 .workspace-territory .tv-cash-correction-form textarea { width: 100%; min-height: 46px; padding: 10px 11px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-bg); color: var(--tv-text); font: inherit; font-size: 15px; }
+.workspace-territory .tv-cash-field-hint { color: var(--tv-text-2); font-size: 11px; line-height: 1.4; }
+.workspace-territory .tv-cash-field-hint.is-error { color: var(--tv-danger); }
 .workspace-territory .tv-cash-correction-form textarea { min-height: 84px; resize: vertical; line-height: 1.45; }
 .workspace-territory .tv-cash-correction-form > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .workspace-territory .tv-cash-correction-form button:first-child { border-color: transparent; background: var(--tv-btn); color: var(--tv-btn-text); }
@@ -370,10 +374,17 @@
 .workspace-territory .tv-cash-loading-list,
 .workspace-territory .tv-cash-loading-detail { min-width: 0; padding: 16px; border: 1px solid var(--tv-line); border-radius: 17px; background: var(--tv-surface); }
 .workspace-territory .tv-cash-loading-list-heading { width: 62%; height: 16px; margin: 3px 0 15px; }
+.workspace-territory .tv-cash-loading-filters { margin: 0 0 9px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.workspace-territory .tv-cash-loading-filters span { height: 38px; }
+.workspace-territory .tv-cash-loading-search { height: 42px; margin-bottom: 8px; }
 .workspace-territory .tv-cash-loading-row { min-height: 68px; margin: 6px 0; display: flex; align-items: center; gap: 11px; }
 .workspace-territory .tv-cash-loading-row .is-icon { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 12px; }
 .workspace-territory .tv-cash-loading-row > span:last-child { width: min(180px, 70%); height: 10px; }
-.workspace-territory .tv-cash-loading-detail-heading { height: 34px; width: 55%; margin-bottom: 18px; }
+.workspace-territory .tv-cash-loading-summary { min-height: 102px; margin-bottom: 13px; padding: 16px; display: flex; justify-content: space-between; border: 1px solid var(--tv-line); border-radius: 14px; }
+.workspace-territory .tv-cash-loading-summary span:first-child { width: 36%; height: 27px; }
+.workspace-territory .tv-cash-loading-summary span:last-child { width: 28%; height: 27px; }
+.workspace-territory .tv-cash-loading-tabs { min-height: 48px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+.workspace-territory .tv-cash-loading-tabs span { height: 48px; border-radius: 10px; }
 .workspace-territory .tv-cash-loading-receipt { min-height: 420px; padding: 18px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-bg); }
 .workspace-territory .tv-cash-loading-receipt .is-receipt-title { width: 52%; height: 20px; margin-bottom: 20px; }
 .workspace-territory .tv-cash-loading-receipt .is-receipt-line { height: 10px; margin: 17px 0; }
@@ -387,6 +398,150 @@
 .workspace-territory .tv-cash-settings-mobile-content :is(button, input):focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 @keyframes tv-cash-pulse { to { opacity: .52; } }
 
+.workspace-territory .tv-cash-list-heading { min-height: 58px; }
+.workspace-territory .tv-cash-list-filters { padding: 0 10px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.workspace-territory .tv-cash-list-filters button { min-height: 42px; padding: 0 9px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.workspace-territory .tv-cash-list-filters button.is-active { border-color: var(--tv-line); background: var(--tv-surface-2); color: var(--tv-text); }
+.workspace-territory .tv-cash-list-filters button span { min-width: 21px; padding: 3px 5px; border-radius: 99px; background: var(--tv-bg); color: var(--tv-text-2); font-size: 10px; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-search { min-height: 44px; margin: 0 9px 9px; padding: 0 11px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 10px; color: var(--tv-text-3); }
+.workspace-territory .tv-cash-search:focus-within { border-color: var(--tv-gold); box-shadow: 0 0 0 3px var(--tv-gold-soft); }
+.workspace-territory .tv-cash-search > svg { width: 16px; height: 16px; flex: none; }
+.workspace-territory .tv-cash-search input { min-width: 0; width: 100%; min-height: 40px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 14px; }
+.workspace-territory .tv-cash-search input::placeholder { color: var(--tv-text-3); }
+.workspace-territory .tv-cash-search button { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-2); cursor: pointer; }
+.workspace-territory .tv-cash-search button svg { width: 16px; height: 16px; }
+.workspace-territory .tv-cash-account-value { flex: none; display: grid; justify-items: end; gap: 3px; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-account-value strong { color: var(--tv-text); font-size: 13px; font-weight: 700; }
+.workspace-territory .tv-cash-account-value small { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-cash-accounts li > button:disabled { opacity: .6; cursor: progress; }
+.workspace-territory .tv-cash-list-empty { display: grid; gap: 5px; padding: 24px 14px; text-align: center; }
+.workspace-territory .tv-cash-list-empty strong { color: var(--tv-text); font-size: 13px; font-weight: 650; }
+.workspace-territory .tv-cash-list-empty span { color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-cash-detail-loading { min-height: 260px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--tv-text-2); font-size: 13px; }
+.workspace-territory .tv-cash-summary { margin-bottom: 15px; padding: 20px 22px 16px; border: 1px solid var(--tv-line); border-radius: 15px; background: var(--tv-bg); }
+.workspace-territory .tv-cash-summary-main { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+.workspace-territory .tv-cash-summary-main h2 { margin: 7px 0 4px; color: var(--tv-text); font-size: clamp(24px, 2.5vw, 31px); font-weight: 700; letter-spacing: -.04em; line-height: 1.08; }
+.workspace-territory .tv-cash-summary-main small { color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-cash-summary-right { display: flex; align-items: center; gap: 12px; }
+.workspace-territory .tv-cash-summary-due { display: grid; gap: 5px; justify-items: end; }
+.workspace-territory .tv-cash-summary-due span { color: var(--tv-text-3); font-size: 9px; font-weight: 750; letter-spacing: .08em; }
+.workspace-territory .tv-cash-summary-due strong { color: var(--tv-danger); font-size: clamp(21px, 2vw, 27px); font-weight: 750; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+.workspace-territory .tv-cash-summary-due.is-settled strong { color: var(--tv-ok); }
+.workspace-territory .tv-cash-print-icon { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; }
+.workspace-territory .tv-cash-print-icon svg { width: 17px; height: 17px; }
+.workspace-territory .tv-cash-print-icon:hover { border-color: var(--tv-line-2); background: var(--tv-surface-2); color: var(--tv-text); }
+.workspace-territory .tv-cash-print-icon:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-summary dl { margin: 14px 0 0; padding-top: 12px; display: flex; gap: 28px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-summary dl > div { display: grid; gap: 4px; }
+.workspace-territory .tv-cash-summary dt { color: var(--tv-text-3); font-size: 11px; }
+.workspace-territory .tv-cash-summary dd { margin: 0; color: var(--tv-text); font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-tabs { gap: 14px; }
+.workspace-territory .tv-cash-tabs-list { position: sticky; z-index: 10; top: 8px; width: 100%; min-height: 50px; padding: 4px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; border: 1px solid var(--tv-line); border-radius: 12px; background: var(--tv-surface-2); }
+.workspace-territory .tv-cash-tab { min-width: 0; min-height: 42px; height: auto; padding: 0 10px; display: inline-flex; flex-direction: row; align-items: center; gap: 8px; border-radius: 9px; color: var(--tv-text-2); font-size: 12px; font-weight: 650; transition: background-color 140ms ease, color 140ms ease; }
+.workspace-territory .tv-cash-tab[data-active] { background: var(--tv-btn); color: var(--tv-btn-text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.workspace-territory .tv-cash-tab:disabled { opacity: .55; cursor: progress; }
+.workspace-territory .tv-cash-tab svg { width: 17px; height: 17px; flex: none; }
+.workspace-territory .tv-cash-tab-wide { display: inline; }
+.workspace-territory .tv-cash-tab-short { display: none; }
+.workspace-territory .tv-cash-tab-panel { min-width: 0; display: grid; gap: 14px; }
+.workspace-territory .tv-cash-tab-panel-actions { display: flex; justify-content: flex-end; }
+.workspace-territory .tv-cash-panel-heading { margin-bottom: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.workspace-territory .tv-cash-panel-heading > div { min-width: 0; }
+.workspace-territory .tv-cash-panel-heading > div > span { color: var(--tv-gold-text); font-size: 10px; font-weight: 750; letter-spacing: .08em; }
+.workspace-territory .tv-cash-panel-heading h3 { margin: 5px 0 3px; color: var(--tv-text); font-size: 19px; font-weight: 680; letter-spacing: -.025em; }
+.workspace-territory .tv-cash-panel-heading p { margin: 0; color: var(--tv-text-2); font-size: 12px; line-height: 1.45; }
+.workspace-territory .tv-cash-consumption { padding: 18px 20px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-orders { display: grid; gap: 13px; }
+.workspace-territory .tv-cash-order { padding-top: 13px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-order > header { margin-bottom: 4px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-cash-order > header strong { color: var(--tv-text); font-size: 12px; font-weight: 650; }
+.workspace-territory .tv-cash-order > header strong span { color: var(--tv-text-2); font-weight: 500; }
+.workspace-territory .tv-cash-order > header small { color: var(--tv-text-3); font-size: 10px; text-align: right; }
+.workspace-territory .tv-cash-order-item { min-height: 54px; padding: 10px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-order-item > div { min-width: 0; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-order-item strong { color: var(--tv-text); font-size: 13px; font-weight: 600; line-height: 1.4; }
+.workspace-territory .tv-cash-order-item small { color: var(--tv-text-2); font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.workspace-territory .tv-cash-order-item > span { flex: none; color: var(--tv-text); font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-order-item.is-cancelled { opacity: .58; }
+.workspace-territory .tv-cash-order-item.is-cancelled strong { text-decoration: line-through; }
+.workspace-territory .tv-cash-account-totals,
+.workspace-territory .tv-cash-payment-totals { margin: 14px 0 0; padding-top: 10px; display: grid; gap: 2px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-account-totals > div,
+.workspace-territory .tv-cash-payment-totals > div { min-height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.workspace-territory .tv-cash-account-totals dt,
+.workspace-territory .tv-cash-payment-totals dt { color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-cash-account-totals dd,
+.workspace-territory .tv-cash-payment-totals dd { margin: 0; color: var(--tv-text); font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.workspace-territory .tv-cash-account-totals .is-total { min-height: 43px; margin-top: 4px; border-top: 1px dashed var(--tv-line-2); }
+.workspace-territory .tv-cash-account-totals .is-total dt,
+.workspace-territory .tv-cash-account-totals .is-total dd { color: var(--tv-text); font-size: 14px; font-weight: 700; }
+.workspace-territory .tv-cash-panel-empty,
+.workspace-territory .tv-cash-readonly-note,
+.workspace-territory .tv-cash-correction-empty { margin: 0; padding: 14px; border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 12px; line-height: 1.5; }
+.workspace-territory .tv-cash-print-note { margin: 0; color: var(--tv-text-3); font-size: 11px; line-height: 1.45; }
+.workspace-territory .tv-cash-payment-history { padding: 18px 20px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-payment-history ul { margin: 0; padding: 0; display: grid; list-style: none; }
+.workspace-territory .tv-cash-payment-history li { min-height: 60px; padding: 10px 0; display: flex; align-items: center; gap: 11px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-payment-mark { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-cash-payment-mark.is-refunded { background: var(--tv-warn-soft); color: var(--tv-warn); }
+.workspace-territory .tv-cash-payment-mark svg { width: 16px; height: 16px; }
+.workspace-territory .tv-cash-payment-copy { min-width: 0; flex: 1; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-payment-copy strong { color: var(--tv-text); font-size: 12px; font-weight: 650; }
+.workspace-territory .tv-cash-payment-copy small { color: var(--tv-text-3); font-size: 10px; line-height: 1.4; }
+.workspace-territory .tv-cash-payment-history li > strong { color: var(--tv-text); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.workspace-territory .tv-cash-payment-history li > strong.is-refunded { color: var(--tv-warn); }
+.workspace-territory .tv-cash-payment-totals .is-due { margin-top: 4px; padding-top: 7px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-payment-totals .is-due dt { color: var(--tv-text); font-weight: 700; }
+.workspace-territory .tv-cash-payment-totals .is-due dd { color: var(--tv-danger); font-size: 17px; font-weight: 750; }
+.workspace-territory .tv-cash-payment-totals .is-due.is-settled dd { color: var(--tv-ok); }
+.workspace-territory .tv-cash-finalization { display: grid; gap: 14px; }
+.workspace-territory .tv-cash-finalization-card { padding: 18px; display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 12px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface-2); }
+.workspace-territory .tv-cash-finalization-card.is-confirming { grid-template-columns: minmax(0,1fr); }
+.workspace-territory .tv-cash-finalization-card > div { display: grid; gap: 6px; }
+.workspace-territory .tv-cash-finalization-card.is-confirming > div { min-width: 0; }
+.workspace-territory .tv-cash-finalization-card.is-confirming .tv-cash-tip-options { width: 100%; }
+.workspace-territory .tv-cash-finalization-card > div > strong,
+.workspace-territory .tv-cash-finalization-card > strong { color: var(--tv-text); font-size: 14px; font-weight: 700; }
+.workspace-territory .tv-cash-finalization-card p { margin: 0; color: var(--tv-text-2); font-size: 12px; line-height: 1.5; }
+.workspace-territory .tv-cash-finalization-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-cash-finalization-icon svg { width: 18px; height: 18px; }
+.workspace-territory .tv-cash-finalization-card > button { grid-column: 2; justify-self: start; min-height: 46px; margin-top: 2px; padding: 0 15px; border: 0; border-radius: 10px; background: var(--tv-btn); color: var(--tv-btn-text); font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+.workspace-territory .tv-cash-finalization-card.is-confirming > button:not(.tv-cash-secondary-button) { width: 100%; min-height: 48px; grid-column: 1; }
+.workspace-territory .tv-cash-finalization-card.is-confirming > .tv-cash-secondary-button { width: 100%; min-height: 46px; grid-column: 1; justify-self: stretch; border: 1px solid var(--tv-line); background: var(--tv-surface); color: var(--tv-text-2); }
+.workspace-territory .tv-cash-finalization-card.is-closed { display: block; }
+.workspace-territory .tv-cash-finalization .tv-cash-settling-note,
+.workspace-territory .tv-cash-finalization .tv-cash-paid-note { margin: 0; }
+.workspace-territory .tv-cash-finalization .tv-cash-reopen { margin: 0; }
+.workspace-territory .tv-cash-corrections { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); align-items: start; gap: 14px; margin: 0; padding: 0; border: 0; background: transparent; }
+.workspace-territory .tv-cash-correction-card { min-width: 0; padding: 17px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-correction-card > header { min-height: 50px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.workspace-territory .tv-cash-correction-card > header > div { min-width: 0; display: grid; gap: 4px; }
+.workspace-territory .tv-cash-correction-card > header strong { color: var(--tv-text); font-size: 14px; font-weight: 700; }
+.workspace-territory .tv-cash-correction-card > header small { color: var(--tv-text-2); font-size: 11px; line-height: 1.4; }
+.workspace-territory .tv-cash-correction-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; }
+.workspace-territory .tv-cash-correction-icon.is-refund { background: var(--tv-gold-soft); color: var(--tv-gold-text); }
+.workspace-territory .tv-cash-correction-icon.is-cancel { background: var(--tv-danger-soft); color: var(--tv-danger); }
+.workspace-territory .tv-cash-correction-icon svg { width: 17px; height: 17px; }
+.workspace-territory .tv-cash-corrections .tv-cash-correction-row { padding: 11px 0; }
+.workspace-territory .tv-cash-corrections .tv-cash-correction-summary { align-items: flex-start; flex-direction: column; gap: 10px; }
+.workspace-territory .tv-cash-corrections .tv-cash-correction-summary > button { width: 100%; }
+.workspace-territory .tv-cash-correction-empty { padding: 12px; font-size: 11px; }
+.workspace-territory .tv-cash-audit { margin-top: 14px; border: 1px solid var(--tv-line); border-radius: 13px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-audit summary { min-height: 56px; padding: 10px 16px; display: flex; align-items: center; list-style: none; cursor: pointer; }
+.workspace-territory .tv-cash-audit summary::-webkit-details-marker { display: none; }
+.workspace-territory .tv-cash-audit summary > span { display: grid; gap: 4px; }
+.workspace-territory .tv-cash-audit summary strong { color: var(--tv-text); font-size: 13px; font-weight: 700; }
+.workspace-territory .tv-cash-audit summary small { color: var(--tv-text-2); font-size: 11px; }
+.workspace-territory .tv-cash-audit summary::after { margin-left: auto; color: var(--tv-text-3); content: '+'; font-size: 18px; }
+.workspace-territory .tv-cash-audit[open] summary::after { content: '−'; }
+.workspace-territory .tv-cash-audit ol { margin: 0 16px 12px; padding: 0; list-style: none; }
+.workspace-territory .tv-cash-audit li { min-height: 48px; padding: 9px 0; display: flex; align-items: flex-start; gap: 10px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-audit-dot { width: 7px; height: 7px; margin-top: 4px; flex: 0 0 7px; border-radius: 50%; background: var(--tv-gold); }
+.workspace-territory .tv-cash-audit li > span:last-child { display: grid; gap: 4px; }
+.workspace-territory .tv-cash-audit li strong { color: var(--tv-text); font-size: 11px; font-weight: 650; }
+.workspace-territory .tv-cash-audit li small { color: var(--tv-text-3); font-size: 10px; line-height: 1.4; }
+.workspace-territory .tv-cash-print-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
 @media (hover: hover) {
   .workspace-territory .tv-cash-toolbar button:hover:not(:disabled),
   .workspace-territory .tv-cash-print-button:hover,
@@ -399,8 +554,12 @@
 }
 @media (max-width: 1023px) {
   .workspace-territory .tv-cash-layout,
-  .workspace-territory .tv-cash-loading-grid { grid-template-columns: minmax(240px, .9fr) minmax(0, 1.4fr); gap: 12px; }
+  .workspace-territory .tv-cash-loading-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .workspace-territory .tv-cash-accounts { position: static; max-height: min(42dvh, 320px); display: flex; flex-direction: column; overflow: hidden; }
+  .workspace-territory .tv-cash-accounts ul { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; }
   .workspace-territory .tv-cash-detail { padding: 20px; }
+  .workspace-territory .tv-cash-corrections,
+  .workspace-territory .tv-cash-payment-fields { grid-template-columns: minmax(0, 1fr); }
   .workspace-territory .tv-pre-account { padding: 17px; }
 }
 @media (max-width: 767px) {
@@ -468,6 +627,52 @@
   .workspace-territory .tv-cash-loading-toolbar .is-live { width: 145px; }
   .workspace-territory .tv-cash-loading-toolbar { flex-wrap: wrap; justify-content: flex-start; }
   .workspace-territory .tv-cash-loading-toolbar .is-live { width: 100%; }
+  .workspace-territory .tv-cash-accounts { max-height: none; }
+  .workspace-territory .tv-cash-accounts ul { max-height: min(58dvh, 560px); overflow-y: auto; overscroll-behavior: contain; }
+  .workspace-territory .tv-cash-list-filters { padding-right: 6px; padding-left: 6px; }
+  .workspace-territory .tv-cash-list-filters button { min-height: 44px; font-size: 11px; }
+  .workspace-territory .tv-cash-search { min-height: 48px; }
+  .workspace-territory .tv-cash-account-value strong { font-size: 12px; }
+  .workspace-territory .tv-cash-summary { margin-bottom: 12px; padding: 16px 15px 13px; border-radius: 13px; }
+  .workspace-territory .tv-cash-summary-main { align-items: end; gap: 8px; }
+  .workspace-territory .tv-cash-summary-main h2 { margin: 6px 0 3px; font-size: 25px; }
+  .workspace-territory .tv-cash-summary-main small { font-size: 10px; }
+  .workspace-territory .tv-cash-summary-due span { font-size: 8px; }
+  .workspace-territory .tv-cash-summary-due strong { font-size: 21px; }
+  .workspace-territory .tv-cash-summary dl { gap: 24px; margin-top: 12px; padding-top: 10px; }
+  .workspace-territory .tv-cash-summary dt { font-size: 10px; }
+  .workspace-territory .tv-cash-summary dd { font-size: 13px; }
+  .workspace-territory .tv-cash-tabs { gap: 12px; }
+  .workspace-territory .tv-cash-tabs-list { min-height: 69px; padding: 4px; gap: 2px; }
+  .workspace-territory .tv-cash-tab { min-height: 59px; padding: 5px 2px; flex-direction: column; justify-content: center; gap: 4px; border-radius: 9px; font-size: 10px; line-height: 1.15; }
+  .workspace-territory .tv-cash-tab svg { width: 18px; height: 18px; }
+  .workspace-territory .tv-cash-tab-wide { display: none; }
+  .workspace-territory .tv-cash-tab-short { display: inline; }
+  .workspace-territory .tv-cash-tab-panel { gap: 11px; }
+  .workspace-territory .tv-cash-consumption,
+  .workspace-territory .tv-cash-payment-history { padding: 15px 13px; border-radius: 12px; }
+  .workspace-territory .tv-cash-panel-heading { margin-bottom: 11px; }
+  .workspace-territory .tv-cash-panel-heading h3 { font-size: 17px; }
+  .workspace-territory .tv-cash-order > header { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .workspace-territory .tv-cash-order > header small { text-align: left; }
+  .workspace-territory .tv-cash-order-item { gap: 8px; }
+  .workspace-territory .tv-cash-order-item strong { font-size: 12px; }
+  .workspace-territory .tv-cash-order-item > span { font-size: 12px; }
+  .workspace-territory .tv-cash-payment-history li { gap: 8px; }
+  .workspace-territory .tv-cash-payment-copy small { font-size: 9px; }
+  .workspace-territory .tv-cash-finalization-card { padding: 14px 12px; grid-template-columns: 32px minmax(0,1fr); gap: 9px; }
+  .workspace-territory .tv-cash-finalization-icon { width: 32px; height: 32px; }
+  .workspace-territory .tv-cash-finalization-card > button { width: 100%; min-height: 48px; grid-column: 1 / -1; }
+  .workspace-territory .tv-cash-finalization-card.is-closed { display: block; }
+  .workspace-territory .tv-cash-corrections { grid-template-columns: minmax(0,1fr); gap: 11px; }
+  .workspace-territory .tv-cash-correction-card { padding: 14px 12px; }
+  .workspace-territory .tv-cash-page.is-detail-open { padding: 12px 12px 30px; }
+  .workspace-territory .tv-cash-page.is-detail-open .tv-m-navbar,
+  .workspace-territory .tv-cash-page.is-detail-open .tv-cash-page-header,
+  .workspace-territory .tv-cash-page.is-detail-open .tv-cash-toolbar { display: none; }
+  .workspace-territory .tv-cash-page.is-detail-open .tv-cash-detail { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .workspace-territory .tv-cash-page.is-detail-open .tv-cash-mobile-back { min-height: 44px; margin-bottom: 12px; }
+  .tv-console-root:has(.tv-cash-page.is-detail-open) .tv-dock { display: none; }
 }
 @media (max-width: 390px) {
   .workspace-territory .tv-cash-detail-heading { gap: 10px; }
@@ -479,8 +684,14 @@
 @media (min-width: 768px) {
   .workspace-territory .tv-cash-settings-mobile-content { display: none; }
 }
+@media (min-width: 1024px) {
+  .workspace-territory .tv-cash-accounts { position: sticky; top: 16px; max-height: calc(100dvh - 32px); display: flex; flex-direction: column; overflow: hidden; }
+  .workspace-territory .tv-cash-accounts ul { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+}
 @media (prefers-reduced-motion: reduce) {
   .workspace-territory .tv-cash-accounts li > button,
+  .workspace-territory .tv-cash-tab,
+  .workspace-territory .tv-cash-print-icon,
   .workspace-territory .tv-cash-switch i,
   .workspace-territory .tv-cash-switch i::after,
   .workspace-territory .tv-cash-settings-dialog,
@@ -490,6 +701,7 @@
   .workspace-territory .tv-cash-skeleton-chip { animation: none; }
 }
 @media print {
+  .workspace-territory .tv-cash-error,
   .workspace-territory .tv-cash-toolbar,
   .workspace-territory .tv-cash-page > nav,
   .workspace-territory .tv-cash-page > header,
@@ -498,11 +710,15 @@
   .workspace-territory .tv-cash-payment-entry,
   .workspace-territory .tv-cash-corrections,
   .workspace-territory .tv-cash-reopen,
+  .workspace-territory .tv-cash-summary,
+  .workspace-territory .tv-cash-tabs,
+  .workspace-territory .tv-cash-detail-loading,
   .workspace-territory .tv-cash-mobile-back,
   .workspace-territory .tv-cash-detail-heading .tv-cash-print-button { display: none !important; }
   .workspace-territory .tv-cash-page { padding: 0; }
   .workspace-territory .tv-cash-layout { display: block; }
   .workspace-territory .tv-cash-detail { padding: 0; border: 0; box-shadow: none; }
+  .workspace-territory .tv-cash-print-only { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
   .workspace-territory .tv-pre-account { padding: 0; border: 0; border-radius: 0; color: #111; box-shadow: none; }
   .workspace-territory .tv-pre-account { background: #fff; }
   .workspace-territory .tv-pre-account * { color: #111 !important; }

@@ -1,6 +1,6 @@
 'use server'
 
-import type { CheckoutSettingsDTO, TableAccountDTO } from '@/domain/table-account'
+import type { CheckoutSettingsDTO, TableAccountDTO, TableAccountSummaryDTO } from '@/domain/table-account'
 import * as dal from '@/server/dal/table-accounts'
 import { runAction, type ActionResult } from './result'
 
@@ -8,7 +8,7 @@ export async function getTableAccountForTableAction(input: { restaurantId: strin
   return runAction(() => dal.getTableAccountForTable(input))
 }
 
-export async function listCashAccountsAction(restaurantId: string): Promise<ActionResult<{ active: TableAccountDTO[]; recentClosed: TableAccountDTO[] }>> {
+export async function listCashAccountsAction(restaurantId: string): Promise<ActionResult<{ active: TableAccountSummaryDTO[]; recentClosed: TableAccountSummaryDTO[] }>> {
   return runAction(() => dal.listCashAccounts(restaurantId))
 }
 

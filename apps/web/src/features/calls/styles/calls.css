@@ -7,9 +7,10 @@
 .workspace-territory .tv-call-summary-icon svg { width: 19px; height: 19px; }
 .workspace-territory .tv-call-summary-card.is-in_progress .tv-call-summary-icon { background: var(--tv-surface-2); color: var(--tv-text-2); }
 .workspace-territory .tv-call-summary-card.is-resolved .tv-call-summary-icon { background: var(--tv-ok-soft); color: var(--tv-ok); }
-.workspace-territory .tv-call-summary-copy { display: flex; flex-direction: column; gap: 3px; }
+.workspace-territory .tv-call-summary-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .workspace-territory .tv-call-summary-copy small { color: var(--tv-text-3); font-size: 11px; font-weight: 550; }
 .workspace-territory .tv-call-summary-copy strong { font-size: 24px; font-weight: 650; letter-spacing: -.04em; line-height: 1; }
+.workspace-territory .tv-call-summary-meta { color: var(--tv-text-3); font-size: 10px; line-height: 1.25; }
 .workspace-territory .tv-call-summary-arrow { width: 26px; height: 26px; margin-left: auto; display: grid; place-items: center; border-radius: 8px; color: var(--tv-text-3); opacity: .55; }
 .workspace-territory .tv-call-summary-arrow svg { width: 14px; height: 14px; }
 .workspace-territory .tv-call-summary-card.is-active .tv-call-summary-arrow { color: var(--tv-gold-text); opacity: 1; }
@@ -27,6 +28,15 @@
 .workspace-territory .tv-calls-list-head > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .workspace-territory .tv-calls-list-head strong { font-size: 12px; font-weight: 620; }
 .workspace-territory .tv-calls-list-head > div > span,.workspace-territory .tv-calls-list-count { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-calls-search { min-height: 46px; margin: 10px 12px 3px; padding: 0 8px 0 10px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-3); }
+.workspace-territory .tv-calls-search > svg { width: 15px; height: 15px; flex: 0 0 15px; }
+.workspace-territory .tv-calls-search input { width: 100%; min-width: 0; min-height: 40px; border: 0; outline: 0; background: transparent; color: var(--tv-text); font: inherit; font-size: 12px; }
+.workspace-territory .tv-calls-search input::placeholder { color: var(--tv-text-3); }
+.workspace-territory .tv-calls-search input::-webkit-search-cancel-button { display: none; }
+.workspace-territory .tv-calls-search:focus-within { border-color: var(--tv-gold); box-shadow: 0 0 0 2px var(--tv-gold-soft); }
+.workspace-territory .tv-calls-search button { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text-3); cursor: pointer; }
+.workspace-territory .tv-calls-search button:hover { background: var(--tv-surface); color: var(--tv-text); }
+.workspace-territory .tv-calls-search button svg { width: 14px; height: 14px; }
 .workspace-territory .tv-calls-refreshing { display: inline-flex; align-items: center; gap: 5px; color: var(--tv-text-3); font-size: 10px; white-space: nowrap; }
 .workspace-territory .tv-calls-refreshing svg { width: 13px; height: 13px; }
 .workspace-territory .tv-calls-list { max-height: 63dvh; margin: 0; padding: 8px; overflow: auto; list-style: none; }
@@ -53,7 +63,25 @@
 .workspace-territory .tv-calls-empty > span svg,.workspace-territory .tv-call-detail-empty > span svg { width: 21px; height: 21px; }
 .workspace-territory .tv-calls-empty strong,.workspace-territory .tv-call-detail-empty strong { color: var(--tv-text); font-size: 13px; font-weight: 620; }
 .workspace-territory .tv-calls-empty small,.workspace-territory .tv-call-detail-empty small { max-width: 260px; font-size: 11px; line-height: 1.5; }
+.workspace-territory .tv-calls-empty-clear { min-height: 44px; margin-top: 3px; padding: 0 13px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+.workspace-territory .tv-calls-search button:focus-visible,.workspace-territory .tv-calls-empty-clear:focus-visible,.workspace-territory .tv-call-search-context button:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-call-search-context { margin-bottom: 12px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); font-size: 11px; line-height: 1.45; }
+.workspace-territory .tv-call-search-context button { min-height: 44px; padding: 0 10px; flex: 0 0 auto; border: 1px solid var(--tv-line); border-radius: 8px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-weight: 600; cursor: pointer; }
 .workspace-territory .tv-call-detail { min-width: 0; padding: clamp(20px, 3vw, 34px); display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.workspace-territory .tv-call-detail-tabs { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 13px; }
+.workspace-territory .tv-call-detail-tabs-list { width: 100%; height: 52px; min-height: 52px; padding: 4px; display: flex; border: 1px solid var(--tv-line); border-radius: 13px; background: var(--tv-surface-2); }
+.workspace-territory .tv-call-detail-tabs-list [data-slot="tabs-trigger"] { height: 44px; min-width: 0; min-height: 44px; gap: 7px; border-radius: 9px; color: var(--tv-text-2); font-size: 12px; font-weight: 600; }
+.workspace-territory .tv-call-detail-tabs-list [data-slot="tabs-trigger"] svg { width: 15px; height: 15px; }
+.workspace-territory .tv-call-detail-tabs-list [data-slot="tabs-trigger"][data-active] { border-color: var(--tv-line); background: var(--tv-surface); color: var(--tv-text); box-shadow: 0 1px 3px rgb(0 0 0 / .08); }
+.workspace-territory .tv-call-detail-tabs-list [data-slot="tabs-trigger"]:focus-visible { z-index: 1; outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-call-service-panel { min-width: 0; display: flex; flex-direction: column; gap: 11px; }
+.workspace-territory .tv-call-table-order-panel { min-width: 0; }
+.workspace-territory .tv-call-table-order-panel .tv-order-entry { margin-top: 0; }
+.workspace-territory .tv-call-table-unavailable { min-height: 230px; padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px dashed var(--tv-line); border-radius: 14px; background: var(--tv-surface-2); color: var(--tv-text-3); text-align: center; }
+.workspace-territory .tv-call-table-unavailable > span { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--tv-surface); color: var(--tv-gold-text); }
+.workspace-territory .tv-call-table-unavailable > span svg { width: 19px; height: 19px; }
+.workspace-territory .tv-call-table-unavailable strong { color: var(--tv-text); font-size: 13px; font-weight: 620; }
+.workspace-territory .tv-call-table-unavailable small { max-width: 310px; font-size: 11px; line-height: 1.55; }
 .workspace-territory .tv-call-detail-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .workspace-territory .tv-call-reference { color: var(--tv-text-3); font-size: 10px; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
 .workspace-territory .tv-call-table-heading { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
@@ -77,7 +105,7 @@
 .workspace-territory .tv-call-assignment-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-surface-2); color: var(--tv-text-2); }
 .workspace-territory .tv-call-assignment-icon svg { width: 15px; height: 15px; }
 .workspace-territory .tv-call-assignment-card > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.workspace-territory .tv-call-assignment-card small { color: var(--tv-text-3); font-size: 9px; }
+.workspace-territory .tv-call-assignment-card small { color: var(--tv-text-3); font-size: 10px; }
 .workspace-territory .tv-call-assignment-card strong { overflow: hidden; font-size: 11px; font-weight: 610; text-overflow: ellipsis; white-space: nowrap; }
 .workspace-territory .tv-call-assignment-card > div > span { color: var(--tv-text-3); font-size: 9px; }
 .workspace-territory .tv-call-transfer-trigger { min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 9px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 10px; font-weight: 550; cursor: pointer; }
@@ -104,8 +132,8 @@
 .workspace-territory .tv-call-history-dot { position: absolute; top: 3px; left: 0; width: 9px; height: 9px; border: 2px solid var(--tv-gold-text); border-radius: 50%; background: var(--tv-surface); }
 .workspace-territory .tv-call-history-dot.is-resolved { border-color: var(--tv-ok); }
 .workspace-territory .tv-call-history li > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.workspace-territory .tv-call-history li strong { font-size: 10px; font-weight: 550; }
-.workspace-territory .tv-call-history li small,.workspace-territory .tv-call-history li time { color: var(--tv-text-3); font-size: 9px; }
+.workspace-territory .tv-call-history li strong { font-size: 11px; font-weight: 550; }
+.workspace-territory .tv-call-history li small,.workspace-territory .tv-call-history li time { color: var(--tv-text-3); font-size: 10px; }
 .workspace-territory .tv-call-history > p { margin: 12px 0 0; color: var(--tv-text-3); font-size: 10px; }
 .workspace-territory .tv-calls-load-more { width: calc(100% - 16px); min-height: 44px; margin: 0 8px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--tv-line); border-radius: 10px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 11px; cursor: pointer; }
 .workspace-territory .tv-calls-load-more:disabled { opacity: .6; cursor: progress; }
@@ -182,6 +210,12 @@
 .workspace-territory .tv-calls-loading .is-history-event { width: min(176px, 90%); height: 7px; }
 .workspace-territory .tv-calls-loading .is-history-actor { width: 102px; height: 7px; }
 .workspace-territory .tv-calls-loading .is-history-time { width: 42px; height: 7px; margin-left: auto; }
+.workspace-territory .tv-calls-loading-search { margin-top: 10px; pointer-events: none; }
+.workspace-territory .tv-calls-loading-search .is-search-icon { width: 14px; height: 14px; }
+.workspace-territory .tv-calls-loading-search .is-search-placeholder { width: 104px; height: 7px; }
+.workspace-territory .tv-call-detail-loading-tabs { width: 100%; height: 52px; margin: 0 0 13px; padding: 4px; display: flex; gap: 4px; border: 1px solid var(--tv-line); border-radius: 13px; background: var(--tv-surface-2); }
+.workspace-territory .tv-call-detail-loading-tabs span { height: 42px; flex: 1; }
+.workspace-territory .tv-call-detail-loading-tabs span:first-child { background: var(--tv-surface); }
 .workspace-territory .tv-call-row:focus-visible,.workspace-territory .tv-call-summary-card:focus-visible,.workspace-territory .tv-calls-sound:focus-visible,.workspace-territory .tv-calls-load-more:focus-visible,.workspace-territory .tv-call-transfer-trigger:focus-visible,.workspace-territory .tv-call-button:focus-visible,.workspace-territory .tv-call-dialog-close:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
 @keyframes tv-calls-pulse { to { opacity: .55; } }
 @keyframes tv-call-pulse { 50% { box-shadow: 0 0 0 7px transparent; } }
@@ -191,13 +225,16 @@
   .workspace-territory .tv-call-detail { padding: 22px; }
 }
 @media (max-width: 767px) {
+  .workspace-territory .tv-calls-search input { font-size: 16px; }
+  .workspace-territory .tv-call-detail-tabs-list [data-slot="tabs-trigger"] { gap: 5px; padding-right: 5px; padding-left: 5px; font-size: 11px; }
   .workspace-territory .tv-calls-page { padding: 14px 16px calc(76px + env(safe-area-inset-bottom)); }
   .workspace-territory .tv-calls-summary { gap: 7px; margin: 15px 0 12px; }
-  .workspace-territory .tv-call-summary-card { min-height: 74px; padding: 10px 9px; gap: 7px; border-radius: 12px; }
+  .workspace-territory .tv-call-summary-card { min-height: 80px; padding: 10px 9px; gap: 7px; border-radius: 12px; }
   .workspace-territory .tv-call-summary-icon { width: 30px; height: 30px; flex-basis: 30px; border-radius: 9px; }
   .workspace-territory .tv-call-summary-icon svg { width: 15px; height: 15px; }
-  .workspace-territory .tv-call-summary-copy small { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .workspace-territory .tv-call-summary-copy small { font-size: 10px; line-height: 1.2; }
   .workspace-territory .tv-call-summary-copy strong { font-size: 20px; }
+  .workspace-territory .tv-call-summary-meta { font-size: 9px; }
   .workspace-territory .tv-calls-loading-summary .tv-call-summary-copy { min-width: 0; flex: 1; }
   .workspace-territory .tv-calls-loading-summary .tv-calls-skeleton-line { max-width: 100%; flex-basis: auto; }
   .workspace-territory .tv-calls-loading-summary .is-summary-label { width: min(72px, 100%); }
@@ -211,11 +248,13 @@
   .workspace-territory .tv-calls-list-panel { border-right: 0; }
   .workspace-territory .tv-calls-list-head { min-height: 60px; padding: 10px 13px; }
   .workspace-territory .tv-calls-list-head strong { font-size: 11px; }
-  .workspace-territory .tv-calls-list { max-height: 38dvh; padding: 6px; }
+  .workspace-territory .tv-calls-list { max-height: none; padding: 6px; }
   .workspace-territory .tv-call-row { min-height: 70px; padding: 9px; gap: 8px; }
   .workspace-territory .tv-call-row-icon { width: 34px; height: 34px; flex-basis: 34px; }
   .workspace-territory .tv-call-row time { font-size: 9px; }
   .workspace-territory .tv-call-detail { min-height: 0; padding: 18px 13px 20px; border-top: 1px solid var(--tv-line); }
+  .workspace-territory .tv-call-search-context { align-items: flex-start; flex-direction: column; }
+  .workspace-territory .tv-call-search-context button { width: 100%; }
   .workspace-territory .tv-call-table-heading { margin-top: 15px; }
   .workspace-territory .tv-call-timing-card { min-height: 88px; padding: 13px; }
   .workspace-territory .tv-call-timing-card strong { font-size: 21px; }
@@ -226,6 +265,10 @@
   .workspace-territory .tv-call-transfer-head { padding: 20px 18px 15px; }
   .workspace-territory .tv-call-transfer-actions { flex-direction: column-reverse; }
   .workspace-territory .tv-call-transfer-actions .tv-call-button { width: 100%; }
+}
+@media (max-width: 390px) {
+  .workspace-territory .tv-call-summary-card { padding-right: 8px; padding-left: 8px; }
+  .workspace-territory .tv-call-summary-icon { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .workspace-territory .tv-call-summary-card,.workspace-territory .tv-call-row,.workspace-territory .tv-call-button { transition: none; }

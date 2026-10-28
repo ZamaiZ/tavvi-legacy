@@ -11,6 +11,7 @@ import {
   paymentMethodTypeSchema,
   type CheckoutSettingsDTO,
   type PaymentMethodDTO,
+  type TableAccountSummaryDTO,
   type TableAccountDTO,
   savePaymentMethodSchema,
   setPaymentMethodActiveSchema,
@@ -21,6 +22,10 @@ import { createUserClient } from './_client'
 
 type Db = Awaited<ReturnType<typeof createUserClient>>
 type AccountRow = Tables<'table_accounts'>
+type AccountSummaryRow = Pick<AccountRow,
+  'id' | 'restaurant_id' | 'table_number' | 'status' | 'tip_mode' | 'tip_percent_bps'
+  | 'tip_fixed_cents' | 'tip_accepted' | 'tip_amount_cents' | 'opened_at' | 'closed_at'
+>
 
 function ensureCashRole(role: string | null): asserts role is 'admin' | 'cashier' | 'attendant' | 'waiter' {
   if (!role) {
@@ -43,6 +48,22 @@ function objectDetails(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {}
+}
+
+const SUMMARY_PAGE_SIZE = 1000
+
+async function fetchAllRows<T>(
+  loadPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+  errorPrefix: string,
+): Promise<T[]> {
+  const rows: T[] = []
+  for (let offset = 0; ; offset += SUMMARY_PAGE_SIZE) {
+    const { data, error } = await loadPage(offset, offset + SUMMARY_PAGE_SIZE - 1)
+    if (error) throw new Error(`${errorPrefix}: ${error.message}`)
+    const page = data ?? []
+    rows.push(...page)
+    if (page.length < SUMMARY_PAGE_SIZE) return rows
+  }
 }
 
 async function hydrateAccounts(db: Db, rows: AccountRow[]): Promise<TableAccountDTO[]> {
@@ -166,6 +187,73 @@ async function hydrateAccounts(db: Db, rows: AccountRow[]): Promise<TableAccount
   })
 }
 
+async function summarizeAccounts(db: Db, rows: AccountSummaryRow[]): Promise<TableAccountSummaryDTO[]> {
+  if (!rows.length) return []
+  const accountIds = rows.map((row) => row.id)
+  const [orders, payments] = await Promise.all([
+    fetchAllRows(
+      (from, to) => db.from('orders').select('id, table_account_id').in('table_account_id', accountIds)
+        .order('id', { ascending: true }).range(from, to),
+      'Não foi possível resumir os pedidos das comandas',
+    ),
+    fetchAllRows(
+      (from, to) => db.from('table_account_payments').select('table_account_id, entry_type, amount_applied_cents')
+        .in('table_account_id', accountIds).order('id', { ascending: true }).range(from, to),
+      'Não foi possível resumir os recebimentos das comandas',
+    ),
+  ])
+
+  const orderToAccount = new Map(orders.map((order) => [order.id, order.table_account_id]))
+  const orderIds = [...orderToAccount.keys()]
+  const orderIdBatches: string[][] = []
+  for (let offset = 0; offset < orderIds.length; offset += 200) {
+    orderIdBatches.push(orderIds.slice(offset, offset + 200))
+  }
+  const itemBatches = await Promise.all(orderIdBatches.map((batch) => fetchAllRows(
+    (from, to) => db.from('order_items').select('order_id, line_total_cents, cancelled_at')
+      .in('order_id', batch).order('order_id', { ascending: true }).order('id', { ascending: true }).range(from, to),
+    'Não foi possível resumir os itens das comandas',
+  )))
+  const items = itemBatches.flat()
+
+  const subtotalByAccount = new Map<string, number>()
+  for (const item of items) {
+    if (item.cancelled_at) continue
+    const accountId = orderToAccount.get(item.order_id)
+    if (!accountId) continue
+    subtotalByAccount.set(accountId, (subtotalByAccount.get(accountId) ?? 0) + item.line_total_cents)
+  }
+  const paidByAccount = new Map<string, number>()
+  for (const payment of payments) {
+    const amount = payment.entry_type === 'received' ? payment.amount_applied_cents : -payment.amount_applied_cents
+    paidByAccount.set(payment.table_account_id, (paidByAccount.get(payment.table_account_id) ?? 0) + amount)
+  }
+
+  return rows.map((row) => {
+    const subtotal = safeCents(subtotalByAccount.get(row.id) ?? 0)
+    const tip = row.tip_accepted ? safeCents(row.tip_amount_cents) : 0
+    const paid = safeCents(paidByAccount.get(row.id) ?? 0)
+    return tableAccountSummarySchema.parse({
+      accountId: row.id,
+      restaurantId: row.restaurant_id,
+      tableNumber: row.table_number,
+      status: row.status,
+      tipMode: row.tip_mode,
+      tipPercentBps: row.tip_percent_bps,
+      tipFixedCents: row.tip_fixed_cents,
+      tipAccepted: row.tip_accepted,
+      tipAmountCents: row.tip_amount_cents,
+      openedAt: row.opened_at,
+      closedAt: row.closed_at,
+      subtotalCents: subtotal,
+      tipCents: tip,
+      totalCents: safeCents(subtotal + tip),
+      paidCents: paid,
+      balanceDueCents: safeCents(Math.max(subtotal + tip - paid, 0)),
+    })
+  })
+}
+
 export async function getTableAccountForTable(input: { restaurantId: unknown; tableNumber: number }): Promise<TableAccountDTO | null> {
   const restaurantId = uuidSchema.parse(input.restaurantId)
   if (!Number.isInteger(input.tableNumber) || input.tableNumber < 1) throw new UserFacingError('Número de mesa inválido.')
@@ -195,20 +283,22 @@ export async function getTableAccountDetails(input: { restaurantId: unknown; acc
   return accounts[0] ?? null
 }
 
-export async function listCashAccounts(restaurantIdValue: unknown): Promise<{ active: TableAccountDTO[]; recentClosed: TableAccountDTO[] }> {
+export async function listCashAccounts(restaurantIdValue: unknown): Promise<{ active: TableAccountSummaryDTO[]; recentClosed: TableAccountSummaryDTO[] }> {
   const restaurantId = uuidSchema.parse(restaurantIdValue)
   ensureCashRole(await myRole(restaurantId))
   const db = await getClient()
   const [activeResult, closedResult] = await Promise.all([
-    db.from('table_accounts').select('*').eq('restaurant_id', restaurantId)
+    db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
       .in('status', ['open', 'settling']).order('opened_at', { ascending: true }).order('id', { ascending: true }),
-    db.from('table_accounts').select('*').eq('restaurant_id', restaurantId)
+    db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
       .eq('status', 'closed').order('closed_at', { ascending: false }).order('id', { ascending: false }).limit(25),
   ])
   if (activeResult.error) throw new Error(`Não foi possível listar as comandas: ${activeResult.error.message}`)
   if (closedResult.error) throw new Error(`Não foi possível listar as contas fechadas: ${closedResult.error.message}`)
-  const active = await hydrateAccounts(db, (activeResult.data ?? []) as AccountRow[])
-  const recentClosed = await hydrateAccounts(db, (closedResult.data ?? []) as AccountRow[])
+  const [active, recentClosed] = await Promise.all([
+    summarizeAccounts(db, (activeResult.data ?? []) as AccountSummaryRow[]),
+    summarizeAccounts(db, (closedResult.data ?? []) as AccountSummaryRow[]),
+  ])
   return { active, recentClosed }
 }
 

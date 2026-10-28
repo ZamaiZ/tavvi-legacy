@@ -2,6 +2,7 @@
 
 import * as dal from '@/server/dal/menu-write'
 import * as saveDal from '@/server/dal/menu-item-save'
+import * as batchSaveDal from '@/server/dal/menu-items-batch-save'
 import { revalidateMenu } from '@/server/revalidate'
 import { runAction, type ActionResult } from './result'
 
@@ -73,5 +74,15 @@ export async function saveItemAction(input: unknown): Promise<ActionResult<{ id:
     const { itemId, ...revalidationTarget } = await saveDal.saveItem(input)
     revalidateMenu(revalidationTarget)
     return { id: itemId }
+  })
+}
+
+export async function saveMenuItemsBatchAction(
+  input: unknown,
+): Promise<ActionResult<{ itemIds: string[]; categoryIds: string[] }>> {
+  return runAction(async () => {
+    const { itemIds, categoryIds, ...revalidationTarget } = await batchSaveDal.saveMenuItemsBatch(input)
+    revalidateMenu(revalidationTarget)
+    return { itemIds, categoryIds }
   })
 }

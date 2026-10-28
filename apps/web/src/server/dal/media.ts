@@ -5,10 +5,13 @@ import {
   brandSlotSchema,
   discardUploadsSchema,
   itemUploadTicketSchema,
+  itemBatchUploadTicketsSchema,
+  discardItemBatchUploadsSchema,
   MEDIA_LIMITS,
   setBrandImageSchema,
   type BrandSlot,
   type MediaKind,
+  type BatchUploadTicket,
 } from '@/domain/media'
 import type { RevalidationTarget } from '@/server/revalidate'
 import { recordAudit } from '@/server/security/audit'
@@ -22,6 +25,18 @@ import {
 
 async function db() {
   return createUserClient(await currentTerritory())
+}
+
+async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let next = 0
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++
+      results[index] = await mapper(items[index])
+    }
+  }))
+  return results
 }
 
 const EXTENSION_BY_MIME: Record<string, string> = {
@@ -178,6 +193,57 @@ export async function createItemUploadTicket(
   return { itemId, path, signedUrl: ticket.signedUrl }
 }
 
+// Autoriza todos os arquivos do lote numa única chamada. O cliente informa
+// tipos e IDs locais, nunca caminhos; cada caminho é montado aqui.
+export async function createItemBatchUploadTickets(input: unknown): Promise<{ tickets: BatchUploadTicket[] }> {
+  const data = itemBatchUploadTicketsSchema.parse(input)
+  await requireRestaurantAdmin(data.restaurantId)
+
+  const supabase = await db()
+  const itemIds = [...new Set(data.files.map((file) => file.itemId))]
+  const { data: existingItems, error: lookupError } = await supabase
+    .from('menu_items')
+    .select('id')
+    .in('id', itemIds)
+  if (lookupError) throw new Error(`Não foi possível conferir os itens do lote: ${lookupError.message}`)
+  if ((existingItems ?? []).length > 0) throw new UserFacingError('Um item deste rascunho já existe. Atualize o cardápio e tente novamente.')
+
+  const tickets = await mapWithConcurrency(data.files, 8, async (file): Promise<BatchUploadTicket> => {
+    const limits = MEDIA_LIMITS[file.kind]
+    if (!(limits.mimes as readonly string[]).includes(file.mimeType)) {
+      throw new UserFacingError('Formato de arquivo não aceito.')
+    }
+    if (file.posterMimeType && file.kind !== 'video') {
+      throw new UserFacingError('Somente vídeos podem ter uma capa.')
+    }
+    const path = `${data.restaurantId}/${file.itemId}/${randomUUID()}.${EXTENSION_BY_MIME[file.mimeType]}`
+    const { data: ticket, error } = await supabase.storage.from(limits.bucket).createSignedUploadUrl(path)
+    if (error || !ticket) throw new UserFacingError('Não foi possível autorizar o envio das mídias.')
+
+    let poster: BatchUploadTicket['poster']
+    if (file.posterMimeType) {
+      const imageLimits = MEDIA_LIMITS.image
+      if (!(imageLimits.mimes as readonly string[]).includes(file.posterMimeType)) {
+        throw new UserFacingError('Formato de capa de vídeo não aceito.')
+      }
+      const posterPath = `${data.restaurantId}/${file.itemId}/${randomUUID()}.${EXTENSION_BY_MIME[file.posterMimeType]}`
+      const { data: posterTicket, error: posterError } = await supabase.storage
+        .from(imageLimits.bucket)
+        .createSignedUploadUrl(posterPath)
+      // A capa é opcional no fluxo individual: se a assinatura falhar, o
+      // feed ainda pode usar o primeiro quadro do vídeo.
+      if (posterError || !posterTicket) {
+        console.error('[media] autorização da capa de vídeo', posterError?.message)
+      } else {
+        poster = { bucket: imageLimits.bucket, path: posterPath, signedUrl: posterTicket.signedUrl }
+      }
+    }
+
+    return { itemId: file.itemId, mediaKey: file.mediaKey, kind: file.kind, bucket: limits.bucket, path, signedUrl: ticket.signedUrl, ...(poster ? { poster } : {}) }
+  })
+  return { tickets }
+}
+
 // Remove arquivos do storage, cada um no bucket do seu tipo. Melhor
 // esforço: uma falha aqui deixa um arquivo órfão (registrado no log), mas
 // nunca desfaz uma gravação que já deu certo.
@@ -213,6 +279,36 @@ export async function discardItemUploads(input: unknown): Promise<void> {
   ])
   if (byStorage.error || byPoster.error) {
     console.error('[media] conferência de sobras', byStorage.error ?? byPoster.error)
+    return
+  }
+  const used = new Set<string>([
+    ...(byStorage.data ?? []).map((row) => row.storage_path as string),
+    ...(byPoster.data ?? []).map((row) => row.poster_path as string),
+  ])
+  await removeStorageFiles(candidates.filter((file) => !used.has(file.path)))
+}
+
+// Limpa somente objetos com nome gerado pelo servidor, no prefixo do item,
+// e ainda não referenciados como mídia ou capa.
+export async function discardItemBatchUploads(input: unknown): Promise<void> {
+  const data = discardItemBatchUploadsSchema.parse(input)
+  await requireRestaurantAdmin(data.restaurantId)
+
+  const candidates = data.files.filter(({ itemId, path }) => {
+    const prefix = `${data.restaurantId}/${itemId}/`
+    const basename = path.startsWith(prefix) ? path.slice(prefix.length) : ''
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]+$/i.test(basename)
+  })
+  if (candidates.length === 0) return
+
+  const supabase = await db()
+  const paths = [...new Set(candidates.map((file) => file.path))]
+  const [byStorage, byPoster] = await Promise.all([
+    supabase.from('menu_item_media').select('storage_path').in('storage_path', paths),
+    supabase.from('menu_item_media').select('poster_path').in('poster_path', paths),
+  ])
+  if (byStorage.error || byPoster.error) {
+    console.error('[media] conferência de sobras do lote', byStorage.error ?? byPoster.error)
     return
   }
   const used = new Set<string>([

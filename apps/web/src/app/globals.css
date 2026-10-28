@@ -7,6 +7,7 @@
 @import "../features/workspace/styles/team.css";
 @import "../features/workspace/styles/panel.css";
 @import "../features/menu-editor/styles/menu-editor.css";
+@import "../features/menu-editor/styles/menu-bulk-create.css";
 @import "../features/auth/styles/auth.css";
 @import "../features/auth/styles/console-login.css";
 @import "../features/public-menu/styles/public-menu.css";

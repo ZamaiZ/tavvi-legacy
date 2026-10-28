@@ -9,14 +9,18 @@ import {
   LuCheckCheck,
   LuClock3,
   LuHistory,
+  LuSearch,
+  LuShoppingBag,
   LuTrash2,
   LuUserRound,
   LuVolume2,
   LuBellOff,
+  LuX,
 } from 'react-icons/lu'
 import { PageHeader } from '@/components/shell/page-header'
 import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { SpinnerRing } from '@/components/ui/spinner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { toast } from '@/components/ui/toast'
 import {
@@ -65,6 +69,7 @@ export function CallsScreen({
   initialPending,
   initialInProgress,
   initialResolved,
+  initialStatusCounts,
   initialTeam,
   focusedCall,
   orderableMenu,
@@ -77,6 +82,7 @@ export function CallsScreen({
   initialPending: ServiceCallPage
   initialInProgress: ServiceCallPage
   initialResolved: ServiceCallPage
+  initialStatusCounts: Partial<Record<ServiceCallStatus, number>>
   initialTeam: ServiceCallTeamMemberDTO[]
   focusedCall: ServiceCallDTO | null
   orderableMenu: OrderableMenuCategoryDTO[]
@@ -90,6 +96,8 @@ export function CallsScreen({
     resolved: initialResolved,
   })
   const [focusedCallState, setFocusedCallState] = useState(focusedCall)
+  const [statusCounts, setStatusCounts] = useState(initialStatusCounts)
+  const [queueSearch, setQueueSearch] = useState('')
   const [team, setTeam] = useState(initialTeam)
   const [filter, setFilter] = useState<ServiceCallStatus>(
     focusedCall?.status ?? (initialPending.items.length ? 'pending' : initialInProgress.items.length ? 'in_progress' : 'resolved'),
@@ -121,6 +129,15 @@ export function CallsScreen({
   const selected = allCalls.find((call) => call.id === selectedId)
     ?? (focusedCallState?.id === selectedId ? focusedCallState : null)
   const currentQueue = queues[filter]
+  const normalizedQueueSearch = queueSearch.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const tableSearch = normalizedQueueSearch.replace(/^mesa\s*/, '')
+  const visibleCalls = useMemo(
+    () => !tableSearch
+      ? currentQueue.items
+      : currentQueue.items.filter((call) => String(call.tableNumber).includes(tableSearch)),
+    [currentQueue.items, tableSearch],
+  )
+  const selectedVisible = !!selected && visibleCalls.some((call) => call.id === selected.id)
   const canTransfer = role === 'admin'
   const isAssignee = selected?.assignedTo === userId
 
@@ -141,6 +158,7 @@ export function CallsScreen({
       if (revision !== refreshRevision.current) return
       if (!dashboardResult.ok) {
         console.error('[service-calls] dashboard refresh failed', dashboardResult.error)
+        setStatusCounts({})
         void refreshPendingCount()
         return
       }
@@ -175,13 +193,17 @@ export function CallsScreen({
         removedSelectedCall && selectedCallId ? [selectedCallId] : [],
       ))
       if (dashboard.team !== undefined) setTeam(dashboard.team)
+      setStatusCounts(dashboard.statusCounts ?? {})
       if (dashboard.pendingCount !== undefined) updatePendingCount(dashboard.pendingCount)
       else void refreshPendingCount()
       if (includeEvents && dashboard.events !== undefined && selectedIdRef.current === selectedCallId) {
         setEvents(dashboard.events)
       }
     } catch (error) {
-      if (revision === refreshRevision.current) console.error('[service-calls] refresh failed', error)
+      if (revision === refreshRevision.current) {
+        console.error('[service-calls] refresh failed', error)
+        setStatusCounts({})
+      }
     } finally {
       if (revision === refreshRevision.current) setRefreshing(false)
     }
@@ -240,6 +262,8 @@ export function CallsScreen({
   }, [allCalls, filter, focusedCallState, queues, selectedId])
 
   function updateCall(call: ServiceCallDTO) {
+    refreshRevision.current += 1
+    setStatusCounts({})
     setQueues((current) => {
       const alreadyLoadedInDestination = current[call.status].items.some((item) => item.id === call.id)
       const next: QueueData = {
@@ -396,7 +420,20 @@ export function CallsScreen({
     apply()
   }
 
-  const callCount = (status: ServiceCallStatus) => `${queues[status].items.length}${queues[status].hasMore ? '+' : ''}`
+  const callCount = (status: ServiceCallStatus) => {
+    const exactCount = statusCounts[status]
+    return exactCount !== undefined
+      ? String(exactCount)
+      : `${queues[status].items.length}${queues[status].hasMore ? '+' : ''}`
+  }
+  const callCountLabel = (status: ServiceCallStatus) => {
+    const exactCount = statusCounts[status]
+    const noun = exactCount === 1 ? 'chamado' : 'chamados'
+    const statusPhrase = status === 'pending' ? 'aguardando' : status === 'in_progress' ? 'em atendimento' : exactCount === 1 ? 'concluído' : 'concluídos'
+    return exactCount !== undefined
+      ? `${exactCount} ${noun} ${statusPhrase} no total`
+      : `${queues[status].items.length}${queues[status].hasMore ? ' ou mais' : ''} ${queues[status].items.length === 1 ? 'chamado carregado' : 'chamados carregados'}${queues[status].hasMore ? '; há mais registros' : ''}`
+  }
   const selectedOwner = selected?.assignedTo ? memberNames.get(selected.assignedTo) ?? 'Membro da equipe' : null
   const selectedActor = selected?.resolvedBy ? memberNames.get(selected.resolvedBy) ?? 'Membro da equipe' : null
 
@@ -407,9 +444,9 @@ export function CallsScreen({
     <section className="tv-calls-summary" aria-label="Resumo dos chamados">
       {(['pending', 'in_progress', 'resolved'] as const).map((status) => {
         const Icon = status === 'pending' ? LuBell : status === 'in_progress' ? LuUserRound : LuCheckCheck
-        return <button type="button" key={status} className={`tv-call-summary-card is-${status}${filter === status ? ' is-active' : ''}`} aria-pressed={filter === status} onClick={() => selectStatus(status)}>
+        return <button type="button" key={status} className={`tv-call-summary-card is-${status}${filter === status ? ' is-active' : ''}`} aria-pressed={filter === status} aria-label={`${STATUS_LABELS[status]}: ${callCountLabel(status)}`} title={callCountLabel(status)} onClick={() => selectStatus(status)}>
           <span className="tv-call-summary-icon"><Icon aria-hidden="true" /></span>
-          <span className="tv-call-summary-copy"><small>{STATUS_LABELS[status]}</small><strong>{callCount(status)}</strong></span>
+          <span className="tv-call-summary-copy"><small>{STATUS_LABELS[status]}</small><strong>{callCount(status)}</strong><span className="tv-call-summary-meta">{statusCounts[status] !== undefined ? 'total' : queues[status].hasMore ? 'parcial' : 'carregados'}</span></span>
           <span className="tv-call-summary-arrow" aria-hidden="true"><LuArrowDownLeft /></span>
         </button>
       })}
@@ -426,66 +463,103 @@ export function CallsScreen({
       <section className="tv-calls-list-panel" aria-label={`Fila: ${STATUS_LABELS[filter]}`}>
         <div className="tv-calls-list-head">
           <div><strong>{filter === 'pending' ? 'Aguardando alguém da equipe' : filter === 'in_progress' ? 'Em atendimento agora' : 'Histórico de atendimentos'}</strong><span>{filter === 'resolved' ? 'Mais recentes primeiro' : 'Mais antigos primeiro'}</span></div>
-          {refreshing ? <span className="tv-calls-refreshing"><SpinnerRing decorative /> Atualizando</span> : <span className="tv-calls-list-count">{callCount(filter)} {filter === 'resolved' ? 'itens' : 'na fila'}</span>}
+          {refreshing ? <span className="tv-calls-refreshing"><SpinnerRing decorative /> Atualizando</span> : <span className="tv-calls-list-count" aria-live={normalizedQueueSearch ? 'polite' : undefined} aria-atomic={normalizedQueueSearch ? true : undefined}>{normalizedQueueSearch ? `${visibleCalls.length} ${visibleCalls.length === 1 ? 'resultado' : 'resultados'} carregados` : `${callCount(filter)} ${filter === 'resolved' ? 'itens' : 'na fila'}`}</span>}
         </div>
-        <CallList items={currentQueue.items} selectedId={selectedId} onSelect={selectCall} status={filter} memberNames={memberNames} now={now} />
+        <div className="tv-calls-search">
+          <LuSearch aria-hidden="true" />
+          <label className="sr-only" htmlFor="tv-calls-table-search">Buscar chamados por mesa</label>
+          <input
+            id="tv-calls-table-search"
+            type="search"
+            inputMode="numeric"
+            value={queueSearch}
+            onChange={(event) => setQueueSearch(event.target.value)}
+            placeholder="Buscar mesa"
+          />
+          {queueSearch ? <button type="button" aria-label="Limpar busca por mesa" onClick={() => setQueueSearch('')}><LuX aria-hidden="true" /></button> : null}
+        </div>
+        <CallList
+          items={visibleCalls}
+          selectedId={selectedId}
+          onSelect={selectCall}
+          status={filter}
+          memberNames={memberNames}
+          now={now}
+          hasMore={currentQueue.hasMore}
+          emptyReason={currentQueue.items.length && normalizedQueueSearch ? 'search' : 'queue'}
+          onClearSearch={() => setQueueSearch('')}
+        />
         {currentQueue.nextCursor ? <button type="button" className="tv-calls-load-more" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? <SpinnerRing decorative /> : null}{loadingMore ? 'Carregando…' : 'Carregar mais chamados'}</button> : null}
       </section>
 
       <section className="tv-call-detail" aria-label="Detalhes do chamado">
         {selected ? <>
+          {!selectedVisible && normalizedQueueSearch ? <div className="tv-call-search-context" role="status"><span>Mesa {selected.tableNumber} continua selecionada no detalhe, fora dos resultados desta busca.</span><button type="button" onClick={() => setQueueSearch('')}>Limpar busca</button></div> : null}
           <div className="tv-call-detail-topline"><span className={`tv-call-state is-${selected.status}`}>{STATUS_LABELS[selected.status]}</span><span className="tv-call-reference">#{selected.id.slice(0, 8).toUpperCase()}</span></div>
           <div className="tv-call-table-heading"><span className="tv-call-table-icon"><LuBell aria-hidden="true" /></span><div><small>Solicitação da mesa</small><h2>Mesa {selected.tableNumber}</h2></div></div>
           <p className="tv-call-detail-time"><LuClock3 aria-hidden="true" /><time dateTime={selected.createdAt} title={fullDateTime(selected.createdAt)}>Chamado {relativeTime(selected.createdAt)} · {formatCallTime(selected.createdAt)}</time></p>
 
-          <div className="tv-call-timing-card">
-            {selected.status === 'pending' ? <>
-              <div className="tv-call-timing-icon"><LuClock3 aria-hidden="true" /></div>
-              <div><small>Tempo na fila</small><strong>{formatElapsed(selected.createdAt, now)}</strong><span>O relógio para no primeiro aceite.</span></div>
-              <span className="tv-call-timing-pulse" aria-hidden="true" />
-            </> : selected.status === 'in_progress' ? <>
-              <div className="tv-call-timing-icon is-service"><LuUserRound aria-hidden="true" /></div>
-              <div><small>Tempo em atendimento</small><strong>{callServiceDuration(selected, now) ?? 'Não registrado'}</strong><span>Espera até o aceite: {callWaitDuration(selected) ?? 'Não registrada'}.</span></div>
-            </> : <>
-              <div className="tv-call-timing-icon is-done"><LuCheck aria-hidden="true" /></div>
-              <div><small>Tempo até o primeiro aceite</small><strong>{callWaitDuration(selected) ?? 'Não registrado'}</strong><span>Tempo de atendimento: {callServiceDuration(selected) ?? 'Não registrado'}.</span></div>
-            </>}
-          </div>
+          <Tabs key={selected.id} defaultValue="service" className="tv-call-detail-tabs">
+            <TabsList className="tv-call-detail-tabs-list" aria-label="Áreas do chamado">
+              <TabsTrigger value="service"><LuUserRound aria-hidden="true" />Atendimento</TabsTrigger>
+              <TabsTrigger value="table-order"><LuShoppingBag aria-hidden="true" />Mesa e pedido</TabsTrigger>
+            </TabsList>
+            <TabsContent value="service" className="tv-call-service-panel">
+              <div className="tv-call-timing-card">
+                {selected.status === 'pending' ? <>
+                  <div className="tv-call-timing-icon"><LuClock3 aria-hidden="true" /></div>
+                  <div><small>Tempo na fila</small><strong>{formatElapsed(selected.createdAt, now)}</strong><span>O relógio para no primeiro aceite.</span></div>
+                  <span className="tv-call-timing-pulse" aria-hidden="true" />
+                </> : selected.status === 'in_progress' ? <>
+                  <div className="tv-call-timing-icon is-service"><LuUserRound aria-hidden="true" /></div>
+                  <div><small>Tempo em atendimento</small><strong>{callServiceDuration(selected, now) ?? 'Não registrado'}</strong><span>Espera até o aceite: {callWaitDuration(selected) ?? 'Não registrada'}.</span></div>
+                </> : <>
+                  <div className="tv-call-timing-icon is-done"><LuCheck aria-hidden="true" /></div>
+                  <div><small>Tempo até o primeiro aceite</small><strong>{callWaitDuration(selected) ?? 'Não registrado'}</strong><span>Tempo de atendimento: {callServiceDuration(selected) ?? 'Não registrado'}.</span></div>
+                </>}
+              </div>
 
-          <div className="tv-call-assignment-card">
-            <span className="tv-call-assignment-icon"><LuUserRound aria-hidden="true" /></span>
-            <div><small>{selected.status === 'pending' ? 'Responsável' : 'Responsável atual'}</small><strong>{selectedOwner ?? (selected.status === 'pending' ? 'Aguardando alguém assumir' : 'Responsável indisponível')}</strong>{selected.firstClaimedAt ? <span>Assumido {relativeTime(selected.firstClaimedAt)}{selected.firstClaimedBy && memberNames.get(selected.firstClaimedBy) ? ` por ${memberNames.get(selected.firstClaimedBy)}` : ''}</span> : null}</div>
-            {canTransfer && selected.status === 'in_progress' ? <button type="button" className="tv-call-transfer-trigger" disabled={busy || orderDraft} title={orderDraft ? 'Confirme ou limpe o pedido antes de transferir' : undefined} onClick={() => setTransferOpen(true)}><LuArrowRightLeft aria-hidden="true" />Transferir</button> : null}
-          </div>
+              <div className="tv-call-assignment-card">
+                <span className="tv-call-assignment-icon"><LuUserRound aria-hidden="true" /></span>
+                <div><small>{selected.status === 'pending' ? 'Responsável' : 'Responsável atual'}</small><strong>{selectedOwner ?? (selected.status === 'pending' ? 'Aguardando alguém assumir' : 'Responsável indisponível')}</strong>{selected.firstClaimedAt ? <span>Assumido {relativeTime(selected.firstClaimedAt)}{selected.firstClaimedBy && memberNames.get(selected.firstClaimedBy) ? ` por ${memberNames.get(selected.firstClaimedBy)}` : ''}</span> : null}</div>
+                {canTransfer && selected.status === 'in_progress' ? <button type="button" className="tv-call-transfer-trigger" disabled={busy || orderDraft} title={orderDraft ? 'Confirme ou limpe o pedido antes de transferir' : undefined} onClick={() => setTransferOpen(true)}><LuArrowRightLeft aria-hidden="true" />Transferir</button> : null}
+              </div>
 
-          {selected.status === 'in_progress' && isAssignee ? <OrderEntry
-            key={selected.id}
-            restaurantId={restaurantId}
-            call={selected}
-            menu={orderableMenu}
-            initialAccount={initialAccount?.tableNumber === selected.tableNumber ? initialAccount : null}
-            mobile={mobile}
-            onDraftChange={setOrderDraft}
-          /> : null}
+              <div className="tv-call-action-area">
+                {selected.status === 'pending' ? <>
+                  <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => claim(selected)}>{busy ? <SpinnerRing decorative /> : <LuArrowDownLeft aria-hidden="true" />}{busy ? 'Assumindo chamado…' : 'Assumir chamado'}</button>
+                  <p className="tv-call-order-next-step">Depois de assumir, consulte a comanda. Registre itens e observações se houver pedido; você também pode concluir sem registrar itens.</p>
+                </> : null}
+                {selected.status === 'in_progress' && isAssignee ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy || orderDraft} onClick={() => resolve(selected)}>{busy ? <SpinnerRing decorative /> : <LuCheck aria-hidden="true" />}{busy ? 'Concluindo atendimento…' : orderDraft ? 'Confirme ou limpe o pedido antes de concluir' : 'Concluir atendimento'}</button> : null}
+                {selected.status === 'in_progress' && !isAssignee ? <p className="tv-call-permission-note">{selected.assignedTo ? 'A conclusão fica disponível para quem assumiu este chamado.' : 'Peça a um administrador para atribuir este chamado a alguém da equipe.'}</p> : null}
+                {selected.status === 'resolved' ? <p className="tv-call-completed-note"><LuCheckCheck aria-hidden="true" />Concluído {selected.resolvedAt ? relativeTime(selected.resolvedAt) : ''}{selectedActor ? ` por ${selectedActor}` : ''}</p> : null}
+              </div>
 
-          <div className="tv-call-action-area">
-            {selected.status === 'pending' ? <>
-              <button type="button" className="tv-call-button is-primary is-wide" disabled={busy} onClick={() => claim(selected)}>{busy ? <SpinnerRing decorative /> : <LuArrowDownLeft aria-hidden="true" />}{busy ? 'Assumindo chamado…' : 'Assumir chamado'}</button>
-              <p className="tv-call-order-next-step">Depois de assumir, registre os itens e observações da mesa antes de concluir o atendimento.</p>
-            </> : null}
-            {selected.status === 'in_progress' && isAssignee ? <button type="button" className="tv-call-button is-primary is-wide" disabled={busy || orderDraft} onClick={() => resolve(selected)}>{busy ? <SpinnerRing decorative /> : <LuCheck aria-hidden="true" />}{busy ? 'Concluindo atendimento…' : orderDraft ? 'Confirme ou limpe o pedido antes de concluir' : 'Concluir atendimento'}</button> : null}
-            {selected.status === 'in_progress' && !isAssignee ? <p className="tv-call-permission-note">{selected.assignedTo ? 'A conclusão fica disponível para quem assumiu este chamado.' : 'Peça a um administrador para atribuir este chamado a alguém da equipe.'}</p> : null}
-            {selected.status === 'resolved' ? <p className="tv-call-completed-note"><LuCheckCheck aria-hidden="true" />Concluído {selected.resolvedAt ? relativeTime(selected.resolvedAt) : ''}{selectedActor ? ` por ${selectedActor}` : ''}</p> : null}
-          </div>
-
-          <div className="tv-call-history">
-            <div className="tv-call-history-heading"><LuHistory aria-hidden="true" /><strong>Histórico do chamado</strong>{eventsLoading ? <SpinnerRing decorative /> : null}</div>
-            {events.length ? <ol>{events.map((event) => <li key={event.id}>
-              <span className={`tv-call-history-dot is-${event.eventType}`} aria-hidden="true" />
-              <div><strong>{eventTitle(event, memberNames)}</strong><small>{eventActor(event, memberNames)}</small></div>
-              <time dateTime={event.createdAt} title={fullDateTime(event.createdAt)}>{formatCallTime(event.createdAt)}</time>
-            </li>)}</ol> : <p>{eventsLoading ? 'Carregando histórico…' : selected.status === 'pending' ? 'Aguardando a primeira assunção deste chamado.' : selected.firstClaimedAt ? 'Nenhuma mudança posterior foi registrada.' : 'Chamado histórico anterior ao registro de atribuição.'}</p>}
-          </div>
+              <div className="tv-call-history">
+                <div className="tv-call-history-heading"><LuHistory aria-hidden="true" /><strong>Histórico do chamado</strong>{eventsLoading ? <SpinnerRing decorative /> : null}</div>
+                {events.length ? <ol>{events.map((event) => <li key={event.id}>
+                  <span className={`tv-call-history-dot is-${event.eventType}`} aria-hidden="true" />
+                  <div><strong>{eventTitle(event, memberNames)}</strong><small>{eventActor(event, memberNames)}</small></div>
+                  <time dateTime={event.createdAt} title={fullDateTime(event.createdAt)}>{formatCallTime(event.createdAt)}</time>
+                </li>)}</ol> : <p>{eventsLoading ? 'Carregando histórico…' : selected.status === 'pending' ? 'Aguardando a primeira assunção deste chamado.' : selected.firstClaimedAt ? 'Nenhuma mudança posterior foi registrada.' : 'Chamado histórico anterior ao registro de atribuição.'}</p>}
+              </div>
+            </TabsContent>
+            <TabsContent value="table-order" keepMounted className="tv-call-table-order-panel">
+              {selected.status === 'in_progress' && isAssignee ? <OrderEntry
+                key={selected.id}
+                restaurantId={restaurantId}
+                call={selected}
+                menu={orderableMenu}
+                initialAccount={initialAccount?.tableNumber === selected.tableNumber ? initialAccount : null}
+                mobile={mobile}
+                onDraftChange={setOrderDraft}
+              /> : <div className="tv-call-table-unavailable">
+                <span><LuShoppingBag aria-hidden="true" /></span>
+                <strong>{selected.status === 'pending' ? 'Mesa e pedido após assumir o chamado' : 'Registro de pedido indisponível'}</strong>
+                <small>{selected.status === 'pending' ? 'Assuma este chamado para consultar a comanda e registrar itens para a mesa.' : selected.status === 'in_progress' ? 'O registro de pedidos está disponível para quem assumiu este chamado.' : 'Os dados da comanda não estão disponíveis neste histórico.'}</small>
+              </div>}
+            </TabsContent>
+          </Tabs>
         </> : <div className="tv-call-detail-empty"><span><LuBell aria-hidden="true" /></span><strong>Escolha um chamado</strong><small>O responsável e os tempos de atendimento aparecem aqui.</small></div>}
       </section>
     </div>

@@ -27,6 +27,16 @@ export async function createItemUploadTicketAction(
   return runAction(() => dal.createItemUploadTicket(input))
 }
 
+export async function createItemBatchUploadTicketsAction(
+  input: unknown,
+): Promise<ActionResult<{ tickets: import('@/domain/media').BatchUploadTicket[] }>> {
+  return runAction(() => dal.createItemBatchUploadTickets(input))
+}
+
 export async function discardItemUploadsAction(input: unknown): Promise<ActionResult> {
   return runAction(() => dal.discardItemUploads(input))
+}
+
+export async function discardItemBatchUploadsAction(input: unknown): Promise<ActionResult> {
+  return runAction(() => dal.discardItemBatchUploads(input))
 }

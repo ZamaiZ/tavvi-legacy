@@ -13,11 +13,13 @@ export function PaymentEntry({
   account,
   methods,
   onUpdated,
+  onOperationStateChange,
 }: {
   restaurantId: string
   account: TableAccountDTO
   methods: PaymentMethodDTO[]
   onUpdated: (account: TableAccountDTO) => void
+  onOperationStateChange: (state: 'idle' | 'busy' | 'uncertain') => void
 }) {
   const [methodId, setMethodId] = useState(methods[0]?.id ?? '')
   const [amountText, setAmountText] = useState(formatCentsInput(account.balanceDueCents))
@@ -26,8 +28,11 @@ export function PaymentEntry({
   const [retryRequired, setRetryRequired] = useState(false)
   const [busy, startTransition] = useTransition()
   const requestIds = useRef(new Map<string, string>())
+  const methodSnapshots = useRef(new Map<string, PaymentMethodDTO>())
   const previousBalance = useRef(account.balanceDueCents)
-  const method = methods.find((entry) => entry.id === methodId) ?? null
+  const method = methods.find((entry) => entry.id === methodId)
+    ?? (retryRequired ? methodSnapshots.current.get(methodId) : undefined)
+    ?? null
   const appliedCents = digitsToCents(amountText)
   const receivedCents = method?.methodType === 'cash' ? digitsToCents(cashText) : null
   const changeCents = receivedCents !== null && appliedCents !== null ? Math.max(receivedCents - appliedCents, 0) : 0
@@ -41,14 +46,18 @@ export function PaymentEntry({
   useEffect(() => {
     const before = previousBalance.current
     previousBalance.current = account.balanceDueCents
-    if (before === account.balanceDueCents || retryRequired) return
+    if (before === account.balanceDueCents || retryRequired || busy) return
     setAmountText((current) => digitsToCents(current) === before ? formatCentsInput(account.balanceDueCents) : current)
     setCashText((current) => digitsToCents(current) === before ? formatCentsInput(account.balanceDueCents) : current)
-  }, [account.balanceDueCents, retryRequired])
+  }, [account.balanceDueCents, busy, retryRequired])
 
   useEffect(() => {
-    if (!methods.some((entry) => entry.id === methodId)) setMethodId(methods[0]?.id ?? '')
-  }, [methodId, methods])
+    for (const entry of methods) methodSnapshots.current.set(entry.id, entry)
+  }, [methods])
+
+  useEffect(() => {
+    if (!retryRequired && !methods.some((entry) => entry.id === methodId)) setMethodId(methods[0]?.id ?? '')
+  }, [methodId, methods, retryRequired])
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -58,6 +67,7 @@ export function PaymentEntry({
     const requestId = requestIds.current.get(fingerprint) ?? crypto.randomUUID()
     requestIds.current.set(fingerprint, requestId)
     setError(null)
+    onOperationStateChange('busy')
     startTransition(async () => {
       try {
         const result = await recordAccountPaymentAction({
@@ -73,30 +83,34 @@ export function PaymentEntry({
           if (isDefinitivePaymentRejection(result.error)) {
             setRetryRequired(false)
             requestIds.current.delete(fingerprint)
+            onOperationStateChange('idle')
           } else {
             setRetryRequired(true)
+            onOperationStateChange('uncertain')
           }
           return
         }
         setRetryRequired(false)
+        onOperationStateChange('idle')
         onUpdated(result.data)
         requestIds.current.delete(fingerprint)
         setAmountText(formatCentsInput(result.data.balanceDueCents))
         setCashText(formatCentsInput(result.data.balanceDueCents))
       } catch {
         setRetryRequired(true)
+        onOperationStateChange('uncertain')
         setError('Não foi possível confirmar o recebimento. Você pode tentar novamente sem duplicar o lançamento.')
       }
     })
   }
 
-  if (!methods.length) return <div className="tv-cash-payment-empty"><LuCircleAlert aria-hidden="true" />Nenhuma forma de pagamento está ativa para este restaurante.</div>
+  if (!methods.length && !retryRequired) return <div className="tv-cash-payment-empty"><LuCircleAlert aria-hidden="true" />Nenhuma forma de pagamento está ativa para este restaurante.</div>
 
   return <form className="tv-cash-payment-entry" onSubmit={submit}>
     <div className="tv-cash-payment-heading"><span><LuBanknote aria-hidden="true" /></span><div><strong>Registrar pagamento recebido</strong><small>Saldo atual: {defaultDisplay}</small></div></div>
     <p className="tv-cash-payment-explainer">Registre cada parte separadamente para combinar formas de pagamento. Um recebimento parcial atualiza o saldo e mantém a comanda aberta.</p>
     <div className="tv-cash-payment-fields">
-      <div className="tv-cash-payment-field"><span>Forma de pagamento</span><Combobox label="Forma de pagamento" value={methodId || null} options={methods.map((entry) => ({ value: entry.id, label: entry.name }))} disabled={retryRequired || busy} onValueChange={setMethodId} /></div>
+      <div className="tv-cash-payment-field"><span>Forma de pagamento</span>{retryRequired && method && !methods.some((entry) => entry.id === method.id) ? <strong className="tv-cash-payment-method-readonly">{method.name} · indisponível para novos recebimentos</strong> : <Combobox label="Forma de pagamento" value={methodId || null} options={methods.map((entry) => ({ value: entry.id, label: entry.name }))} disabled={retryRequired || busy} onValueChange={setMethodId} />}</div>
       <label><span>Valor aplicado à conta</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={amountText} disabled={retryRequired || busy} onChange={(event) => setAmountText(event.target.value)} onBlur={() => { const cents = digitsToCents(amountText); if (cents !== null) setAmountText(formatCentsInput(cents)) }} /></span></label>
       {method?.methodType === 'cash' ? <label><span>Valor recebido em dinheiro</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={cashText} disabled={retryRequired || busy} onChange={(event) => setCashText(event.target.value)} onBlur={() => { const cents = digitsToCents(cashText); if (cents !== null) setCashText(formatCentsInput(cents)) }} /></span></label> : null}
     </div>

@@ -11,7 +11,9 @@ import { CategorySection } from '@/features/menu-editor/components/category-sect
 import { ItemCard } from '@/features/menu-editor/components/item-card'
 import { ItemRow } from '@/features/menu-editor/components/item-row'
 import { MenuWorkModes, type MenuWorkMode } from '@/features/menu-editor/components/menu-work-modes'
+import { BulkCreateWorkspace } from '@/features/menu-editor/components/bulk-create-workspace'
 import { NewCategoryButton } from '@/features/menu-editor/components/new-category-button'
+import { NewBulkItemsButton } from '@/features/menu-editor/components/new-bulk-items-button'
 import { NewItemButton } from '@/features/menu-editor/components/new-item-button'
 import { PanelEmptyState } from './panel-empty-state'
 import { PublishCard } from './publish-card'
@@ -71,6 +73,7 @@ export function MenuWorkspace({
   const [query, setQuery] = useState('')
   const [reorderMode, setReorderMode] = useState(false)
   const [indexSelection, setIndexSelection] = useState('all')
+  const [bulkCreateOpen, setBulkCreateOpen] = useState(false)
 
   useEffect(() => {
     const saved = savedView(window.localStorage.getItem(`tv_menu_view_${restaurantId}`), canEdit)
@@ -181,22 +184,27 @@ export function MenuWorkspace({
     <main className="tv-mpage">
       <header className="tv-mhead">
         <div className="tv-mhead-copy">
-          <span className="tv-mhead-eyebrow">Cardápio</span>
-          <h1>{restaurantName}</h1>
-          <p>Organize os pratos que seus clientes vão encontrar.</p>
+          <span className="tv-mhead-eyebrow">{bulkCreateOpen ? 'Cardápio · Criação em massa' : 'Cardápio'}</span>
+          <h1>{bulkCreateOpen ? 'Adicionar vários itens' : restaurantName}</h1>
+          <p>{bulkCreateOpen ? 'Monte categorias e pratos em uma área de trabalho.' : 'Organize os pratos que seus clientes vão encontrar.'}</p>
         </div>
-        {canEdit ? (
+        {canEdit && !bulkCreateOpen ? (
           <div className="tv-mhead-actions">
             {!onboardingCompleted ? (
               <Link href={`/restaurantes/${restaurantId}/comecar`} className="tv-pbtn">
                 <LuSparkles className="tv-pbtn-gold" aria-hidden="true" />Primeiros passos
               </Link>
             ) : null}
+            <NewBulkItemsButton onClick={() => setBulkCreateOpen(true)} />
             <NewCategoryButton restaurantId={restaurantId} />
           </div>
         ) : null}
       </header>
 
+      {bulkCreateOpen ? (
+        <BulkCreateWorkspace restaurantId={restaurantId} categories={categories} onBack={() => setBulkCreateOpen(false)} />
+      ) : (
+        <>
       <PublishCard
         restaurantId={restaurantId}
         status={status}
@@ -315,6 +323,8 @@ export function MenuWorkspace({
           </div>
         )}
       </section>
+        </>
+      )}
     </main>
   )
 }

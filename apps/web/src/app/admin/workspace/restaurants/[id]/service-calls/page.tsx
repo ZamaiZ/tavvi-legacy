@@ -62,6 +62,7 @@ export default async function Page({ params, searchParams }: {
     initialPending={initialPending}
     initialInProgress={initialInProgress}
     initialResolved={initialResolved}
+    initialStatusCounts={dashboard.statusCounts ?? {}}
     initialTeam={initialTeam}
     focusedCall={focusedCall}
     orderableMenu={orderableMenu}

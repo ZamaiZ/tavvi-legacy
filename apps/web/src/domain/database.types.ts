@@ -1319,6 +1319,10 @@ export type Database = {
         Args: { p_payload: Json }
         Returns: Json
       }
+      save_menu_items_batch: {
+        Args: { p_payload: Json }
+        Returns: Json
+      }
       save_push_subscription: {
         Args: {
           p_auth: string

@@ -44,6 +44,10 @@ export default function Loading() {
               </div>
               <span className="tv-calls-skeleton-line is-list-count" />
             </div>
+            <div className="tv-calls-search tv-calls-loading-search" aria-hidden="true">
+              <span className="tv-calls-skeleton-block is-search-icon" />
+              <span className="tv-calls-skeleton-line is-search-placeholder" />
+            </div>
             <ul className="tv-calls-list">
               {Array.from({ length: 4 }, (_, index) => (
                 <li key={index}>
@@ -79,6 +83,10 @@ export default function Loading() {
             <div className="tv-call-detail-time">
               <span className="tv-calls-skeleton-block is-time-icon" />
               <span className="tv-calls-skeleton-line is-detail-time" />
+            </div>
+            <div className="tv-call-detail-loading-tabs" aria-hidden="true">
+              <span className="tv-calls-skeleton-block" />
+              <span className="tv-calls-skeleton-block" />
             </div>
             <div className="tv-call-timing-card">
               <span className="tv-call-timing-icon tv-calls-skeleton-block" />
