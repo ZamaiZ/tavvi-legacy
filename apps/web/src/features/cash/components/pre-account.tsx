@@ -1,5 +1,5 @@
 import { formatCents } from '@/lib/money'
-import type { TableAccountDTO } from '@/domain/table-account'
+import { formatTableAccountIdentity, type TableAccountDTO } from '@/domain/table-account'
 
 export function PreAccount({ restaurantName, account }: { restaurantName: string; account: TableAccountDTO }) {
   const tipStatus = account.tipMode === 'disabled'
@@ -8,13 +8,13 @@ export function PreAccount({ restaurantName, account }: { restaurantName: string
   return <section id="tv-pre-account" className="tv-pre-account" aria-label="Demonstrativo interno da comanda">
     <header className="tv-pre-account-header">
       <div><strong>{restaurantName}</strong><small>Pré-conta · demonstrativo interno não fiscal</small></div>
-      <div className="tv-pre-account-table"><small>Mesa</small><strong>{account.tableNumber}</strong></div>
+      <div className="tv-pre-account-table"><small>Comanda</small><strong>{formatTableAccountIdentity(account)}</strong></div>
     </header>
     <div className="tv-pre-account-meta"><span>Comanda aberta {new Date(account.openedAt).toLocaleString('pt-BR')}</span><span>Conta {account.accountId.slice(0, 8).toUpperCase()}</span></div>
 
     <div className="tv-pre-account-orders">
       {account.orders.map((order, index) => <section key={order.id}>
-        <div className="tv-pre-account-order-heading"><strong>Pedido {index + 1} · chamado {order.serviceCallId.slice(0, 8).toUpperCase()}</strong><span>{new Date(order.createdAt).toLocaleString('pt-BR')} · atendente {order.createdBy.slice(0, 8)}</span></div>
+        <div className="tv-pre-account-order-heading"><strong>Pedido {index + 1} · {order.serviceCallId ? `chamado ${order.serviceCallId.slice(0, 8).toUpperCase()}` : 'Caixa'}</strong><span>{new Date(order.createdAt).toLocaleString('pt-BR')} · atendente {order.createdBy.slice(0, 8)}</span></div>
         {order.items.map((item) => <div className={`tv-pre-account-item${item.cancelledAt ? ' is-cancelled' : ''}`} key={item.id}>
           <div><strong>{item.quantity}× {item.itemName}{item.variantName ? ` · ${item.variantName}` : ''}</strong><small>{item.categoryName}{item.note ? ` · Obs.: ${item.note}` : ''}{item.cancelledAt ? ` · Cancelado: ${item.cancelReason}` : ''}</small></div>
           <span>{formatCents(item.lineTotalCents)}</span>

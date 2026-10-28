@@ -1,12 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { LuCalendarClock, LuCircleDollarSign, LuRotateCcw, LuTrendingUp } from 'react-icons/lu'
+import { LuCalendarClock, LuCircleDollarSign, LuRotateCcw, LuTrendingUp, LuWallet } from 'react-icons/lu'
 import type { LegacyFinanceReportDTO } from '@/domain/finance'
 import { formatCents } from '@/lib/money'
 import { getLegacyFinanceReportAction } from '@/server/actions/finance'
 import { formatRestaurantDateTime } from './finance-time'
 import { FinanceDateRangeFilter } from './finance-date-range-filter'
+import { FinanceMethodList } from './finance-method-list'
 
 export function LegacyFinanceReport({ restaurantId, initialReport, refreshVersion }: {
   restaurantId: string
@@ -71,12 +72,11 @@ export function LegacyFinanceReport({ restaurantId, initialReport, refreshVersio
       <article className="tv-finance-metric"><span><LuTrendingUp aria-hidden="true" /> Vendas de consumo</span><strong>{formatCents(report.totals.consumptionSalesCents)}</strong><small>Itens registrados no período</small></article>
       <article className="tv-finance-metric"><span><LuCircleDollarSign aria-hidden="true" /> Gorjetas brutas</span><strong>{formatCents(report.totals.grossTipsCents)}</strong><small>Gorjetas aceitas no período</small></article>
       <article className="tv-finance-metric"><span><LuTrendingUp aria-hidden="true" /> Recebido</span><strong>{formatCents(report.totals.receivedCents)}</strong><small>Todos os meios de pagamento</small></article>
-      <article className="tv-finance-metric is-refund"><span><LuRotateCcw aria-hidden="true" /> Estornado</span><strong>{formatCents(report.totals.refundedCents)}</strong><small>Devoluções registradas no período</small></article>
+      {report.totals.refundedCents > 0 ? <article className="tv-finance-metric is-refund"><span><LuRotateCcw aria-hidden="true" /> Estornado</span><strong>{formatCents(report.totals.refundedCents)}</strong><small>Devoluções registradas no período</small></article> : null}
     </section>
-    {report.methods.length ? <div className="tv-finance-method-list">
-      {report.methods.map((method) => <div key={method.methodId}>
-        <strong>{method.methodName}</strong><span>Recebido <b>{formatCents(method.receivedCents)}</b></span><span>Estornado <b>{formatCents(method.refundedCents)}</b></span>
-      </div>)}
-    </div> : <p className="tv-finance-empty-inline">{report.hasHistory ? 'Não há recebimentos no intervalo escolhido.' : 'Não há registros sem dia de caixa neste intervalo.'}</p>}
+    {report.methods.length ? <section className="tv-finance-legacy-methods" aria-labelledby="tv-finance-legacy-methods-title">
+      <div className="tv-finance-legacy-methods-heading"><span><LuWallet aria-hidden="true" /></span><div><small>FORMAS DE PAGAMENTO</small><h3 id="tv-finance-legacy-methods-title">Recebimentos por método</h3></div></div>
+      <FinanceMethodList methods={report.methods} />
+    </section> : <p className="tv-finance-empty-inline">{report.hasHistory ? 'Não há recebimentos no intervalo escolhido.' : 'Não há registros sem dia de caixa neste intervalo.'}</p>}
   </section>
 }

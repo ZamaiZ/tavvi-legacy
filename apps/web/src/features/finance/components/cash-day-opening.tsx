@@ -1,25 +1,28 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { LuCircleDollarSign, LuCoins } from 'react-icons/lu'
 import type { DenominationCount, FinanceDashboardDTO } from '@/domain/finance'
-import { digitsToCents, formatCents, formatCentsInput } from '@/lib/money'
+import { formatCents } from '@/lib/money'
 import { openCashDayAction } from '@/server/actions/finance'
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { CashDenominationCounter, denominationTotal } from './cash-denomination-counter'
 import { useFinanceMutation } from './use-finance-mutation'
 
-export function CashDayOpening({ restaurantId, onUpdated }: {
+export function CashDayOpening({ restaurantId, onUpdated, onBusyChange }: {
   restaurantId: string
   onUpdated: (dashboard: FinanceDashboardDTO) => void
+  onBusyChange?: (busy: boolean) => void
 }) {
   const [mode, setMode] = useState<'total' | 'count'>('total')
-  const [amount, setAmount] = useState('0,00')
+  const [amount, setAmount] = useState<number | null>(0)
   const [counts, setCounts] = useState<DenominationCount>({})
   const mutation = useFinanceMutation(onUpdated)
+  useEffect(() => { onBusyChange?.(mutation.busy || mutation.locked) }, [mutation.busy, mutation.locked, onBusyChange])
   const countedCents = mode === 'count' ? denominationTotal(counts) : null
-  const openingCashCents = countedCents ?? digitsToCents(amount)
+  const openingCashCents = countedCents ?? amount
   const canOpen = openingCashCents !== null && openingCashCents <= 2_147_483_647
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -50,9 +53,9 @@ export function CashDayOpening({ restaurantId, onUpdated }: {
       </div>
       {mode === 'total' ? <label className="tv-finance-field tv-finance-opening-amount">
         <span>Fundo inicial em espécie</span>
-        <span className="tv-finance-money-input"><b>R$</b><input inputMode="numeric" value={amount} disabled={mutation.busy || mutation.locked}
-          onChange={(event) => { setAmount(event.target.value); mutation.clearError() }}
-          onBlur={() => { const cents = digitsToCents(amount); if (cents !== null) setAmount(formatCentsInput(cents)) }} /></span>
+        <span className="tv-finance-money-input"><b>R$</b><CurrencyInput valueCents={amount} maxCents={2_147_483_647}
+          aria-label="Fundo inicial em espécie, em reais" disabled={mutation.busy || mutation.locked}
+          onValueChange={(cents) => { setAmount(cents); mutation.clearError() }} /></span>
         <small>Esse valor faz parte do dinheiro esperado no fechamento.</small>
       </label> : <CashDenominationCounter label="Contagem do fundo inicial" counts={counts} disabled={mutation.busy || mutation.locked}
         onChange={(next) => { setCounts(next); mutation.clearError() }} />}

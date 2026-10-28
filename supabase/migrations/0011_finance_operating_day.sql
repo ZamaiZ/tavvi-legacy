@@ -15,7 +15,7 @@ begin
   if p_counts is null then return true; end if;
   if jsonb_typeof(p_counts) <> 'object' then return false; end if;
   for v_entry in select key, value from jsonb_each(p_counts) loop
-    if v_entry.key not in ('0.01','0.05','0.10','0.25','0.50','1.00','2.00','5.00','10.00','20.00','50.00','100.00','200.00')
+    if v_entry.key not in ('0.05','0.10','0.25','0.50','1.00','2.00','5.00','10.00','20.00','50.00','100.00','200.00')
        or jsonb_typeof(v_entry.value) <> 'number'
        or (v_entry.value #>> '{}') !~ '^[0-9]{1,9}$' then return false; end if;
     v_cents := (v_entry.key::numeric * 100)::integer;

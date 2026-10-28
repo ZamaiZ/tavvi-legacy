@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
-import { LuTriangleAlert, LuCircleCheck, LuLockKeyhole } from 'react-icons/lu'
+import { LuBanknote, LuCircleCheck, LuLockKeyhole, LuReceiptText, LuTriangleAlert } from 'react-icons/lu'
 import type { DenominationCount, FinanceDashboardDTO } from '@/domain/finance'
+import { formatTableAccountIdentity } from '@/domain/table-account'
 import type { MemberRole } from '@/domain/invite'
-import { digitsToCents, formatCents, formatCentsInput } from '@/lib/money'
+import { formatCents } from '@/lib/money'
 import { closeCashDayAction } from '@/server/actions/finance'
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { CashDenominationCounter, denominationTotal } from './cash-denomination-counter'
 import { useFinanceMutation } from './use-finance-mutation'
@@ -16,16 +18,18 @@ export function CashDayClosing({
   dashboard,
   role,
   onUpdated,
+  onBusyChange,
 }: {
   restaurantId: string
   dashboard: FinanceDashboardDTO
   role: MemberRole
   onUpdated: (dashboard: FinanceDashboardDTO) => void
+  onBusyChange?: (busy: boolean) => void
 }) {
   const day = dashboard.activeDay
   const blockers = dashboard.accountsBlockingClose
   const [mode, setMode] = useState<'total' | 'count'>('total')
-  const [amount, setAmount] = useState(formatCentsInput(dashboard.totals.expectedCashCents))
+  const [amount, setAmount] = useState<number | null>(dashboard.totals.expectedCashCents)
   const [amountEdited, setAmountEdited] = useState(false)
   const [counts, setCounts] = useState<DenominationCount>({})
   const [differenceReason, setDifferenceReason] = useState('')
@@ -33,13 +37,14 @@ export function CashDayClosing({
   const [exception, setException] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const mutation = useFinanceMutation(onUpdated)
+  useEffect(() => { onBusyChange?.(mutation.busy || mutation.locked) }, [mutation.busy, mutation.locked, onBusyChange])
   useEffect(() => {
-    if (!amountEdited) setAmount(formatCentsInput(dashboard.totals.expectedCashCents))
+    if (!amountEdited) setAmount(dashboard.totals.expectedCashCents)
   }, [amountEdited, dashboard.totals.expectedCashCents])
   if (!day) return null
   const cashDayId = day.id
 
-  const countedCents = mode === 'count' ? denominationTotal(counts) : digitsToCents(amount)
+  const countedCents = mode === 'count' ? denominationTotal(counts) : amount
   const difference = countedCents === null ? null : countedCents - dashboard.totals.expectedCashCents
   const requiresDifferenceReason = difference !== null && difference !== 0
   const canClose = countedCents !== null && countedCents >= 0 && countedCents <= 2_147_483_647
@@ -64,36 +69,60 @@ export function CashDayClosing({
       <small>Conte todo o dinheiro físico da gaveta, incluindo o fundo inicial. O sistema compara com o valor esperado.</small>
     </div></div>
 
-    {blockers.length ? <div className="tv-finance-blockers" role="note">
-      <div><LuTriangleAlert aria-hidden="true" /><strong>{blockers.length === 1 ? 'Uma comanda impede o fechamento normal' : `${blockers.length} comandas impedem o fechamento normal`}</strong></div>
-      <p>Finalize as comandas antes de fechar. Se a operação exigir, a administração pode encerrar excepcionalmente; os saldos restantes ficam como pendências e as mesas são liberadas.</p>
-      <ul>{blockers.map((account) => <li key={account.accountId}><span>Mesa {account.tableNumber}</span><b>{formatCents(account.balanceDueCents)} pendente</b></li>)}</ul>
-      {role === 'admin' ? <label className="tv-finance-exception-toggle"><input type="checkbox" checked={exception} disabled={mutation.busy || mutation.locked}
-        onChange={(event) => { setException(event.target.checked); setConfirmed(false); mutation.clearError() }} /> Fechar excepcionalmente e transportar os saldos como pendências</label>
-        : <p className="tv-finance-admin-note">A exceção só pode ser autorizada pela administração.</p>}
-      {role === 'admin' && exception ? <div className="tv-finance-exception-form">
-        <label>Justificativa obrigatória<textarea value={exceptionReason} disabled={mutation.busy || mutation.locked} maxLength={500} placeholder="Explique por que o caixa precisa ser fechado com comandas pendentes"
-          onChange={(event) => { setExceptionReason(event.target.value); mutation.clearError() }} /></label>
-        <label className="tv-finance-confirm-exception"><input type="checkbox" checked={confirmed} disabled={mutation.busy || mutation.locked || exceptionReason.trim().length < 3}
-          onChange={(event) => setConfirmed(event.target.checked)} /> Confirmo que {blockers.length} saldo(s) serão transferidos para recebimento posterior.</label>
+    {blockers.length ? <section className="tv-finance-blockers" role="note" aria-labelledby="tv-finance-blockers-title">
+      <div className="tv-finance-blockers-heading">
+        <span className="tv-finance-blockers-icon"><LuTriangleAlert aria-hidden="true" /></span>
+        <span><small>FECHAMENTO COM PENDÊNCIAS</small><strong id="tv-finance-blockers-title">
+          {blockers.length === 1 ? 'Uma comanda impede o fechamento normal' : `${blockers.length} comandas impedem o fechamento normal`}
+        </strong></span>
+        <b className="tv-finance-blockers-count">{blockers.length} {blockers.length === 1 ? 'saldo' : 'saldos'}</b>
+      </div>
+      <p>Finalize estas comandas para fechar normalmente. Se a operação exigir, a administração pode transportar os saldos como pendências e liberar as mesas.</p>
+      <ul>{blockers.map((account) => <li key={account.accountId}>
+        <span className="tv-finance-blocker-account-icon"><LuReceiptText aria-hidden="true" /></span>
+        <span className="tv-finance-blocker-account"><strong>{formatTableAccountIdentity(account)}</strong><small>Saldo que ficará disponível para recebimento posterior</small></span>
+        <b>{formatCents(account.balanceDueCents)}</b>
+      </li>)}</ul>
+      {role === 'admin' ? <label className="tv-finance-exception-toggle">
+        <input type="checkbox" checked={exception} disabled={mutation.busy || mutation.locked}
+          onChange={(event) => { setException(event.target.checked); setConfirmed(false); mutation.clearError() }} />
+        <span><strong>Fechar excepcionalmente</strong><small>Transportar os saldos listados e liberar as mesas após o fechamento.</small></span>
+      </label> : <p className="tv-finance-admin-note">O fechamento excepcional só pode ser autorizado pela administração.</p>}
+      {role === 'admin' ? <div className={`tv-finance-exception-reveal${exception ? ' is-open' : ''}`} aria-hidden={!exception} inert={!exception}>
+        <div className="tv-finance-exception-reveal-inner">
+          <div className="tv-finance-exception-form">
+            <div className="tv-finance-exception-heading"><LuReceiptText aria-hidden="true" /><span><strong>Justificativa e confirmação</strong><small>Esta informação ficará registrada na trilha de auditoria.</small></span></div>
+            <label>Justificativa obrigatória<textarea value={exceptionReason} disabled={mutation.busy || mutation.locked} maxLength={500} placeholder="Explique por que o caixa precisa ser fechado com comandas pendentes"
+              onChange={(event) => { setExceptionReason(event.target.value); mutation.clearError() }} /></label>
+            <label className="tv-finance-confirm-exception"><input type="checkbox" checked={confirmed} disabled={mutation.busy || mutation.locked || exceptionReason.trim().length < 3}
+              onChange={(event) => setConfirmed(event.target.checked)} /><span>Confirmo que {blockers.length} {blockers.length === 1 ? 'saldo será transferido' : 'saldos serão transferidos'} para recebimento posterior.</span></label>
+          </div>
+        </div>
       </div> : null}
-    </div> : null}
+    </section> : null}
 
     <form onSubmit={submit}>
-      <div className="tv-finance-closing-expected"><span>Dinheiro esperado no fechamento</span><strong>{formatCents(dashboard.totals.expectedCashCents)}</strong></div>
+      <div className="tv-finance-closing-expected">
+        <span className="tv-finance-closing-expected-icon"><LuBanknote aria-hidden="true" /></span>
+        <span className="tv-finance-closing-expected-copy"><small>BASE DE CONFERÊNCIA</small><span>Dinheiro esperado no fechamento</span></span>
+        <strong>{formatCents(dashboard.totals.expectedCashCents)}</strong>
+      </div>
       <div className="tv-finance-mode-tabs" role="group" aria-label="Como informar a contagem final">
         <button type="button" className={mode === 'total' ? 'is-active' : ''} aria-pressed={mode === 'total'} disabled={mutation.busy || mutation.locked} onClick={() => { setMode('total'); mutation.clearError() }}>Informar total</button>
         <button type="button" className={mode === 'count' ? 'is-active' : ''} aria-pressed={mode === 'count'} disabled={mutation.busy || mutation.locked} onClick={() => { setMode('count'); mutation.clearError() }}>Contar notas e moedas</button>
       </div>
       {mode === 'total' ? <label className="tv-finance-field tv-finance-counted-input">
-        <span>Dinheiro contado</span><span className="tv-finance-money-input"><b>R$</b><input inputMode="numeric" value={amount} disabled={mutation.busy || mutation.locked}
-          onChange={(event) => { setAmount(event.target.value); setAmountEdited(true); mutation.clearError() }}
-          onBlur={() => { const cents = digitsToCents(amount); if (cents !== null) setAmount(formatCentsInput(cents)) }} /></span>
+        <span>Dinheiro contado</span><span className="tv-finance-money-input"><b>R$</b><CurrencyInput valueCents={amount} maxCents={2_147_483_647}
+          aria-label="Dinheiro contado, em reais" disabled={mutation.busy || mutation.locked}
+          onValueChange={(cents) => { setAmount(cents); setAmountEdited(true); mutation.clearError() }} /></span>
       </label> : <CashDenominationCounter label="Contagem final do dinheiro" counts={counts} disabled={mutation.busy || mutation.locked}
         onChange={(next) => { setCounts(next); mutation.clearError() }} />}
-      <div className={`tv-finance-difference${requiresDifferenceReason ? ' is-different' : ''}`}>
-        <span>Diferença de caixa</span><strong>{difference === null ? '—' : `${difference > 0 ? '+' : difference < 0 ? '−' : ''}${formatCents(Math.abs(difference))}`}</strong>
-        <small>{difference === null ? 'Informe a contagem.' : difference === 0 ? 'A contagem confere com o esperado.' : difference > 0 ? 'Há mais dinheiro contado do que o esperado.' : 'Há menos dinheiro contado do que o esperado.'}</small>
+      <div className={`tv-finance-difference${requiresDifferenceReason ? ' is-different' : ''}${difference === null ? ' is-pending' : ''}`}>
+        <span className="tv-finance-difference-icon">{requiresDifferenceReason ? <LuTriangleAlert aria-hidden="true" /> : difference === 0 ? <LuCircleCheck aria-hidden="true" /> : <LuBanknote aria-hidden="true" />}</span>
+        <span className="tv-finance-difference-copy"><strong>Diferença de caixa</strong>
+          <small>{difference === null ? 'Informe a contagem.' : difference === 0 ? 'A contagem confere com o esperado.' : difference > 0 ? 'Há mais dinheiro contado do que o esperado.' : 'Há menos dinheiro contado do que o esperado.'}</small>
+        </span>
+        <b>{difference === null ? '—' : `${difference > 0 ? '+' : difference < 0 ? '−' : ''}${formatCents(Math.abs(difference))}`}</b>
       </div>
       {requiresDifferenceReason ? <label className="tv-finance-field">Motivo da diferença<textarea value={differenceReason} disabled={mutation.busy || mutation.locked} maxLength={500}
         placeholder="Registre o motivo para deixar uma trilha de conferência" onChange={(event) => { setDifferenceReason(event.target.value); mutation.clearError() }} /></label> : null}

@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import { LuBell, LuCheck, LuLoaderCircle } from 'react-icons/lu'
 import { toast } from '@/components/ui/toast'
 import { requestServiceCallAction } from '@/server/actions/service-calls'
+import { usePublicServiceCallStatus } from '../use-public-service-call-status'
 
 export function RequestServiceCall({ token }: { token: string }) {
   const [busy, startTransition] = useTransition()
-  const [sent, setSent] = useState(false)
+  const { call, loading, acceptRequestResult } = usePublicServiceCallStatus(token)
+  const active = call?.status === 'pending' || call?.status === 'in_progress'
 
   function request() {
-    if (busy) return
+    if (busy || loading || active) return
     startTransition(async () => {
       try {
         const result = await requestServiceCallAction({ token })
@@ -23,17 +25,11 @@ export function RequestServiceCall({ token }: { token: string }) {
           })
           return
         }
-        setSent(true)
-        toast.add({
+        acceptRequestResult({ callId: result.data.callId, status: result.data.status })
+        if (result.data.status === 'pending') toast.add({
           type: result.data.created ? 'success' : 'info',
-          title: result.data.created
-            ? 'Chamado enviado'
-            : result.data.status === 'in_progress' ? 'A equipe já está atendendo' : 'Chamado já está na fila',
-          description: result.data.created
-            ? `A equipe foi avisada sobre a mesa ${result.data.tableNumber}. Aguarde por aqui.`
-            : result.data.status === 'in_progress'
-              ? `A equipe já assumiu o atendimento da mesa ${result.data.tableNumber}.`
-              : `A equipe já foi avisada sobre a mesa ${result.data.tableNumber}. Seu chamado continua na fila.`,
+          title: result.data.created ? 'Chamado enviado' : 'Chamado já está na fila',
+          description: `A equipe foi avisada sobre a mesa ${result.data.tableNumber}. Aguarde ser atendido.`,
         })
       } catch {
         toast.add({
@@ -46,12 +42,18 @@ export function RequestServiceCall({ token }: { token: string }) {
     })
   }
 
+  const buttonLabel = busy ? 'Chamando…'
+    : loading ? 'Verificando chamado…'
+      : call?.status === 'pending' ? 'Aguarde ser atendido'
+        : call?.status === 'in_progress' ? 'Equipe está atendendo'
+          : 'Chamar equipe'
+
   return (
     <footer className="menu-call" role="group" aria-label="Solicitar atendimento">
       <div className="menu-call-inner">
-        <button type="button" className="menu-call-button" onClick={request} disabled={busy}>
-          {busy ? <LuLoaderCircle aria-hidden="true" className="menu-call-spin" /> : sent ? <LuCheck aria-hidden="true" /> : <LuBell aria-hidden="true" />}
-          {busy ? 'Chamando…' : sent ? 'Chamar novamente' : 'Chamar a equipe'}
+        <button type="button" className="menu-call-button" onClick={request} disabled={busy || loading || active}>
+          {busy || loading || call?.status === 'pending' ? <LuLoaderCircle aria-hidden="true" className="menu-call-spin" /> : call?.status === 'in_progress' ? <LuCheck aria-hidden="true" /> : <LuBell aria-hidden="true" />}
+          {buttonLabel}
         </button>
       </div>
     </footer>

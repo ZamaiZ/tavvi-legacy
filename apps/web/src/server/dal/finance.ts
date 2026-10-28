@@ -376,11 +376,11 @@ async function loadCarriedAccounts(db: Db, restaurantId: string, cashDayId: stri
       ? [{ accountId: event.table_account_id, balanceAtCloseCents: balance }]
       : []
   })
-  const accountById = new Map<string, Pick<Tables<'table_accounts'>, 'id' | 'table_number' | 'status'>>()
+  const accountById = new Map<string, Pick<Tables<'table_accounts'>, 'id' | 'table_number' | 'account_name' | 'walk_in_number' | 'status'>>()
   for (let offset = 0; offset < snapshots.length; offset += 200) {
     const batch = snapshots.slice(offset, offset + 200).map((snapshot) => snapshot.accountId)
-    const accounts = await fetchAll<Pick<Tables<'table_accounts'>, 'id' | 'table_number' | 'status'>>(
-      (from, to) => db.from('table_accounts').select('id, table_number, status')
+    const accounts = await fetchAll<Pick<Tables<'table_accounts'>, 'id' | 'table_number' | 'account_name' | 'walk_in_number' | 'status'>>(
+      (from, to) => db.from('table_accounts').select('id, table_number, account_name, walk_in_number, status')
         .eq('restaurant_id', restaurantId).in('id', batch).order('id').range(from, to),
       'Não foi possível carregar as comandas transportadas',
     )
@@ -393,10 +393,13 @@ async function loadCarriedAccounts(db: Db, restaurantId: string, cashDayId: stri
     return [{
       accountId: account.id,
       tableNumber: account.table_number,
+      accountName: account.account_name,
+      walkInNumber: account.walk_in_number,
       balanceAtCloseCents: snapshot.balanceAtCloseCents,
       currentStatus,
     }]
-  }).sort((a, b) => a.tableNumber - b.tableNumber)
+  }).sort((a, b) => (a.tableNumber ?? Number.MAX_SAFE_INTEGER) - (b.tableNumber ?? Number.MAX_SAFE_INTEGER)
+    || (a.walkInNumber ?? Number.MAX_SAFE_INTEGER) - (b.walkInNumber ?? Number.MAX_SAFE_INTEGER))
 }
 
 function throwRpcError(error: { message: string }): never {

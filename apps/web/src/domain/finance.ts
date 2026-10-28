@@ -3,7 +3,7 @@ import { plainTextSchema, uuidSchema } from './common'
 import type { TableAccountSummaryDTO } from './table-account'
 
 export const cashDenominations = [
-  '0.01', '0.05', '0.10', '0.25', '0.50', '1.00', '2.00', '5.00',
+  '0.05', '0.10', '0.25', '0.50', '1.00', '2.00', '5.00',
   '10.00', '20.00', '50.00', '100.00', '200.00',
 ] as const
 export type BRLDenomination = typeof cashDenominations[number]
@@ -140,7 +140,9 @@ export type CashDayHistoryPageDTO = {
 
 export type CashDayCarriedAccountDTO = {
   accountId: string
-  tableNumber: number
+  tableNumber: number | null
+  accountName: string | null
+  walkInNumber: number | null
   balanceAtCloseCents: number
   currentStatus: 'pending' | 'closed'
 }

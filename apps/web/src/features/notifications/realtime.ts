@@ -81,7 +81,7 @@ export async function openPrivateBroadcastChannel(
     }
     if (status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR || status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT) {
       handlers.onStatus?.('disconnected')
-      console.error('[notificações] canal', status, error?.message)
+      console.warn('[realtime] canal desconectado', topic, status, error?.message)
     }
     if (status === REALTIME_SUBSCRIBE_STATES.CLOSED) handlers.onStatus?.('disconnected')
   })

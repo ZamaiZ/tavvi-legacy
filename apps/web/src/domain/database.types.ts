@@ -50,7 +50,9 @@ type RestaurantPaymentMethodRow = {
 type TableAccountRow = {
   id: string
   restaurant_id: string
-  table_number: number
+  table_number: number | null
+  account_name: string | null
+  walk_in_number: number | null
   status: string
   tip_mode: string
   tip_percent_bps: number | null
@@ -87,6 +89,11 @@ type RestaurantCashDayRow = {
   close_request_fingerprint: string | null
 }
 
+type RestaurantWalkInSequenceRow = {
+  restaurant_id: string
+  last_number: number
+}
+
 type CashDayMovementRow = {
   id: string
   restaurant_id: string
@@ -104,7 +111,7 @@ type OrderRow = {
   id: string
   restaurant_id: string
   table_account_id: string
-  service_call_id: string
+  service_call_id: string | null
   request_id: string
   request_fingerprint: string
   created_by: string
@@ -203,6 +210,7 @@ export type Database = {
       table_account_events: FinancialTable<TableAccountEventRow>
       restaurant_cash_days: FinancialTable<RestaurantCashDayRow>
       cash_day_movements: FinancialTable<CashDayMovementRow>
+      restaurant_walk_in_sequences: FinancialTable<RestaurantWalkInSequenceRow>
       app_server_keys: {
         Row: {
           key_hash: string
@@ -1254,6 +1262,10 @@ export type Database = {
         Args: { p_key: string; p_token: string; p_allow_create?: boolean }
         Returns: { call_id: string; table_number: number; status: string; created: boolean }[]
       }
+      get_public_service_call_status: {
+        Args: { p_key: string; p_token: string }
+        Returns: { call_id: string; status: string }[]
+      }
       claim_service_call: {
         Args: { p_call_id: string }
         Returns: {
@@ -1387,6 +1399,17 @@ export type Database = {
       set_app_server_key: { Args: { p_key: string }; Returns: undefined }
       record_table_order: {
         Args: { p_call_id: string; p_request_id: string; p_items: Json }
+        Returns: Json
+      }
+      record_cash_table_order: {
+        Args: {
+          p_restaurant_id: string
+          p_account_id: string | null
+          p_table_number: number | null
+          p_account_name: string | null
+          p_request_id: string
+          p_items: Json
+        }
         Returns: Json
       }
       record_table_payment: {

@@ -1,8 +1,10 @@
 'use client'
 
 import { useCallback, useRef, useState, useTransition } from 'react'
-import { LuArrowLeft, LuPrinter, LuSettings2 } from 'react-icons/lu'
+import { LuArrowLeft, LuPlus, LuPrinter, LuSettings2, LuShoppingBag } from 'react-icons/lu'
 import type { MemberRole } from '@/domain/invite'
+import type { FinanceDashboardDTO } from '@/domain/finance'
+import type { OrderableMenuCategoryDTO } from '@/domain/orders'
 import type { CheckoutSettingsDTO, TableAccountDTO, TableAccountSummaryDTO } from '@/domain/table-account'
 import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { PageHeader } from '@/components/shell/page-header'
@@ -17,10 +19,13 @@ import {
   listPendingCashAccountsAction,
   reopenTableAccountAction,
 } from '@/server/actions/table-accounts'
+import { getFinanceDashboardAction } from '@/server/actions/finance'
 import { useTableAccountsRealtime } from '../use-table-accounts-realtime'
+import { CashDayOperation } from './cash-day-operation'
 import { CashSettings } from './cash-settings'
 import { CashAccountList } from './cash-account-list'
 import { CashAccountTabs, type CashOperationState, type CashTab } from './cash-account-tabs'
+import { CashOrderDialog } from './cash-order-dialog'
 
 export function CashScreen({
   restaurantId,
@@ -31,6 +36,8 @@ export function CashScreen({
   initialRecentClosed,
   initialSelectedAccount,
   initialSettings,
+  initialFinanceDashboard,
+  menu,
 }: {
   restaurantId: string
   restaurantName: string
@@ -40,15 +47,21 @@ export function CashScreen({
   initialRecentClosed: TableAccountSummaryDTO[]
   initialSelectedAccount: TableAccountDTO | null
   initialSettings: CheckoutSettingsDTO
+  initialFinanceDashboard: FinanceDashboardDTO | null
+  menu: OrderableMenuCategoryDTO[]
 }) {
   const mobile = useIsMobile()
   const [active, setActive] = useState<TableAccountSummaryDTO[]>(initialActive)
   const [pending, setPending] = useState<TableAccountSummaryDTO[]>(initialPending)
   const [recentClosed, setRecentClosed] = useState(initialRecentClosed)
   const [settings, setSettings] = useState(initialSettings)
+  const [financeDashboard, setFinanceDashboard] = useState(initialFinanceDashboard)
+  const canManageCashDay = role === 'admin' || role === 'cashier'
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedAccount?.accountId ?? initialActive[0]?.accountId ?? initialPending[0]?.accountId ?? initialRecentClosed[0]?.accountId ?? null)
   const [selectedAccount, setSelectedAccount] = useState<TableAccountDTO | null>(initialSelectedAccount)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [orderOpen, setOrderOpen] = useState(false)
+  const [orderTarget, setOrderTarget] = useState<TableAccountSummaryDTO | null>(null)
   const [mobileAccountsOpen, setMobileAccountsOpen] = useState(true)
   const [selectedTab, setSelectedTab] = useState<CashTab>('conta')
   const [operationState, setOperationState] = useState<CashOperationState>('idle')
@@ -69,6 +82,7 @@ export function CashScreen({
   const operationLockedRef = useRef(false)
   const settlementRequestIds = useRef(new Map<string, string>())
   const refreshRevision = useRef(0)
+  const financeRevision = useRef(0)
   const detailRevision = useRef(0)
   const selectedIdRef = useRef<string | null>(selectedId)
   const selectedStatusRef = useRef(initialSelectedAccount?.status ?? null)
@@ -100,17 +114,20 @@ export function CashScreen({
 
   const refresh = useCallback(async () => {
     const revision = ++refreshRevision.current
+    const financeRequest = canManageCashDay ? ++financeRevision.current : null
     setRefreshing(true)
     try {
-      const [result, pendingResult, settingsResult] = await Promise.all([
+      const [result, pendingResult, settingsResult, financeResult] = await Promise.all([
         listCashAccountsAction(restaurantId),
         listPendingCashAccountsAction(restaurantId),
         getCheckoutSettingsAction(restaurantId),
+        canManageCashDay ? getFinanceDashboardAction({ restaurantId }) : Promise.resolve(null),
       ])
       if (revision !== refreshRevision.current) return
       if (!result.ok) { setError(result.error); return }
       if (!pendingResult.ok) { setError(pendingResult.error); return }
       if (settingsResult.ok) setSettings(settingsResult.data)
+      if (financeResult?.ok && financeRequest === financeRevision.current) setFinanceDashboard(financeResult.data)
       setError(settingsResult.ok ? null : settingsResult.error)
       setActive(result.data.active)
       setRecentClosed(result.data.recentClosed)
@@ -160,8 +177,25 @@ export function CashScreen({
     } finally {
       if (revision === refreshRevision.current) setRefreshing(false)
     }
-  }, [restaurantId])
+  }, [canManageCashDay, restaurantId])
   const realtimeStatus = useTableAccountsRealtime(restaurantId, refresh)
+
+  const updateFinanceDashboard = useCallback((next: FinanceDashboardDTO) => {
+    financeRevision.current++
+    setFinanceDashboard(next)
+    void refresh()
+  }, [refresh])
+
+  const selectAfterOrder = useCallback(async (accountId: string) => {
+    selectedIdRef.current = accountId
+    selectedStatusRef.current = 'open'
+    setSelectedId(accountId)
+    setListFilter('active')
+    setMobileAccountsOpen(false)
+    setSelectedTab('conta')
+    setError(null)
+    await refresh()
+  }, [refresh])
 
   function updateOperationState(state: CashOperationState) {
     operationStateRef.current = state
@@ -282,10 +316,16 @@ export function CashScreen({
 
   return <div className={`tv-cash-page${mobile && !showMobileAccounts ? ' is-detail-open' : ''}`}>
     <MobileNavBar backHref={`/restaurantes/${restaurantId}`} backLabel="Cardápio" />
-    <PageHeader className="tv-cash-page-header" eyebrow="Comandas e recebimentos" title="Caixa" description="Acompanhe contas por mesa, registre pagamentos recebidos e confira o demonstrativo antes de encerrar." actions={role === 'admin' ? <Button type="button" variant="outline" size="lg" className="tv-cash-settings-trigger" disabled={operationState !== 'idle' || busy} aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurações do caixa</Button> : undefined} />
+    <PageHeader className="tv-cash-page-header" eyebrow="Comandas e recebimentos" title="Caixa" description="Registre pedidos por mesa ou comanda, acompanhe pagamentos e confira o consumo antes de encerrar." actions={role === 'admin' ? <Button type="button" variant="outline" size="lg" className="tv-cash-settings-trigger" disabled={operationState !== 'idle' || busy} aria-haspopup="dialog" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><LuSettings2 aria-hidden="true" />Configurações do caixa</Button> : undefined} />
     <div className="tv-cash-toolbar">
       <span className={`tv-cash-live is-${realtimeStatus}`} role="status"><i aria-hidden="true" />{realtimeStatus === 'connected' ? 'Atualizado ao vivo' : realtimeStatus === 'connecting' ? 'Conectando ao tempo real' : 'Conexão interrompida · atualiza ao voltar à página'}</span>
+      <div className="tv-cash-order-actions">
+        {selected?.status === 'open' ? <Button type="button" variant="outline" size="lg" disabled={operationState !== 'idle' || busy} onClick={() => { setOrderTarget(selected); setOrderOpen(true) }}><LuShoppingBag aria-hidden="true" />Lançar pedido</Button> : null}
+        <Button type="button" size="lg" disabled={operationState !== 'idle' || busy} onClick={() => { setOrderTarget(null); setOrderOpen(true) }}><LuPlus aria-hidden="true" />Novo pedido</Button>
+      </div>
     </div>
+
+    {canManageCashDay && financeDashboard ? <CashDayOperation restaurantId={restaurantId} role={role} dashboard={financeDashboard} onUpdated={updateFinanceDashboard} /> : null}
 
     {error ? <p className="tv-cash-error" role="alert">{error}<button type="button" onClick={() => setError(null)}>Fechar</button></p> : null}
     <div className={`tv-cash-layout${mobile ? ' is-mobile' : ''}`}>
@@ -337,6 +377,7 @@ export function CashScreen({
       onOpenChange={setSettingsOpen}
       onSaved={setSettings}
     /> : null}
+    <CashOrderDialog open={orderOpen} onOpenChange={setOrderOpen} restaurantId={restaurantId} menu={menu} mobile={mobile} target={orderTarget} onRecorded={selectAfterOrder} />
   </div>
 }
 
@@ -345,6 +386,8 @@ function toSummary(account: TableAccountDTO): TableAccountSummaryDTO {
     accountId: account.accountId,
     restaurantId: account.restaurantId,
     tableNumber: account.tableNumber,
+    accountName: account.accountName,
+    walkInNumber: account.walkInNumber,
     status: account.status,
     tipMode: account.tipMode,
     tipPercentBps: account.tipPercentBps,

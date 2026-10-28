@@ -10,6 +10,7 @@ import type {
   ServiceCallRequest,
   ServiceCallTeamMemberDTO,
   ServiceCallDTO,
+  PublicServiceCallStatusDTO,
   ServiceCallsDashboard,
   TransferServiceCallOutcome,
 } from '@/domain/service-call'
@@ -29,6 +30,10 @@ export async function requestServiceCallAction(input: unknown): Promise<ActionRe
     }
     return result
   })
+}
+
+export async function getPublicServiceCallStatusAction(input: unknown): Promise<ActionResult<PublicServiceCallStatusDTO>> {
+  return runAction(() => publicDal.getPublicServiceCallStatus(input))
 }
 
 export async function listServiceCallsAction(input: unknown): Promise<ActionResult<ServiceCallPage>> {

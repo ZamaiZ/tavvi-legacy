@@ -58,7 +58,7 @@ export function getRestaurantNavigation(
   role: MemberRole | null,
 ): NavItem[] {
   const root = `/restaurantes/${restaurantId}`
-  const children: NavLeaf[] = [
+  const operation: NavLeaf[] = [
     {
       kind: 'leaf',
       href: root,
@@ -77,7 +77,7 @@ export function getRestaurantNavigation(
   ]
 
   if (role) {
-    children.push({
+    operation.push({
       kind: 'leaf',
       href: `${root}/cash`,
       label: 'Caixa',
@@ -87,26 +87,30 @@ export function getRestaurantNavigation(
     })
   }
 
+  if (role === 'admin') {
+    operation.push({
+      kind: 'leaf',
+      href: `${root}/identificadores`,
+      label: 'Identificadores',
+      icon: 'tag',
+      description: 'Associe cada identificador a uma mesa',
+    })
+  }
+
+  const management: NavLeaf[] = []
   if (role === 'admin' || role === 'cashier') {
-    children.push({
+    management.push({
       kind: 'leaf',
       href: `${root}/financeiro`,
       label: 'Financeiro',
-      icon: 'cash',
+      icon: 'finance',
       description: 'Acompanhe recebimentos e o caixa do dia',
       keywords: ['caixa diário', 'fundo inicial', 'fechamento', 'movimentações'],
     })
   }
 
   if (role === 'admin') {
-    children.push(
-      {
-        kind: 'leaf',
-        href: `${root}/identificadores`,
-        label: 'Identificadores',
-        icon: 'tag',
-        description: 'Associe cada identificador a uma mesa',
-      },
+    management.push(
       {
         kind: 'leaf',
         href: `${root}/feedbacks`,
@@ -114,22 +118,6 @@ export function getRestaurantNavigation(
         icon: 'feedback',
         description: 'Comentários e fotos dos clientes',
         keywords: ['avaliação', 'reclamação', 'opinião', 'cliente'],
-      },
-      {
-        kind: 'leaf',
-        href: `${root}/identidade`,
-        label: 'Identidade',
-        icon: 'palette',
-        description: 'Marca, cores, fontes e imagens',
-        keywords: ['tema', 'logo', 'aparência'],
-      },
-      {
-        kind: 'leaf',
-        href: `${root}/contato`,
-        label: 'Contato',
-        icon: 'contact',
-        description: 'Informações públicas do restaurante',
-        keywords: ['telefone', 'endereço', 'redes'],
       },
       {
         kind: 'leaf',
@@ -143,14 +131,18 @@ export function getRestaurantNavigation(
   }
 
   return [
-    {
-      kind: 'group',
-      id: 'restaurant',
-      label: 'Restaurante',
-      icon: 'restaurant',
-      description: 'Cardápio e operações',
-      children,
-    },
+    { kind: 'group', id: 'operation', label: 'Operação', icon: 'restaurant', children: operation },
+    ...(management.length ? [{ kind: 'group' as const, id: 'management', label: 'Gestão', icon: 'store' as const, children: management }] : []),
+    ...(role === 'admin' ? [{
+      kind: 'group' as const,
+      id: 'public-profile',
+      label: 'Perfil público',
+      icon: 'palette' as const,
+      children: [
+        { kind: 'leaf' as const, href: `${root}/identidade`, label: 'Identidade', icon: 'palette' as const, description: 'Marca, cores, fontes e imagens', keywords: ['tema', 'logo', 'aparência'] },
+        { kind: 'leaf' as const, href: `${root}/contato`, label: 'Contato', icon: 'contact' as const, description: 'Informações públicas do restaurante', keywords: ['telefone', 'endereço', 'redes'] },
+      ],
+    }] : []),
   ]
 }
 

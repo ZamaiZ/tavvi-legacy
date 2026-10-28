@@ -7,11 +7,11 @@ export function AccountConsumption({ account }: { account: TableAccountDTO }) {
 
   return <section className="tv-cash-consumption" aria-labelledby="tv-cash-consumption-title">
     <header className="tv-cash-panel-heading">
-      <div><span>CONFERÊNCIA</span><h3 id="tv-cash-consumption-title">Consumo da mesa</h3><p>{itemCount} {itemCount === 1 ? 'item' : 'itens'} · {account.orders.length} {account.orders.length === 1 ? 'pedido' : 'pedidos'}</p></div>
+      <div><span>CONFERÊNCIA</span><h3 id="tv-cash-consumption-title">Consumo da comanda</h3><p>{itemCount} {itemCount === 1 ? 'item' : 'itens'} · {account.orders.length} {account.orders.length === 1 ? 'pedido' : 'pedidos'}</p></div>
     </header>
     {account.orders.length ? <div className="tv-cash-orders">
       {account.orders.map((order, index) => <section className="tv-cash-order" key={order.id}>
-        <header><strong>Pedido {index + 1} <span>· chamado {order.serviceCallId.slice(0, 8).toUpperCase()}</span></strong><small>{new Date(order.createdAt).toLocaleString('pt-BR')}</small></header>
+        <header><strong>Pedido {index + 1} <span>· {order.serviceCallId ? `chamado ${order.serviceCallId.slice(0, 8).toUpperCase()}` : 'Caixa'}</span></strong><small>{new Date(order.createdAt).toLocaleString('pt-BR')}</small></header>
         {order.items.map((item) => <div className={`tv-cash-order-item${item.cancelledAt ? ' is-cancelled' : ''}`} key={item.id}>
           <div><strong>{item.quantity}× {item.itemName}{item.variantName ? ` · ${item.variantName}` : ''}</strong><small>{item.categoryName}{item.note ? ` · Obs.: ${item.note}` : ''}{item.cancelledAt ? ` · Cancelado: ${item.cancelReason}` : ''}</small></div>
           <span>{formatCents(item.lineTotalCents)}</span>

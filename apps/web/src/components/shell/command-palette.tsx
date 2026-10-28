@@ -18,7 +18,6 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTheme, type Theme } from '@/components/theme/theme-provider'
-import { flattenNavItems } from './navigation'
 import { getNavIcon } from './navigation-icons'
 import { useProgressNavigate } from './navigation-progress'
 import type { TavviShellConfig } from './navigation.types'
@@ -111,7 +110,9 @@ export function CommandPalette({ config }: { config: TavviShellConfig }) {
   const open = useCommandPaletteOpen()
   const navigateWithProgress = useProgressNavigate()
   const { setTheme } = useTheme()
-  const items = flattenNavItems(config.items)
+  const groups = config.items.map((item) => item.kind === 'group'
+    ? { label: item.label, items: item.children }
+    : { label: 'Navegação', items: [item] })
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -147,13 +148,13 @@ export function CommandPalette({ config }: { config: TavviShellConfig }) {
         <CommandInput placeholder="Buscar páginas e ações…" />
         <CommandList>
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
-          <CommandGroup heading="Navegação">
-            {items.map((item) => {
+          {groups.map((group) => <CommandGroup heading={group.label} key={group.label}>
+            {group.items.map((item) => {
               const Icon = getNavIcon(item.icon)
               return (
                 <CommandItem
                   key={item.href}
-                  value={[item.label, ...(item.keywords ?? [])].join(' ')}
+                  value={[item.label, group.label, ...(item.keywords ?? [])].join(' ')}
                   disabled={item.disabled}
                   onSelect={() => navigate(item.href)}
                 >
@@ -167,7 +168,7 @@ export function CommandPalette({ config }: { config: TavviShellConfig }) {
                 </CommandItem>
               )
             })}
-          </CommandGroup>
+          </CommandGroup>)}
           <CommandSeparator />
           <CommandGroup heading="Aparência">
             <CommandItem onSelect={() => chooseTheme('system')}>

@@ -46,7 +46,9 @@
 .tv-sidebar-search > kbd { flex: 0 0 auto; padding: 1px 5px; border: 1px solid var(--tv-line); border-radius: 5px; color: var(--tv-text-3); font-family: inherit; font-size: 10.5px; line-height: 1.3; white-space: nowrap; }
 
 .tv-sidebar-section-label { padding: 0 9px 6px; color: var(--tv-text-3); font-size: 11px; font-weight: 500; white-space: nowrap; }
-.tv-sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
+.tv-sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
+.tv-sidebar-group { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tv-sidebar-group-label { margin: 0; padding: 0 9px 4px; color: var(--tv-text-3); font-size: 10px; font-weight: 600; letter-spacing: .045em; text-transform: uppercase; white-space: nowrap; }
 .tv-sidebar-link { position: relative; min-width: 0; height: 30px; padding: 0 9px; display: flex; align-items: center; gap: 9px; overflow: hidden; border-radius: 7px; color: var(--tv-text-2); font-size: 13px; font-weight: 450; text-decoration: none; white-space: nowrap; transition: var(--tv-transition); }
 @media (hover: hover) { .tv-sidebar-link:hover { background: var(--tv-active); } }
 .tv-sidebar-link.is-active { background: var(--tv-active); color: var(--tv-text); font-weight: 590; }
@@ -72,6 +74,7 @@
 .tv-sidebar:not(.is-expanded) .tv-sidebar-search > span,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-search > kbd,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-section-label,
+.tv-sidebar:not(.is-expanded) .tv-sidebar-group-label,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-link > span,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-link > small,
 .tv-sidebar:not(.is-expanded) .tv-sidebar-account-copy,
@@ -88,9 +91,9 @@
 /* Ao expandir, os rótulos entram com fade enquanto a largura anima. Ao
    recolher saem na hora: o layout recolhido centraliza os ícones, e uma
    saída animada faria os ícones pularem duas vezes. */
-.tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { transition: var(--tv-transition); }
+.tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-group-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { transition: var(--tv-transition); }
 @starting-style {
-  .tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { opacity: 0; }
+  .tv-sidebar.is-expanded :is(.tv-sidebar-brand-copy, .tv-sidebar-collapse, .tv-sidebar-search > span, .tv-sidebar-search > kbd, .tv-sidebar-section-label, .tv-sidebar-group-label, .tv-sidebar-link > span, .tv-sidebar-link > small, .tv-sidebar-account-copy, .tv-sidebar-account > svg) { opacity: 0; }
 }
 
 /* Popover de conta (handoff Notificacoes Premium, quadros 1a–1d): material
@@ -192,6 +195,7 @@
 .tv-command-input input::placeholder { color: var(--tv-text-3); }
 .tv-command-input kbd { padding: 1px 6px; border: 1px solid var(--tv-line); border-radius: 5px; color: var(--tv-text-3); font-family: inherit; font-size: 10.5px; }
 .tv-command-results { max-height: 340px; padding: 6px; display: flex; flex-direction: column; gap: 1px; overflow: auto; }
+.tv-command-group-label { margin: 9px 8px 3px; color: var(--tv-text-3); font-size: 10px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
 .tv-command-row { width: 100%; padding: 8px 10px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--tv-text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; transition-duration: var(--tv-dur-1); }
 /* A seleção segue a seta e o mouse: entra seca e sai em 100 ms. */
 .tv-command-row.is-selected { background: var(--tv-active); transition-duration: 0s; }

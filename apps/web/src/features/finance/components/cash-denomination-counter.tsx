@@ -2,6 +2,7 @@
 
 import { cashDenominations, type BRLDenomination, type DenominationCount } from '@/domain/finance'
 import { formatCents } from '@/lib/money'
+import { LuCoins } from 'react-icons/lu'
 
 export function denominationTotal(counts: DenominationCount): number {
   return Object.entries(counts).reduce((sum, [denomination, count]) =>
@@ -36,6 +37,6 @@ export function CashDenominationCounter({
           onChange={(event) => change(denomination, event.target.value)} />
       </label>)}
     </div>
-    <p>Total contado <strong>{formatCents(denominationTotal(counts))}</strong></p>
+    <p className="tv-finance-denomination-total"><span><LuCoins aria-hidden="true" /> Total contado</span><strong>{formatCents(denominationTotal(counts))}</strong></p>
   </fieldset>
 }

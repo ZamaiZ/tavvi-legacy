@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { LuArrowUpRight, LuReceiptText } from 'react-icons/lu'
-import type { TableAccountSummaryDTO } from '@/domain/table-account'
+import { formatTableAccountIdentity, type TableAccountSummaryDTO } from '@/domain/table-account'
 import { formatCents } from '@/lib/money'
 import { formatRestaurantDateTime } from './finance-time'
 
@@ -15,7 +15,7 @@ export function PendingReceivables({ restaurantId, accounts, timezone }: {
     </div></div>
     {accounts.length ? <div className="tv-finance-pending-list">
       {accounts.map((account) => <article key={account.accountId}>
-        <div><strong>Mesa {account.tableNumber}</strong><small>Comanda de {formatRestaurantDateTime(account.openedAt, timezone)}
+        <div><strong>{formatTableAccountIdentity(account)}</strong><small>Comanda aberta em {formatRestaurantDateTime(account.openedAt, timezone)}
           {account.tipAccepted ? ' · gorjeta preservada' : ''}</small></div>
         <div className="tv-finance-pending-balance"><strong>{formatCents(account.balanceDueCents)}</strong><small>saldo aberto</small></div>
         <Link href={`/restaurantes/${restaurantId}/cash?accountId=${account.accountId}`}><span>Receber no Caixa</span><LuArrowUpRight aria-hidden="true" /></Link>

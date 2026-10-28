@@ -59,6 +59,8 @@ export type SidebarEntry = {
   count?: number
 }
 
+export type SidebarGroup = { label: string; entries: SidebarEntry[] }
+
 const subscribeNoop = () => () => {}
 
 // Tecla modificadora dos atalhos: ⌘ no Mac, Ctrl nos demais. O servidor não
@@ -76,7 +78,7 @@ function shortcut(modifier: string, key: string) {
 }
 
 export function Sidebar({
-  items,
+  groups,
   mode,
   identity,
   email,
@@ -93,7 +95,7 @@ export function Sidebar({
   pendingHref,
   onNavigate,
 }: {
-  items: SidebarEntry[]
+  groups: SidebarGroup[]
   mode: RailMode
   identity: SidebarIdentity
   email: string | null
@@ -117,9 +119,10 @@ export function Sidebar({
   // As rotas com sidebar são dinâmicas (leem cookie e sessão), então a busca
   // já existe no render do servidor e não suspende.
   const step = useSearchParams().get('passo')
+  const entries = groups.flatMap((group) => group.entries)
   const activeHref = pendingHref
-    ? pickActiveHref(navigationPathname(toExternalPath(pendingHref), null), items.map((item) => item.href))
-    : pickActiveHref(navigationPathname(pathname, step), items.map((item) => item.href))
+    ? pickActiveHref(navigationPathname(toExternalPath(pendingHref), null), entries.map((item) => item.href))
+    : pickActiveHref(navigationPathname(pathname, step), entries.map((item) => item.href))
   const modifier = useModifierKey()
   const expanded = mode === 'pinned'
   const initial = email?.trim().slice(0, 1).toUpperCase() || 'A'
@@ -136,7 +139,7 @@ export function Sidebar({
     setCommandPaletteOpen(true)
   }
 
-  function links() {
+  function links(items: SidebarEntry[]) {
     return items.map((item) => {
       const Icon = getNavIcon(item.icon)
       const selected = item.href === activeHref
@@ -205,8 +208,13 @@ export function Sidebar({
           <span aria-hidden="true">Buscar</span>
           <kbd aria-hidden="true">{shortcut(modifier, 'K')}</kbd>
         </button>
-        <div className="tv-sidebar-section-label">{identity.section}</div>
-        <nav className="tv-sidebar-nav">{links()}</nav>
+        {identity.section !== 'Restaurante' ? <div className="tv-sidebar-section-label">{identity.section}</div> : null}
+        <nav className="tv-sidebar-nav">
+          {groups.map((group) => <section className="tv-sidebar-group" key={group.label}>
+            <h2 className="tv-sidebar-group-label">{group.label}</h2>
+            {links(group.entries)}
+          </section>)}
+        </nav>
 
         <div className="tv-sidebar-footer">
           <button type="button" className="tv-sidebar-collapse-bottom" aria-label="Expandir menu" title={`Expandir (${shortcut(modifier, 'B')})`} onClick={onToggle}>

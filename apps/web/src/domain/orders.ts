@@ -17,13 +17,15 @@ export type OrderableMenuCategoryDTO = {
   items: OrderableMenuItemDTO[]
 }
 
-const orderLineInputSchema = z.object({
+export const orderLineInputSchema = z.object({
   itemId: uuidSchema,
   variantId: uuidSchema.nullable(),
   quantity: z.int().min(1).max(99),
   expectedUnitPriceCents: z.int().min(0).max(2_147_483_647),
   note: z.string().trim().max(1000).optional().default(''),
 }).strict()
+
+export type OrderLineInput = z.infer<typeof orderLineInputSchema>
 
 export const recordTableOrderSchema = z.object({
   restaurantId: uuidSchema,
@@ -33,6 +35,21 @@ export const recordTableOrderSchema = z.object({
 })
 
 export type RecordTableOrderInput = z.infer<typeof recordTableOrderSchema>
+
+export const recordCashTableOrderSchema = z.object({
+  restaurantId: uuidSchema,
+  accountId: uuidSchema.nullable(),
+  tableNumber: z.int().positive().nullable(),
+  accountName: z.string().trim().min(1).max(80).nullable(),
+  requestId: uuidSchema,
+  items: z.array(orderLineInputSchema).min(1).max(40),
+}).superRefine((value, context) => {
+  if (value.accountId && value.tableNumber !== null) {
+    context.addIssue({ code: 'custom', message: 'Informe uma comanda existente ou uma identidade de mesa.' })
+  }
+})
+
+export type RecordCashTableOrderInput = z.infer<typeof recordCashTableOrderSchema>
 
 export const recordTableOrderResultSchema = tableAccountSummarySchema.extend({
   outcome: z.enum(['recorded', 'already_recorded']),

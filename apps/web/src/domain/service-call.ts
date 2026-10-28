@@ -5,6 +5,11 @@ import { memberRoleSchema } from './invite'
 
 export const requestServiceCallSchema = z.object({ token: tagTokenSchema })
 export const serviceCallStatusSchema = z.enum(['pending', 'in_progress', 'resolved'])
+export const publicServiceCallStatusInputSchema = z.object({ token: tagTokenSchema })
+export const publicServiceCallStatusSchema = z.object({
+  callId: uuidSchema,
+  status: serviceCallStatusSchema,
+}).nullable()
 export const serviceCallEventTypeSchema = z.enum(['claimed', 'transferred', 'resolved'])
 export const serviceCallRestaurantSchema = z.object({ restaurantId: uuidSchema })
 export const serviceCallsDashboardSchema = z.object({
@@ -21,6 +26,7 @@ export const serviceCallRefSchema = z.object({ restaurantId: uuidSchema, callId:
 export const transferServiceCallSchema = serviceCallRefSchema.extend({ assigneeId: uuidSchema })
 
 export type ServiceCallStatus = z.infer<typeof serviceCallStatusSchema>
+export type PublicServiceCallStatusDTO = z.infer<typeof publicServiceCallStatusSchema>
 export type ServiceCallEventType = z.infer<typeof serviceCallEventTypeSchema>
 export type ServiceCallsDashboardInput = z.infer<typeof serviceCallsDashboardSchema>
 

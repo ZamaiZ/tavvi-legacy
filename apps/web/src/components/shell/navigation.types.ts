@@ -10,6 +10,7 @@ export type NavIconName =
   | 'tag'
   | 'bell'
   | 'cash'
+  | 'finance'
 
 export type NavLeaf = {
   kind: 'leaf'
@@ -25,7 +26,7 @@ export type NavGroup = {
   kind: 'group'
   id: string
   label: string
-  icon: NavIconName
+  icon?: NavIconName
   description?: string
   children: NavLeaf[]
 }

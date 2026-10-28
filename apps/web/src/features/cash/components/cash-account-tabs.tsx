@@ -2,7 +2,7 @@
 
 import { LuBanknote, LuCircleCheck, LuPrinter, LuReceiptText, LuSlidersHorizontal } from 'react-icons/lu'
 import type { MemberRole } from '@/domain/invite'
-import type { PaymentMethodDTO, TableAccountDTO } from '@/domain/table-account'
+import { formatTableAccountIdentity, type PaymentMethodDTO, type TableAccountDTO } from '@/domain/table-account'
 import { formatCents } from '@/lib/money'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PaymentEntry } from './payment-entry'
@@ -62,16 +62,16 @@ export function CashAccountTabs({
   onReopen: () => void
 }) {
   return <>
-    <section className="tv-cash-summary" aria-label={`Resumo da Mesa ${account.tableNumber}`}>
+    <section className="tv-cash-summary" aria-label={`Resumo ${formatTableAccountIdentity(account)}`}>
       <div className="tv-cash-summary-main">
-        <div><span className={`tv-cash-status is-${account.status}`}>{account.status === 'open' ? 'Aberta' : account.status === 'settling' ? 'Em fechamento' : account.status === 'pending' ? 'Pendente' : 'Fechada'}</span><h2>Mesa {account.tableNumber}</h2><small>Aberta em {new Date(account.openedAt).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
+        <div><span className={`tv-cash-status is-${account.status}`}>{account.status === 'open' ? 'Aberta' : account.status === 'settling' ? 'Em fechamento' : account.status === 'pending' ? 'Pendente' : 'Fechada'}</span><h2>{formatTableAccountIdentity(account)}</h2><small>Aberta em {new Date(account.openedAt).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
         <div className="tv-cash-summary-right"><div className={`tv-cash-summary-due${account.balanceDueCents <= 0 ? ' is-settled' : ''}`}><span>SALDO PENDENTE</span><strong>{formatCents(account.balanceDueCents)}</strong></div><button type="button" className="tv-cash-print-icon" aria-label="Imprimir pré-conta" title="Imprimir pré-conta" onClick={() => window.print()}><LuPrinter aria-hidden="true" /></button></div>
       </div>
       <dl><div><dt>Total da conta</dt><dd>{formatCents(account.totalCents)}</dd></div><div><dt>Já recebido</dt><dd>{formatCents(account.paidCents)}</dd></div></dl>
     </section>
 
     {account.status === 'pending' ? <section className="tv-cash-pending-account" aria-label="Recebimento pendente">
-      <div className="tv-cash-pending-banner"><strong>Recebimento pendente da Mesa {account.tableNumber}</strong><span>A mesa foi liberada. Receba o saldo total ou em parcelas; cada parcela será registrada no caixa aberto no momento do recebimento.</span></div>
+      <div className="tv-cash-pending-banner"><strong>Recebimento pendente · {formatTableAccountIdentity(account)}</strong><span>A comanda foi liberada. Receba o saldo total ou em parcelas; cada parcela será registrada no caixa aberto no momento do recebimento.</span></div>
       {account.balanceDueCents > 0 ? <PaymentEntry
         key={`pending-payment-entry:${account.accountId}`}
         restaurantId={restaurantId}

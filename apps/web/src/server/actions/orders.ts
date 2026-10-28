@@ -7,3 +7,7 @@ import { runAction, type ActionResult } from './result'
 export async function recordTableOrderAction(input: unknown): Promise<ActionResult<RecordTableOrderResult>> {
   return runAction(() => dal.recordTableOrder(input))
 }
+
+export async function recordCashTableOrderAction(input: unknown): Promise<ActionResult<RecordTableOrderResult>> {
+  return runAction(() => dal.recordCashTableOrder(input))
+}

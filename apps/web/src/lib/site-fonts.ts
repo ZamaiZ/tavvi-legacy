@@ -1,8 +1,7 @@
-import { Fraunces, Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 
-// Fontes do domínio público. Ficam aqui, e não só no layout `(site)`, porque
-// a 404 "restaurante" renderiza na raiz, fora desse layout, e precisa delas.
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
+// Fontes específicas do domínio público. A Inter vem do layout raiz; estas
+// duas ficam aqui porque a 404 "restaurante" renderiza fora do layout `(site)`.
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display', axes: ['opsz'], display: 'swap' })
 const tavvi = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -11,4 +10,4 @@ const tavvi = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
-export const SITE_FONT_VARIABLES = `${inter.variable} ${fraunces.variable} ${tavvi.variable}`
+export const SITE_FONT_VARIABLES = `${fraunces.variable} ${tavvi.variable}`

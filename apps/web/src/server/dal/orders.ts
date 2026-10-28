@@ -1,5 +1,10 @@
 import 'server-only'
-import { recordTableOrderResultSchema, recordTableOrderSchema, type RecordTableOrderResult } from '@/domain/orders'
+import {
+  recordCashTableOrderSchema,
+  recordTableOrderResultSchema,
+  recordTableOrderSchema,
+  type RecordTableOrderResult,
+} from '@/domain/orders'
 import { myRole, requireUser, UserFacingError } from './auth'
 import { createUserClient } from './_client'
 import { currentTerritory } from './auth'
@@ -53,5 +58,46 @@ export async function recordTableOrder(input: unknown): Promise<RecordTableOrder
 
   const parsed = recordTableOrderResultSchema.safeParse(result)
   if (!parsed.success) throw new Error('O servidor retornou um resumo de conta inválido após registrar o pedido.')
+  return parsed.data
+}
+
+export async function recordCashTableOrder(input: unknown): Promise<RecordTableOrderResult> {
+  const data = recordCashTableOrderSchema.parse(input)
+  const role = await myRole(data.restaurantId)
+  if (!role || !['admin', 'cashier', 'attendant', 'waiter'].includes(role)) {
+    throw new UserFacingError('Você não tem permissão para registrar pedidos pelo caixa.')
+  }
+  const supabase = await createUserClient(await currentTerritory())
+  const { data: result, error } = await supabase.rpc('record_cash_table_order', {
+    p_restaurant_id: data.restaurantId,
+    p_account_id: data.accountId,
+    p_table_number: data.tableNumber,
+    p_account_name: data.accountName,
+    p_request_id: data.requestId,
+    p_items: data.items.map((item) => ({
+      itemId: item.itemId,
+      variantId: item.variantId,
+      quantity: item.quantity,
+      expectedUnitPriceCents: item.expectedUnitPriceCents,
+      note: item.note,
+    })),
+  })
+  if (error) {
+    const message = error.message
+    if (message.includes('checkout_settings_missing')) throw new UserFacingError('As configurações do caixa não estão disponíveis para este restaurante.')
+    if (message.includes('order_input_invalid')) throw new UserFacingError('Confira o nome da comanda, a mesa e os itens do pedido.')
+    if (message.includes('account_total_too_large')) throw new UserFacingError('O total da comanda excede o limite permitido para esta conta.')
+    if (message.includes('forbidden')) throw new UserFacingError('Você não tem permissão para registrar pedidos pelo caixa.')
+    if (message.includes('menu_stale')) throw new UserFacingError('Um item ou preço mudou. Atualize o cardápio antes de confirmar novamente.')
+    if (message.includes('menu_variant_required')) throw new UserFacingError('Escolha uma variação para cada item que exige essa opção.')
+    if (message.includes('account_settling')) throw new UserFacingError('A conta desta comanda está em fechamento e não aceita novos pedidos.')
+    if (message.includes('account_closed')) throw new UserFacingError('A conta desta comanda já foi encerrada.')
+    if (message.includes('account_not_found')) throw new UserFacingError('A comanda selecionada não está mais disponível. Atualize o caixa.')
+    if (message.includes('account_conflict')) throw new UserFacingError('A conta desta mesa mudou durante o registro. Atualize o caixa e tente novamente.')
+    if (message.includes('duplicate_request')) throw new UserFacingError('Esta confirmação conflitou com outra solicitação. Atualize a comanda antes de tentar novamente.')
+    throw new Error(`Não foi possível registrar o pedido pelo caixa: ${message}`)
+  }
+  const parsed = recordTableOrderResultSchema.safeParse(result)
+  if (!parsed.success) throw new Error('O servidor retornou um resumo de comanda inválido após registrar o pedido.')
   return parsed.data
 }

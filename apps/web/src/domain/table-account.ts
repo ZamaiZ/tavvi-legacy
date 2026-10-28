@@ -18,7 +18,9 @@ export type PaymentMethodType = z.infer<typeof paymentMethodTypeSchema>
 export const tableAccountSummarySchema = z.object({
   accountId: uuidSchema,
   restaurantId: uuidSchema,
-  tableNumber: z.int().positive(),
+  tableNumber: z.int().positive().nullable(),
+  accountName: z.string().min(1).max(80).nullable(),
+  walkInNumber: z.int().positive().nullable(),
   status: accountStatusSchema,
   tipMode: tipModeSchema,
   tipPercentBps: z.int().nullable(),
@@ -32,8 +34,19 @@ export const tableAccountSummarySchema = z.object({
   totalCents: amountCentsSchema,
   paidCents: amountCentsSchema,
   balanceDueCents: amountCentsSchema,
+}).superRefine((account, context) => {
+  if ((account.tableNumber === null) === (account.walkInNumber === null)) {
+    context.addIssue({ code: 'custom', message: 'A comanda precisa ter uma mesa ou um número interno.' })
+  }
 })
 export type TableAccountSummaryDTO = z.infer<typeof tableAccountSummarySchema>
+
+export function formatTableAccountIdentity(account: Pick<TableAccountSummaryDTO, 'tableNumber' | 'accountName' | 'walkInNumber'>): string {
+  const identity = account.tableNumber !== null
+    ? `Mesa ${account.tableNumber}`
+    : `Comanda ${account.walkInNumber ?? ''}`.trim()
+  return account.accountName ? `${identity} · ${account.accountName}` : identity
+}
 
 export type OrderItemDTO = {
   id: string
@@ -51,7 +64,7 @@ export type OrderItemDTO = {
 
 export type OrderDTO = {
   id: string
-  serviceCallId: string
+  serviceCallId: string | null
   createdBy: string
   createdAt: string
   items: OrderItemDTO[]

@@ -5,6 +5,7 @@ import type { FinanceDashboardDTO } from '@/domain/finance'
 import { formatCents } from '@/lib/money'
 import { formatRestaurantDateTime } from './finance-time'
 import { FinanceDateRangeFilter } from './finance-date-range-filter'
+import { FinanceMethodList } from './finance-method-list'
 
 export function CashDayStatus({ dashboard }: { dashboard: FinanceDashboardDTO }) {
   const activeDay = dashboard.activeDay
@@ -58,17 +59,13 @@ export function CashDayOverview({ dashboard, onFilter, loading = false }: {
         <div><span><LuTrendingUp aria-hidden="true" /> Vendas de consumo</span><strong>{formatCents(totals.consumptionSalesCents)}</strong></div>
         <div><span><LuCircleDollarSign aria-hidden="true" /> Gorjetas brutas</span><strong>{formatCents(totals.grossTipsCents)}</strong></div>
         <div><span><LuBanknote aria-hidden="true" /> Recebido</span><strong>{formatCents(totals.receivedCents)}</strong></div>
-        <div className="is-refund"><span><LuRotateCcw aria-hidden="true" /> Estornado</span><strong>{formatCents(totals.refundedCents)}</strong></div>
+        {totals.refundedCents > 0 ? <div className="is-refund"><span><LuRotateCcw aria-hidden="true" /> Estornado</span><strong>{formatCents(totals.refundedCents)}</strong></div> : null}
       </div>
     </section>
 
     <section className="tv-finance-card tv-finance-methods" aria-labelledby="tv-finance-methods-title">
       <div className="tv-finance-section-heading compact"><span className="tv-finance-icon"><LuBanknote aria-hidden="true" /></span><div><p>FORMAS DE PAGAMENTO</p><h2 id="tv-finance-methods-title">Recebimentos e devoluções</h2></div></div>
-      {dashboard.methods.length ? <div className="tv-finance-method-list">
-        {dashboard.methods.map((method) => <div key={method.methodId}>
-          <strong>{method.methodName}</strong><span>Recebido <b>{formatCents(method.receivedCents)}</b></span><span>Estornado <b>{formatCents(method.refundedCents)}</b></span>
-        </div>)}
-      </div> : <p className="tv-finance-empty-inline">Ainda não há recebimentos neste período.</p>}
+      {dashboard.methods.length ? <FinanceMethodList methods={dashboard.methods} /> : <p className="tv-finance-empty-inline">Ainda não há recebimentos neste período.</p>}
       <p className="tv-finance-footnote">Vendas e gorjetas são mostradas em valores brutos. Os estornos aparecem separados e não são distribuídos entre consumo e gorjeta.</p>
     </section>
   </>

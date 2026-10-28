@@ -25,22 +25,26 @@ export function useFinanceRealtime(restaurantId: string, refresh: () => void) {
     let disposers: Array<() => void> = []
     let refreshTimer: number | null = null
     let retryTimer: number | null = null
+    let retryAttempt = 0
     const topicStatuses = new Map<string, RealtimeStatus>()
 
     const scheduleRefresh = () => {
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer)
+      if (refreshTimer !== null) return
       refreshTimer = window.setTimeout(() => {
         refreshTimer = null
-        if (active) refreshRef.current()
-      }, 250)
+        if (!active || document.visibilityState !== 'visible') return
+        refreshRef.current()
+      }, 1500)
     }
 
     const reconnect = () => {
-      if (!active || retryTimer !== null) return
+      if (!active || retryTimer !== null || document.visibilityState !== 'visible') return
+      const delay = Math.min(5000 * 2 ** retryAttempt, 60_000)
+      retryAttempt++
       retryTimer = window.setTimeout(() => {
         retryTimer = null
         void connect()
-      }, 5000)
+      }, delay)
     }
 
     const updateStatus = () => {
@@ -50,6 +54,7 @@ export function useFinanceRealtime(restaurantId: string, refresh: () => void) {
         : statuses.some((value) => value === 'disconnected') ? 'disconnected' : 'connecting'
       setStatus(next)
       if (next === 'connected') {
+        retryAttempt = 0
         if (retryTimer !== null) window.clearTimeout(retryTimer)
         retryTimer = null
       } else if (next === 'disconnected') reconnect()
@@ -96,6 +101,8 @@ export function useFinanceRealtime(restaurantId: string, refresh: () => void) {
       if (retryTimer !== null) {
         window.clearTimeout(retryTimer)
         retryTimer = null
+        void connect()
+      } else if ([...topicStatuses.values()].some((value) => value !== 'connected')) {
         void connect()
       }
     }

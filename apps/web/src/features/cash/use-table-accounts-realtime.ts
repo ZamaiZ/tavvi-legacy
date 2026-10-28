@@ -12,27 +12,32 @@ export function useTableAccountsRealtime(restaurantId: string, refresh: () => vo
     let close: (() => void) | null = null
     let refreshTimer: number | null = null
     let retryTimer: number | null = null
+    let retryAttempt = 0
+    let channelStatus: 'connecting' | 'connected' | 'disconnected' = 'connecting'
 
     const scheduleRefresh = () => {
-      if (refreshTimer !== null) window.clearTimeout(refreshTimer)
+      if (refreshTimer !== null) return
       refreshTimer = window.setTimeout(() => {
         refreshTimer = null
-        if (active) refresh()
-      }, 200)
+        if (active && document.visibilityState === 'visible') refresh()
+      }, 1500)
     }
 
     const reconnect = () => {
-      if (!active || retryTimer !== null) return
+      if (!active || retryTimer !== null || document.visibilityState !== 'visible') return
+      const delay = Math.min(5000 * 2 ** retryAttempt, 60_000)
+      retryAttempt++
       retryTimer = window.setTimeout(() => {
         retryTimer = null
         void connect()
-      }, 5000)
+      }, delay)
     }
 
     async function connect() {
       const current = ++generation
       close?.()
       close = null
+      channelStatus = 'connecting'
       if (active) setStatus('connecting')
       try {
         const dispose = await openPrivateBroadcastChannel(`table_accounts:${restaurantId}`, ['INSERT', 'UPDATE', 'DELETE'], {
@@ -40,8 +45,10 @@ export function useTableAccountsRealtime(restaurantId: string, refresh: () => vo
           onResync: scheduleRefresh,
           onStatus: (next) => {
             if (!active || current !== generation) return
+            channelStatus = next
             setStatus(next)
             if (next === 'connected') {
+              retryAttempt = 0
               if (retryTimer !== null) window.clearTimeout(retryTimer)
               retryTimer = null
             } else reconnect()
@@ -63,6 +70,8 @@ export function useTableAccountsRealtime(restaurantId: string, refresh: () => vo
       if (retryTimer !== null) {
         window.clearTimeout(retryTimer)
         retryTimer = null
+        void connect()
+      } else if (channelStatus !== 'connected') {
         void connect()
       }
     }

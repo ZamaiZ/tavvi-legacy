@@ -14,6 +14,7 @@ import { PwaInstallCapture } from '@/components/pwa/pwa-install-capture'
 import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { MotionProvider } from '@/components/providers/motion-provider'
+import { appFont } from '@/lib/app-font'
 
 export const metadata: Metadata = {
   title: {
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       // HTML do servidor divergir do primeiro render do cliente. Sem isto,
       // o React reclama de uma divergencia que e intencional.
       suppressHydrationWarning
-      className="h-full antialiased font-sans"
+      className={`${appFont.variable} h-full antialiased font-sans`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeScript />

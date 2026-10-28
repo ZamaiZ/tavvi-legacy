@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { CommandPalette } from './console-command-palette'
 import { AccountPopover } from './account-popover'
 import { MobileDock } from './mobile-dock'
-import { Sidebar } from './sidebar'
+import { Sidebar, type SidebarGroup } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
 import type { ConsoleConfig, RestaurantShellInfo } from './console-config'
 import { usePathname, useRouter } from 'next/navigation'
@@ -186,13 +186,16 @@ export function ConsoleShell({
   }, [])
   const accountContext = useMemo(() => ({ open: accountSheetOpen, email, name, description, onClose: closeAccountSheet }), [accountSheetOpen, closeAccountSheet, description, email, name])
   const restaurantContext = useMemo(() => (config.restaurant ? { ...config.restaurant, email, name } : null), [config.restaurant, email, name])
-  const navigationEntries = leaves.map((leaf) => ({
+  const entryFor = (leaf: typeof leaves[number]) => ({
     href: leaf.href,
     label: leaf.label,
     description: leaf.sub,
     icon: leaf.icon,
-    count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.key === 'feedback' ? unreadFeedback || undefined : leaf.icon === 'bell' ? pendingServiceCalls || undefined : undefined,
-  }))
+    count: leaf.key === 'invites' ? counts.pendingInvites : leaf.key === 'restaurants' ? counts.restaurants : leaf.icon === 'feedback' ? unreadFeedback || undefined : leaf.icon === 'bell' ? pendingServiceCalls || undefined : undefined,
+  })
+  const navigationGroups: SidebarGroup[] = config.items.map((node) => node.kind === 'group'
+    ? { label: node.label, entries: node.children.map(entryFor) }
+    : { label: config.sidebar.section, entries: [entryFor(node)] })
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const editable = event.target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable)
@@ -227,7 +230,7 @@ export function ConsoleShell({
         <ServiceCallsRealtimeContext.Provider value={serviceCallsRealtimeContext}>
         <div className="tv-console-root" data-surface={surface} style={{ '--tv-sidebar-width': mode === 'pinned' ? `${widths.pinned}px` : `${widths.collapsed}px` } as CSSProperties}>
           <Sidebar
-            items={navigationEntries}
+            groups={navigationGroups}
             mode={mode}
             identity={config.sidebar}
             email={email}
@@ -249,9 +252,7 @@ export function ConsoleShell({
             {pendingPageHref ? <span className="tv-page-loading-mask" aria-hidden="true" /> : null}
           </main>
           <MobileDock
-            entries={navigationEntries}
-            groupLabel={config.sidebar.section}
-            groupIcon={surface === 'console' ? 'store' : 'restaurant'}
+            groups={navigationGroups}
             homeHref={config.homeHref ?? '/'}
             subtitle={surface === 'console' ? 'Acesse as áreas do console' : 'Acesse as áreas do restaurante'}
             accountOpen={accountOpen}

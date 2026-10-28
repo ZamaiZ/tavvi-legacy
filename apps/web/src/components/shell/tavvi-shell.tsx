@@ -5,10 +5,9 @@ import { cn } from 'cn'
 import { AccountPopover } from './account-popover'
 import { MobileDock } from './mobile-dock'
 import { CommandPalette } from './command-palette'
-import { flattenNavItems } from './navigation'
-import { Sidebar, type SidebarIdentity } from './sidebar'
+import { Sidebar, type SidebarGroup, type SidebarIdentity } from './sidebar'
 import { toggleRailMode, useRailMode, type RailMode } from './rail-store'
-import type { TavviShellConfig } from './navigation.types'
+import type { NavLeaf, TavviShellConfig } from './navigation.types'
 import { useThemeColorSync } from '@/hooks/use-theme-color-sync'
 import { toExternalPath } from '@/lib/route-paths'
 import { NavigationProgress } from './navigation-progress'
@@ -40,13 +39,16 @@ export function TavviShell({
   }, [])
   const expanded = mode === 'pinned'
   const sidebarWidth = expanded ? 232 : 60
-  const entries = flattenNavItems(config.items).map((item) => ({
+  const entryFor = (item: NavLeaf) => ({
     href: item.href,
     label: item.label,
     description: item.description,
     icon: item.icon,
     count: itemCounts?.[item.href],
-  }))
+  })
+  const groups: SidebarGroup[] = config.items.map((item) => item.kind === 'group'
+    ? { label: item.label, entries: item.children.map(entryFor) }
+    : { label: sidebar.section, entries: [entryFor(item)] })
 
   // A barra acompanha o fundo desta tela (--tv-bg), que não é o fundo
   // agrupado do ConsoleShell. Sem isto, o app instalado abriria a lista de
@@ -72,7 +74,7 @@ export function TavviShell({
     <NavigationProgress>
     <div className="tv-console-root" style={{ '--tv-sidebar-width': `${sidebarWidth}px` } as CSSProperties}>
       <Sidebar
-        items={entries}
+        groups={groups}
         mode={mode}
         identity={sidebar}
         email={config.userLabel}
@@ -85,9 +87,7 @@ export function TavviShell({
       />
       <main className={cn('tv-console-main', className)}>{children}</main>
       <MobileDock
-        entries={entries}
-        groupLabel={sidebar.section}
-        groupIcon="store"
+        groups={groups}
         homeHref={config.homeHref}
         subtitle="Acesse seus restaurantes"
         accountOpen={accountOpen}

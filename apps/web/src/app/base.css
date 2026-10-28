@@ -11,7 +11,7 @@
 .admin-territory,
 .tv-auth-scope,
 .workspace-territory {
-  --tv-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --tv-font: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --tv-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
   --tv-bg: #F5F3EE;
@@ -246,7 +246,7 @@
 }
 
 @theme inline {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --font-heading: var(--tv-font);
   --font-display: var(--display-face);

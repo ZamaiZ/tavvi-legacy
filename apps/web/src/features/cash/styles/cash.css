@@ -13,6 +13,23 @@
   justify-content: space-between;
   gap: 14px;
 }
+.workspace-territory .tv-cash-day-operation { margin: 0 0 18px; padding: 15px 18px; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'heading' 'values' 'action'; align-items: center; gap: 13px; border: 1px solid var(--tv-line); border-radius: 15px; background: var(--tv-surface); }
+.workspace-territory .tv-cash-day-operation-heading { min-width: 0; grid-area: heading; display: flex; align-items: center; gap: 11px; }
+.workspace-territory .tv-cash-day-operation-heading > span { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-neutral-soft); color: var(--tv-text-2); }
+.workspace-territory .tv-cash-day-operation-heading > span.is-open { background: var(--tv-ok-soft); color: var(--tv-ok); }
+.workspace-territory .tv-cash-day-operation-heading > span.is-closed { background: var(--tv-neutral-soft); color: var(--tv-text-2); }
+.workspace-territory .tv-cash-day-operation-heading svg { width: 17px; height: 17px; }
+.workspace-territory .tv-cash-day-operation-heading > div { min-width: 0; display: grid; gap: 3px; }
+.workspace-territory .tv-cash-day-operation-heading strong { color: var(--tv-text); font-size: 14px; font-weight: 650; }
+.workspace-territory .tv-cash-day-operation-heading small { color: var(--tv-text-3); font-size: 11px; }
+.workspace-territory .tv-cash-day-operation-values { grid-area: values; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 12px; border-top: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-day-operation-values > div { min-width: 0; display: grid; gap: 3px; }
+.workspace-territory .tv-cash-day-operation-values small { color: var(--tv-text-3); font-size: 10px; }
+.workspace-territory .tv-cash-day-operation-values strong { overflow: hidden; color: var(--tv-text); font-size: 15px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-territory .tv-cash-day-operation-values .is-primary strong { font-size: 18px; }
+.workspace-territory .tv-cash-day-operation-trigger { grid-area: action; min-height: 44px; justify-self: end; }
+.workspace-territory .tv-cash-operation-panel-body { min-height: 0; flex: 1; padding: 16px; display: grid; align-content: start; gap: 14px; overflow-y: auto; overscroll-behavior: contain; }
+.workspace-territory .tv-cash-operation-panel-body > .tv-finance-card { margin: 0; }
 .workspace-territory .tv-cash-live,
 .workspace-territory .tv-cash-toolbar > div,
 .workspace-territory .tv-cash-toolbar button {
@@ -22,6 +39,8 @@
 .workspace-territory .tv-cash-live { gap: 9px; color: var(--tv-text-2); font-size: 13px; }
 .workspace-territory .tv-cash-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--tv-ok); box-shadow: 0 0 0 4px var(--tv-ok-soft); }
 .workspace-territory .tv-cash-live:is(.is-connecting, .is-disconnected) i { background: var(--tv-gold); box-shadow: 0 0 0 4px var(--tv-gold-soft); }
+.workspace-territory .tv-cash-order-actions { display: flex; align-items: center; gap: 9px; }
+.workspace-territory .tv-cash-order-actions svg { width: 17px; height: 17px; }
 .workspace-territory .tv-cash-settings-trigger { min-height: 44px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .workspace-territory .tv-cash-settings-trigger svg { width: 16px; height: 16px; }
 .workspace-territory .tv-cash-settings-trigger:hover { border-color: var(--tv-line-2); background: var(--tv-surface-2); }
@@ -329,6 +348,30 @@
 .workspace-territory .tv-cash-dialog-close svg { width: 18px; height: 18px; }
 .workspace-territory .tv-cash-settings-dialog-content { min-height: 0; padding: 18px 24px 24px; display: grid; gap: 20px; overflow-y: auto; overscroll-behavior: contain; }
 .workspace-territory .tv-cash-settings-mobile-content { padding-bottom: 12px; display: grid; gap: 20px; }
+.workspace-territory .tv-cash-order-dialog-backdrop { position: fixed; z-index: 70; inset: 0; background: var(--tv-scrim); -webkit-backdrop-filter: blur(18px) saturate(1.12); backdrop-filter: blur(18px) saturate(1.12); }
+.workspace-territory .tv-cash-order-dialog { position: fixed; z-index: 71; top: 50%; left: 50%; width: min(1040px, calc(100vw - 36px)); max-height: min(90dvh, 900px); display: flex; flex-direction: column; overflow: hidden; transform: translate(-50%, -50%); border: 1px solid var(--tv-line); border-radius: 20px; background: var(--tv-bg); color: var(--tv-text); box-shadow: var(--tv-shadow); outline: 0; }
+.workspace-territory .tv-cash-order-dialog > header { padding: 21px 24px 17px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--tv-line); }
+.workspace-territory .tv-cash-order-dialog > header > div { display: grid; gap: 6px; }
+.workspace-territory .tv-cash-order-dialog-title { margin: 0; color: var(--tv-text); font-size: 20px; font-weight: 650; }
+.workspace-territory .tv-cash-order-dialog-description { color: var(--tv-text-2); font-size: 13px; line-height: 1.5; }
+.workspace-territory .tv-cash-order-dialog > header button { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text-2); cursor: pointer; }
+.workspace-territory .tv-cash-order-dialog-content { min-height: 0; padding: 18px 24px 24px; overflow-y: auto; overscroll-behavior: contain; }
+.workspace-territory .tv-cash-order-dialog .tv-order-entry { margin: 16px 0 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.workspace-territory .tv-cash-order-fields { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, .45fr); gap: 13px; }
+.workspace-territory .tv-cash-order-fields label { min-width: 0; display: grid; align-content: start; gap: 7px; color: var(--tv-text); font-size: 13px; font-weight: 600; }
+.workspace-territory .tv-cash-order-fields label > span { display: flex; align-items: baseline; gap: 7px; }
+.workspace-territory .tv-cash-order-fields label small { color: var(--tv-text-3); font-size: 11px; font-weight: 500; }
+.workspace-territory .tv-cash-order-fields input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--tv-line); border-radius: 11px; background: var(--tv-surface); color: var(--tv-text); font: inherit; font-size: 14px; }
+.workspace-territory .tv-cash-order-fields input:focus-visible { outline: 2px solid var(--tv-gold); outline-offset: 2px; }
+.workspace-territory .tv-cash-order-fields p { grid-column: 1 / -1; margin: 0; color: var(--tv-text-2); font-size: 12px; line-height: 1.5; }
+.workspace-territory .tv-cash-order-identity-readonly { padding: 12px 14px; display: grid; gap: 4px; border: 1px solid var(--tv-line); border-radius: 12px; background: var(--tv-surface-2); }
+.workspace-territory .tv-cash-order-identity-readonly span { color: var(--tv-text-3); font-size: 11px; }
+.workspace-territory .tv-cash-order-identity-readonly strong { color: var(--tv-text); font-size: 15px; }
+.workspace-territory .tv-cash-order-identity-readonly small { color: var(--tv-text-2); font-size: 12px; }
+.workspace-territory .tv-cash-order-mobile-content { padding: 10px 16px 24px; display: grid; gap: 14px; }
+.workspace-territory .tv-cash-order-mobile-content .tv-order-entry { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.workspace-territory .tv-cash-order-mobile-content .tv-order-entry-heading { align-items: flex-start; }
+.workspace-territory .tv-cash-order-mobile-content .tv-order-entry-heading h3 { font-size: 19px; }
 .workspace-territory .tv-cash-settings-section { padding: 18px; display: grid; gap: 15px; border: 1px solid var(--tv-line); border-radius: 14px; background: var(--tv-surface); }
 .workspace-territory .tv-cash-settings-section-heading { display: flex; align-items: flex-start; gap: 12px; }
 .workspace-territory .tv-cash-settings-section-heading > span { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: var(--tv-gold-soft); color: var(--tv-gold-text); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -563,6 +606,11 @@
   .workspace-territory .tv-pre-account { padding: 17px; }
 }
 @media (max-width: 767px) {
+  .workspace-territory .tv-cash-day-operation { gap: 12px; padding: 14px; }
+  .workspace-territory .tv-cash-day-operation-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace-territory .tv-cash-day-operation-values .is-primary { grid-column: 1 / -1; }
+  .workspace-territory .tv-cash-day-operation-trigger { width: 100%; justify-self: stretch; }
+  .workspace-territory .tv-cash-operation-panel-body { flex: 1 0 auto; padding: 12px 0; overflow: visible; }
   .workspace-territory .tv-cash-page { padding: 14px 16px calc(var(--tv-dock-space) + 28px); }
   .workspace-territory .tv-cash-page-header { align-items: center; flex-direction: row; gap: 10px; }
   .workspace-territory .tv-cash-page-header > div:first-child { min-width: 0; }
@@ -610,6 +658,12 @@
   .workspace-territory .tv-cash-custom-method { grid-template-columns: minmax(0, 1fr); }
   .workspace-territory .tv-cash-custom-method > button { width: 100%; }
   .workspace-territory .tv-cash-settings-dialog { display: none; }
+  .workspace-territory .tv-cash-order-dialog { display: none; }
+  .workspace-territory .tv-cash-toolbar { align-items: stretch; flex-direction: column; }
+  .workspace-territory .tv-cash-order-actions { width: 100%; }
+  .workspace-territory .tv-cash-order-actions button { min-height: 48px; flex: 1; }
+  .workspace-territory .tv-cash-order-fields { grid-template-columns: minmax(0, 1fr); }
+  .workspace-territory .tv-cash-order-fields p { grid-column: 1; }
   .workspace-territory .tv-cash-settings-mobile-content { gap: 14px; }
   .workspace-territory .tv-cash-settings-section { padding: 15px 13px; gap: 13px; }
   .workspace-territory .tv-cash-settings-section-heading h3 { font-size: 15px; }

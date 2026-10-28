@@ -100,6 +100,8 @@
   :is(.admin-territory, .workspace-territory) .tv-dock-pages-head h2 { margin: 0; color: var(--tv-text); font-size: 21px; font-weight: 650; letter-spacing: -.02em; }
   :is(.admin-territory, .workspace-territory) .tv-dock-pages-head p { margin: 3px 0 0; color: var(--tv-text-3); font-size: 12px; }
   :is(.admin-territory, .workspace-territory) .tv-dock-pages-scroll { min-height: 0; padding: 0 12px 16px; overflow-y: auto; overscroll-behavior: contain; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-section + .tv-dock-section { margin-top: 16px; }
+  :is(.admin-territory, .workspace-territory) .tv-dock-section-title { margin: 0 0 6px 4px; color: var(--tv-text-3); font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
   :is(.admin-territory, .workspace-territory) .tv-dock-group { width: 100%; min-height: 56px; padding: 4px 12px; display: flex; align-items: center; gap: 12px; border: 0; border-radius: 12px; background: var(--tv-active); color: var(--tv-text); font: inherit; font-size: 14px; font-weight: 600; text-align: left; }
   :is(.admin-territory, .workspace-territory) .tv-dock-group-icon { width: 40px; height: 40px; flex: 0 0 40px; display: grid; place-items: center; border-radius: 11px; background: var(--tv-gold-soft); color: var(--tv-gold-text); }
   :is(.admin-territory, .workspace-territory) .tv-dock-group-icon svg { width: 20px; height: 20px; }
@@ -107,6 +109,7 @@
   :is(.admin-territory, .workspace-territory) .tv-dock-group > svg { width: 18px; height: 18px; transition: rotate 180ms var(--tv-ease); }
   :is(.admin-territory, .workspace-territory) .tv-dock-group:not(.is-open) > svg { rotate: -90deg; }
   :is(.admin-territory, .workspace-territory) .tv-dock-links { margin: 4px 0 0; padding: 0 0 0 18px; display: grid; gap: 4px; list-style: none; border-left: 2px solid var(--tv-line-strong); }
+  :is(.admin-territory, .workspace-territory) .tv-dock-section-title + .tv-dock-links { margin-top: 0; }
   :is(.admin-territory, .workspace-territory) .tv-dock-link { position: relative; min-height: 48px; padding: 6px 10px; display: flex; align-items: center; border-radius: 10px; color: var(--tv-text-2); text-decoration: none; }
   :is(.admin-territory, .workspace-territory) .tv-dock-link.is-active { background: var(--tv-active); color: var(--tv-text); }
   :is(.admin-territory, .workspace-territory) .tv-dock-link-icon { width: 22px; flex: 0 0 22px; color: var(--tv-gold-text); }

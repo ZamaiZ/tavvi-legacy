@@ -6,7 +6,7 @@ import type { ActionResult } from '@/server/actions/result'
 
 type FinanceAction = (input: unknown) => Promise<ActionResult<FinanceDashboardDTO>>
 
-export function useFinanceMutation(onUpdated: (data: FinanceDashboardDTO) => void) {
+export function useFinanceMutation(onUpdated: (data: FinanceDashboardDTO) => void, options?: { onSuccess?: () => void }) {
   const [busy, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<{ key: string; requestId: string } | null>(null)
@@ -27,6 +27,7 @@ export function useFinanceMutation(onUpdated: (data: FinanceDashboardDTO) => voi
         }
         setPending(null)
         onUpdated(result.data)
+        options?.onSuccess?.()
       } catch {
         setError('A resposta do caixa ficou incerta. Repita a mesma operação para confirmar sem duplicar o lançamento.')
       }

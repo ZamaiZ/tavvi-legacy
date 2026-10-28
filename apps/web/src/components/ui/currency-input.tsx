@@ -6,6 +6,8 @@ import { digitsToCents, formatCentsInput, MAX_PRICE_CENTS, pastedToCents } from 
 type CurrencyInputProps = Omit<ComponentProps<'input'>, 'value' | 'defaultValue' | 'onChange' | 'type' | 'inputMode' | 'name' | 'ref'> & {
   valueCents: number | null
   onValueChange: (cents: number | null) => void
+  /** Limite específico para contextos cujo teto é diferente de preço de cardápio. */
+  maxCents?: number
   /** Grava os centavos num campo oculto, para formulários lidos com FormData. */
   name?: string
 }
@@ -23,7 +25,7 @@ function keepCaretAtEnd(input: HTMLInputElement) {
 // Campo de preço com máscara de caixa registradora (spec de componentes §1.2):
 // os dígitos entram pela direita (1, 4, 9, 0 → 14,90) e o valor sai sempre em
 // centavos inteiros. O prefixo "R$" fica com quem usa o campo.
-export function CurrencyInput({ valueCents, onValueChange, name, placeholder = '0,00', onFocus, onSelect, ...props }: CurrencyInputProps) {
+export function CurrencyInput({ valueCents, onValueChange, maxCents = MAX_PRICE_CENTS, name, placeholder = '0,00', onFocus, onSelect, ...props }: CurrencyInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const text = valueCents === null ? '' : formatCentsInput(valueCents)
 
@@ -58,7 +60,7 @@ export function CurrencyInput({ valueCents, onValueChange, name, placeholder = '
         onChange={(event) => {
           const typed = event.target.value
           const next = digitsToCents(typed)
-          if (next !== null && next > MAX_PRICE_CENTS) return
+          if (next !== null && next > maxCents) return
           // Apagar até sobrar só zero esvazia o campo; digitar 0 nele vazio dá 0,00.
           if (next === 0 && typed.length < text.length) {
             onValueChange(null)
@@ -69,7 +71,7 @@ export function CurrencyInput({ valueCents, onValueChange, name, placeholder = '
         onPaste={(event) => {
           event.preventDefault()
           const next = pastedToCents(event.clipboardData.getData('text'))
-          if (next === null || next > MAX_PRICE_CENTS) return
+          if (next === null || next > maxCents) return
           onValueChange(next)
         }}
       />

@@ -12,12 +12,15 @@ export type ConsoleLeaf = {
   label: string
   sub: string
   icon: ConsoleIcon
+  group?: string
+  keywords?: string[]
 }
 
 export type ConsoleGroup = {
   kind: 'group'
   id: string
   label: string
+  icon?: ConsoleIcon
   children: ConsoleLeaf[]
 }
 
@@ -66,6 +69,7 @@ export function getConsoleConfig(user: { email?: string | null } | null, display
       label: 'Convites',
       sub: 'Acessos à plataforma',
       icon: 'mail',
+      group: 'Plataforma',
     },
     {
       kind: 'leaf',
@@ -75,6 +79,7 @@ export function getConsoleConfig(user: { email?: string | null } | null, display
       label: 'Restaurantes',
       sub: 'Contas cadastradas',
       icon: 'store',
+      group: 'Plataforma',
     },
   ]
 
@@ -120,7 +125,7 @@ export function getRestaurantConsoleConfig({
   restaurantName: string
   homeHref: string
   logoUrl: string | null
-  navigation: { kind: 'group'; id: string; label: string; children: { kind: 'leaf'; href: string; label: string; icon: ConsoleIcon; description?: string }[] }[]
+  navigation: { kind: 'group'; id: string; label: string; icon?: ConsoleIcon; children: { kind: 'leaf'; href: string; label: string; icon: ConsoleIcon; description?: string; keywords?: string[] }[] }[]
   restaurantId: string
   canEdit: boolean
   restaurants: RestaurantSwitchEntry[]
@@ -128,15 +133,17 @@ export function getRestaurantConsoleConfig({
   unreadNotifications?: number
   pendingServiceCalls?: number
 }): ConsoleConfig {
-  const leaves = navigation.flatMap((group) => group.children).map((leaf) => ({
+  const leaves = navigation.flatMap((group) => group.children.map((leaf) => ({
     kind: 'leaf' as const,
-    key: leaf.icon,
+    key: leaf.href,
     href: leaf.href,
     activeMatch: [],
     label: leaf.label,
     sub: leaf.description ?? '',
     icon: leaf.icon,
-  }))
+    group: group.label,
+    keywords: leaf.keywords,
+  })))
 
   return {
     userLabel: email,
@@ -145,7 +152,20 @@ export function getRestaurantConsoleConfig({
     contextLabel: 'Painel',
     contextDescription: restaurantName,
     homeHref,
-    items: [{ kind: 'group', id: 'restaurant', label: 'Restaurante', children: leaves }],
+    items: navigation.map((group) => ({
+      kind: 'group' as const,
+      id: group.id,
+      label: group.label,
+      icon: group.icon,
+      children: group.children.map((leaf) => ({
+        kind: 'leaf' as const,
+        href: leaf.href,
+        label: leaf.label,
+        icon: leaf.icon,
+        description: leaf.description,
+        keywords: leaf.keywords,
+      })),
+    })),
     leaves,
     showNewInvite: false,
     counts: { pendingInvites: 0, restaurants: 0, unreadFeedback, unreadNotifications, pendingServiceCalls },

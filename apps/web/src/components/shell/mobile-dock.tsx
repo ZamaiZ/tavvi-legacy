@@ -5,13 +5,12 @@ import Link, { useLinkStatus } from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { AnimatePresence, useReducedMotion } from 'motion/react'
 import * as m from 'motion/react-m'
-import { RiArrowDownSLine, RiHomeLine, RiMenuLine, RiUser3Line } from 'react-icons/ri'
+import { RiHomeLine, RiMenuLine, RiUser3Line } from 'react-icons/ri'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { toExternalPath } from '@/lib/route-paths'
 import { getNavIcon } from './navigation-icons'
 import { navigationPathname, pickActiveHref } from './navigation'
-import type { SidebarEntry } from './sidebar'
-import type { NavIconName } from './navigation.types'
+import type { SidebarGroup } from './sidebar'
 import { useCallArrivalShake } from './use-call-arrival-shake'
 
 const EASE = [0.23, 1, 0.32, 1] as const
@@ -23,9 +22,7 @@ function PendingLink({ children }: { children: React.ReactNode }) {
 }
 
 export function MobileDock({
-  entries,
-  groupLabel,
-  groupIcon,
+  groups,
   homeHref,
   subtitle,
   accountOpen,
@@ -36,9 +33,7 @@ export function MobileDock({
   menuBadge = 0,
   callsArrivalKey = 0,
 }: {
-  entries: SidebarEntry[]
-  groupLabel: string
-  groupIcon: NavIconName
+  groups: SidebarGroup[]
   homeHref: string
   subtitle: string
   accountOpen: boolean
@@ -53,7 +48,6 @@ export function MobileDock({
   const step = useSearchParams().get('passo')
   const reduced = useReducedMotion()
   const [pagesOpen, setPagesOpen] = useState(false)
-  const [groupOpen, setGroupOpen] = useState(true)
   const [seenPathname, setSeenPathname] = useState(pathname)
   const menuButtonRef = useCallArrivalShake<HTMLButtonElement>(callsArrivalKey)
   const pagesRef = useRef<HTMLDivElement>(null)
@@ -61,7 +55,6 @@ export function MobileDock({
   if (seenPathname !== pathname) {
     setSeenPathname(pathname)
     setPagesOpen(false)
-    setGroupOpen(true)
   }
 
   const closePages = useCallback((restoreFocus = true) => {
@@ -77,7 +70,6 @@ export function MobileDock({
       if (target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return
       event.preventDefault()
       onCloseAccount()
-      setGroupOpen(true)
       setPagesOpen((open) => !open)
     }
     window.addEventListener('keydown', onShortcut)
@@ -111,8 +103,8 @@ export function MobileDock({
     }
   }, [closePages, pagesOpen])
 
+  const entries = groups.flatMap((group) => group.entries)
   const activeHref = pickActiveHref(navigationPathname(pathname, step), entries.map((entry) => entry.href))
-  const GroupIcon = getNavIcon(groupIcon)
   const isHome = pathname === homeHref
   const panelMotion = reduced
     ? { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.15 } }, exit: { opacity: 0, transition: { duration: 0.12 } } }
@@ -139,18 +131,18 @@ export function MobileDock({
         <span className="tv-dock-grip" aria-hidden="true" />
         <header className="tv-dock-pages-head"><h2>Navegação</h2><p>{subtitle}</p></header>
         <nav aria-label="Páginas" className="tv-dock-pages-scroll">
-          <button type="button" className={`tv-dock-group${groupOpen ? ' is-open' : ''}`} aria-expanded={groupOpen} aria-controls="tv-dock-links" onClick={() => setGroupOpen((open) => !open)}>
-            <span className="tv-dock-group-icon"><GroupIcon aria-hidden="true" /></span><span className="tv-dock-group-label">{groupLabel}</span><RiArrowDownSLine aria-hidden="true" />
-          </button>
-          {groupOpen ? <ul id="tv-dock-links" className="tv-dock-links">
-            {entries.map((entry) => {
+          {groups.map((group) => <section className="tv-dock-section" key={group.label}>
+            <h3 className="tv-dock-section-title">{group.label}</h3>
+            <ul className="tv-dock-links">
+            {group.entries.map((entry) => {
               const Icon = getNavIcon(entry.icon)
               const active = entry.href === activeHref
               return <li key={entry.href}><Link href={entry.href} aria-current={active ? 'page' : undefined} className={`tv-dock-link${active ? ' is-active' : ''}`} onClick={() => closePages(false)}>
                 <PendingLink><span className="tv-dock-link-icon"><Icon aria-hidden="true" /></span><span className="tv-dock-link-copy"><strong>{entry.label}</strong>{entry.description ? <small>{entry.description}</small> : null}</span>{entry.count ? <span className="tv-dock-count">{entry.count > 99 ? '99+' : entry.count}</span> : null}</PendingLink>
               </Link></li>
             })}
-          </ul> : null}
+            </ul>
+          </section>)}
         </nav>
       </m.div> : null}
     </AnimatePresence>
@@ -158,7 +150,7 @@ export function MobileDock({
       <div className="tv-dock-bar">
         <div className="tv-dock-side"><button ref={accountButtonRef} type="button" className={`tv-dock-button${accountOpen ? ' is-active' : ''}`} aria-label={accountOpen ? 'Fechar perfil' : 'Abrir perfil'} aria-haspopup="dialog" aria-expanded={accountOpen} onClick={() => { closePages(false); onAccount() }}><RiUser3Line aria-hidden="true" />{accountBadge > 0 ? <span className="tv-dock-dot"><span className="sr-only">{accountBadge} notificações não lidas</span></span> : null}</button></div>
         <Link href={homeHref} aria-label="Ir para o início" aria-current={isHome ? 'page' : undefined} className={`tv-dock-home${isHome ? ' is-active' : ''}`} onClick={() => { closePages(false); onCloseAccount() }}><PendingLink><RiHomeLine aria-hidden="true" /></PendingLink></Link>
-        <div className="tv-dock-side is-end"><button ref={menuButtonRef} type="button" className={`tv-dock-button${pagesOpen ? ' is-active' : ''}`} aria-label={pagesOpen ? 'Fechar navegação' : 'Abrir navegação'} aria-haspopup="dialog" aria-expanded={pagesOpen} aria-controls={PANEL_ID} onClick={() => { onCloseAccount(); if (!pagesOpen) setGroupOpen(true); setPagesOpen((open) => !open) }}><RiMenuLine aria-hidden="true" />{menuBadge > 0 ? <span className="tv-dock-badge">{menuBadge > 99 ? '99+' : menuBadge}<span className="sr-only"> pendentes</span></span> : null}</button></div>
+        <div className="tv-dock-side is-end"><button ref={menuButtonRef} type="button" className={`tv-dock-button${pagesOpen ? ' is-active' : ''}`} aria-label={pagesOpen ? 'Fechar navegação' : 'Abrir navegação'} aria-haspopup="dialog" aria-expanded={pagesOpen} aria-controls={PANEL_ID} onClick={() => { onCloseAccount(); setPagesOpen((open) => !open) }}><RiMenuLine aria-hidden="true" />{menuBadge > 0 ? <span className="tv-dock-badge">{menuBadge > 99 ? '99+' : menuBadge}<span className="sr-only"> pendentes</span></span> : null}</button></div>
       </div>
     </nav>
   </>

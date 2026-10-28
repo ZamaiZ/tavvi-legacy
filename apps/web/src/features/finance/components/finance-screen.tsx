@@ -1,24 +1,25 @@
 'use client'
 
-import { useCallback, useState, useTransition } from 'react'
-import { LuArrowDownLeft, LuArrowRight, LuBriefcaseBusiness, LuCircleCheck, LuCircleDollarSign, LuHistory, LuReceiptText, LuTrendingUp } from 'react-icons/lu'
-import type { MemberRole } from '@/domain/invite'
-import type { FinanceDashboardDTO, LegacyFinanceReportDTO } from '@/domain/finance'
-import { formatCents } from '@/lib/money'
-import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
 import { PageHeader } from '@/components/shell/page-header'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import type { FinanceDashboardDTO, LegacyFinanceReportDTO } from '@/domain/finance'
+import { formatTableAccountIdentity } from '@/domain/table-account'
+import type { MemberRole } from '@/domain/invite'
+import { MobileNavBar } from '@/features/platform/components/mobile-nav-bar'
+import { formatCents } from '@/lib/money'
 import { getFinanceDashboardAction } from '@/server/actions/finance'
+import { useCallback, useRef, useState, useTransition } from 'react'
+import { LuArrowDownLeft, LuArrowRight, LuBriefcaseBusiness, LuCircleCheck, LuCircleDollarSign, LuHistory, LuReceiptText, LuTrendingUp } from 'react-icons/lu'
+import { useFinanceRealtime } from '../use-finance-realtime'
 import { CashDayClosing } from './cash-day-closing'
 import { CashDayHistory } from './cash-day-history'
 import { CashDayMovements } from './cash-day-movements'
 import { CashDayOpening } from './cash-day-opening'
 import { CashDayOverview, CashDayStatus } from './cash-day-overview'
-import { PendingReceivables } from './pending-receivables'
-import { LegacyFinanceReport } from './legacy-finance-report'
 import { formatRestaurantDateTime } from './finance-time'
-import { useFinanceRealtime } from '../use-finance-realtime'
+import { LegacyFinanceReport } from './legacy-finance-report'
+import { PendingReceivables } from './pending-receivables'
 
 type FinanceArea = 'overview' | 'operation' | 'history'
 type OperationArea = 'movements' | 'receivables' | 'closing'
@@ -42,27 +43,31 @@ export function FinanceScreen({ restaurantId, restaurantName, role, initialDashb
   const [legacyRefreshVersion, setLegacyRefreshVersion] = useState(0)
   const [filterError, setFilterError] = useState<string | null>(null)
   const [refreshing, startTransition] = useTransition()
+  const refreshRevision = useRef(0)
 
-  const updateDashboard = useCallback((next: FinanceDashboardDTO) => {
+  const updateDashboard = useCallback((next: FinanceDashboardDTO, refreshLegacyReport = true) => {
+    refreshRevision.current++
     setDashboard(next)
-    setLegacyRefreshVersion((version) => version + 1)
+    if (refreshLegacyReport) setLegacyRefreshVersion((version) => version + 1)
     setFilterError(null)
   }, [])
 
-  const reload = useCallback((from?: string | null, to?: string | null) => {
+  const reload = useCallback((from?: string | null, to?: string | null, refreshLegacyReport = true) => {
+    const revision = ++refreshRevision.current
     setFilterError(null)
     startTransition(async () => {
       try {
         const result = await getFinanceDashboardAction({ restaurantId, from: from ?? null, to: to ?? null })
+        if (revision !== refreshRevision.current) return
         if (!result.ok) { setFilterError(result.error); return }
-        updateDashboard(result.data)
+        updateDashboard(result.data, refreshLegacyReport)
       } catch {
-        setFilterError('Não foi possível atualizar o panorama financeiro.')
+        if (revision === refreshRevision.current) setFilterError('Não foi possível atualizar o panorama financeiro.')
       }
     })
   }, [restaurantId, updateDashboard])
 
-  const refreshLive = useCallback(() => reload(dashboard.period.from, dashboard.period.to), [dashboard.period.from, dashboard.period.to, reload])
+  const refreshLive = useCallback(() => reload(dashboard.period.from, dashboard.period.to, false), [dashboard.period.from, dashboard.period.to, reload])
   useFinanceRealtime(restaurantId, refreshLive)
   const lastClosedPeriod = dashboard.history.find((day) => day.status === 'closed' && day.countedCashCents !== null)
 
@@ -70,7 +75,6 @@ export function FinanceScreen({ restaurantId, restaurantName, role, initialDashb
     <MobileNavBar backHref={`/restaurantes/${restaurantId}`} backLabel="Restaurante" title="Financeiro" />
     <PageHeader
       className="tv-finance-page-header"
-      eyebrow={restaurantName}
       title="Financeiro"
       description="Acompanhe receitas, formas de recebimento e o dinheiro físico do restaurante por período de caixa."
     />
@@ -108,7 +112,7 @@ export function FinanceScreen({ restaurantId, restaurantName, role, initialDashb
         {!dashboard.activeDay && dashboard.accountsBlockingClose.length ? <section className="tv-finance-existing-accounts" aria-label="Comandas abertas antes da abertura do caixa">
           <strong>{dashboard.accountsBlockingClose.length} {dashboard.accountsBlockingClose.length === 1 ? 'comanda está' : 'comandas estão'} em andamento</strong>
           <span>As comandas podem continuar operando sem caixa aberto, mas precisam ser finalizadas antes de um fechamento normal.</span>
-          <ul>{dashboard.accountsBlockingClose.map((account) => <li key={account.accountId}>Mesa {account.tableNumber}<b>{formatCents(account.balanceDueCents)} pendente</b></li>)}</ul>
+          <ul>{dashboard.accountsBlockingClose.map((account) => <li key={account.accountId}>{formatTableAccountIdentity(account)}<b>{formatCents(account.balanceDueCents)} pendente</b></li>)}</ul>
         </section> : null}
         {!dashboard.activeDay ? <CashDayOpening key="cash-day-opening" restaurantId={restaurantId} onUpdated={updateDashboard} /> : <Tabs value={operationArea} onValueChange={(value) => setOperationSelection({ cashDayId: dashboard.activeDay?.id ?? null, area: value as OperationArea })} className="tv-finance-operation-tabs">
           <TabsList aria-label="Responsabilidades do caixa">

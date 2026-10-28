@@ -345,7 +345,7 @@ export function FinanceDateRangeFilter({
         </Popover>
       </div>
       <div className="tv-finance-date-mobile">
-        <label>De<input
+        <label>De<span className="tv-finance-date-input"><input
           type="text"
           inputMode="numeric"
           autoComplete="off"
@@ -355,8 +355,8 @@ export function FinanceDateRangeFilter({
           value={fromText}
           disabled={loading}
           onChange={(event) => { setFromText(maskDate(event.target.value)); setPeriodError(null) }}
-        /></label>
-        <label>Até<input
+        />{fromText ? <button type="button" aria-label="Limpar data inicial" disabled={loading} onMouseDown={(event) => event.preventDefault()} onClick={() => { setFromText(''); setPeriodError(null) }}>×</button> : null}</span></label>
+        <label>Até<span className="tv-finance-date-input"><input
           type="text"
           inputMode="numeric"
           autoComplete="off"
@@ -366,7 +366,7 @@ export function FinanceDateRangeFilter({
           value={toText}
           disabled={loading}
           onChange={(event) => { setToText(maskDate(event.target.value)); setPeriodError(null) }}
-        /></label>
+        />{toText ? <button type="button" aria-label="Limpar data final" disabled={loading} onMouseDown={(event) => event.preventDefault()} onClick={() => { setToText(''); setPeriodError(null) }}>×</button> : null}</span></label>
       </div>
     </div>
     <button className="tv-finance-period-submit" type="submit" disabled={loading}>

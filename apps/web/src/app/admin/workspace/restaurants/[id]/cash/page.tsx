@@ -3,6 +3,8 @@ import { uuidSchema } from '@/domain/common'
 import { CashScreen } from '@/features/cash/components/cash-screen'
 import { getRestaurantWorkspace } from '@/server/dal/restaurant-workspace'
 import { getCheckoutSettings, getTableAccountDetails, listCashAccounts, listPendingCashAccounts } from '@/server/dal/table-accounts'
+import { getFinanceDashboard } from '@/server/dal/finance'
+import { getOrderableMenu } from '@/server/dal/menu-read'
 
 export const metadata = { title: 'Caixa' }
 
@@ -16,10 +18,14 @@ export default async function Page({ params, searchParams }: {
   const workspace = await getRestaurantWorkspace(parsed.data)
   if (!workspace?.role) notFound()
   const restaurantId = workspace.restaurant.id
-  const [accounts, pending, settings] = await Promise.all([
+  const [accounts, pending, settings, financeDashboard, menu] = await Promise.all([
     listCashAccounts(restaurantId),
     listPendingCashAccounts(restaurantId),
     getCheckoutSettings(restaurantId),
+    workspace.role === 'admin' || workspace.role === 'cashier'
+      ? getFinanceDashboard({ restaurantId })
+      : Promise.resolve(null),
+    getOrderableMenu(restaurantId),
   ])
   const selectedQuery = typeof query.accountId === 'string' ? uuidSchema.safeParse(query.accountId) : null
   const requestedAccount = selectedQuery?.success
@@ -39,5 +45,7 @@ export default async function Page({ params, searchParams }: {
     initialRecentClosed={accounts.recentClosed}
     initialSelectedAccount={initialSelectedAccount}
     initialSettings={settings}
+    initialFinanceDashboard={financeDashboard}
+    menu={menu}
   />
 }

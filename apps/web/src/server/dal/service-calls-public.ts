@@ -1,5 +1,11 @@
 import 'server-only'
-import { requestServiceCallSchema, type ServiceCallRequest } from '@/domain/service-call'
+import {
+  publicServiceCallStatusInputSchema,
+  publicServiceCallStatusSchema,
+  requestServiceCallSchema,
+  type PublicServiceCallStatusDTO,
+  type ServiceCallRequest,
+} from '@/domain/service-call'
 import { env } from '@/server/env'
 import { rateLimitIdentity } from '@/server/security/client-ip'
 import { enforceRateLimit, RateLimitedError } from '@/server/security/rate-limit'
@@ -46,4 +52,28 @@ export async function requestServiceCall(input: unknown): Promise<ServiceCallReq
     throw new UserFacingError('Não foi possível chamar a equipe agora. Tente novamente.')
   }
   return { callId: row.call_id, tableNumber: row.table_number, status: row.status, created: row.created }
+}
+
+export async function getPublicServiceCallStatus(input: unknown): Promise<PublicServiceCallStatusDTO> {
+  const { token } = publicServiceCallStatusInputSchema.parse(input)
+  const supabase = await createUserClient('site')
+  const { data, error } = await supabase.rpc('get_public_service_call_status', {
+    p_key: env.APP_SERVER_KEY,
+    p_token: token,
+  })
+  if (error) {
+    if (error.message === 'service_call_unavailable') {
+      throw new UserFacingError('Este identificador não está mais disponível para chamados.')
+    }
+    console.error('[service-calls] public status lookup failed', error.code, error.message)
+    throw new UserFacingError('Não foi possível atualizar o estado do chamado agora.')
+  }
+  const row = data?.[0]
+  if (!row) return null
+  const parsed = publicServiceCallStatusSchema.safeParse({ callId: row.call_id, status: row.status })
+  if (!parsed.success) {
+    console.error('[service-calls] public status RPC returned an invalid result')
+    throw new UserFacingError('Não foi possível atualizar o estado do chamado agora.')
+  }
+  return parsed.data
 }

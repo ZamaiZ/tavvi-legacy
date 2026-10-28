@@ -23,7 +23,7 @@ import { createUserClient } from './_client'
 type Db = Awaited<ReturnType<typeof createUserClient>>
 type AccountRow = Tables<'table_accounts'>
 type AccountSummaryRow = Pick<AccountRow,
-  'id' | 'restaurant_id' | 'table_number' | 'status' | 'tip_mode' | 'tip_percent_bps'
+  'id' | 'restaurant_id' | 'table_number' | 'account_name' | 'walk_in_number' | 'status' | 'tip_mode' | 'tip_percent_bps'
   | 'tip_fixed_cents' | 'tip_accepted' | 'tip_amount_cents' | 'opened_at' | 'closed_at'
 >
 
@@ -141,6 +141,8 @@ async function hydrateAccounts(db: Db, rows: AccountRow[]): Promise<TableAccount
       accountId: row.id,
       restaurantId: row.restaurant_id,
       tableNumber: row.table_number,
+      accountName: row.account_name,
+      walkInNumber: row.walk_in_number,
       status: row.status,
       tipMode: row.tip_mode,
       tipPercentBps: row.tip_percent_bps,
@@ -238,6 +240,8 @@ async function summarizeAccounts(db: Db, rows: AccountSummaryRow[]): Promise<Tab
       accountId: row.id,
       restaurantId: row.restaurant_id,
       tableNumber: row.table_number,
+      accountName: row.account_name,
+      walkInNumber: row.walk_in_number,
       status: row.status,
       tipMode: row.tip_mode,
       tipPercentBps: row.tip_percent_bps,
@@ -290,11 +294,11 @@ export async function listCashAccounts(restaurantIdValue: unknown): Promise<{ ac
   const db = await getClient()
   const [activeRows, closedResult] = await Promise.all([
     fetchAllRows(
-      (from, to) => db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
+      (from, to) => db.from('table_accounts').select('id, restaurant_id, table_number, account_name, walk_in_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
         .in('status', ['open', 'settling']).order('opened_at', { ascending: true }).order('id', { ascending: true }).range(from, to),
       'Não foi possível listar as comandas',
     ),
-    db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
+    db.from('table_accounts').select('id, restaurant_id, table_number, account_name, walk_in_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
       .eq('status', 'closed').order('closed_at', { ascending: false }).order('id', { ascending: false }).limit(25),
   ])
   if (closedResult.error) throw new Error(`Não foi possível listar as contas fechadas: ${closedResult.error.message}`)
@@ -313,7 +317,7 @@ export async function listPendingCashAccounts(restaurantIdValue: unknown, source
   const rows = await fetchAllRows(
     (from, to) => {
       let query = db.from('table_accounts')
-        .select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at')
+        .select('id, restaurant_id, table_number, account_name, walk_in_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at')
         .eq('restaurant_id', restaurantId).eq('status', 'pending')
       if (sourceCashDayId) query = query.eq('pending_cash_day_id', sourceCashDayId)
       return query.order('opened_at', { ascending: true }).order('id', { ascending: true }).range(from, to)
