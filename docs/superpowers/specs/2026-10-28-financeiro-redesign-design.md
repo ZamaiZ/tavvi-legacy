@@ -24,15 +24,15 @@ O redesign reutiliza os dados, ações e regras financeiras já existentes. O tr
 
 - Despesas, taxas, impostos, estoque, consumo interno, conciliação externa, exportação ou novos relatórios.
 - Alterar regras de abertura, recebimento, sangria, suprimento, fechamento ou exceção.
-- Alterar banco de dados, RPCs, Server Actions, contratos de domínio, permissões ou cálculos do Financeiro.
+- Alterar banco de dados, RPCs, Server Actions, contratos de domínio, permissões ou cálculos do Financeiro, exceto a remoção da denominação física de R$ 0,01 da contagem, solicitada depois da aprovação. Valores financeiros continuam mantendo precisão de centavos.
 - Recriar a navegação global do painel dentro da página. O shell existente continua responsável por sidebar, cabeçalho mobile e navegação do restaurante.
 - Criar filtro de datas para a lista de períodos de caixa. O botão de filtro visto nessa área do protótipo é ilustrativo e não corresponde a uma capacidade atual.
 
 ## Base atual e limites que precisam ser preservados
 
 - A rota `apps/web/src/app/admin/workspace/restaurants/[id]/financeiro/page.tsx` permite acesso a `admin` e `cashier` e carrega o panorama e o relatório legado.
-- `FinanceScreen` mantém atualização manual, atualização em tempo real e erros de carga. O histórico carrega primeiro 30 períodos e oferece paginação.
-- `CashDayOpening` oferece entrada do total inicial ou contagem de notas e moedas.
+- `FinanceScreen` atualiza dados em tempo real e mostra erros de carga, sem botão manual de atualização nem indicador textual de conexão. O histórico carrega primeiro 30 períodos e oferece paginação.
+- `CashDayOpening` oferece entrada do total inicial ou contagem de notas e moedas; a contagem física não inclui a denominação de R$ 0,01, embora os valores financeiros mantenham precisão de centavos.
 - `CashDayMovements` registra suprimento ou sangria com valor e motivo; suprimentos e sangrias alteram dinheiro esperado, mas não são receita ou despesa operacional.
 - `CashDayClosing` confere dinheiro contado contra o esperado. Diferença exige motivo. Comandas em andamento bloqueiam fechamento normal; somente `admin` pode autorizar fechamento excepcional, registrar justificativa e confirmar o transporte dos saldos pendentes.
 - `PendingReceivables` abre a comanda correspondente em Caixa. O saldo transportado continua ligado à comanda original; cada parcela recebida passa a pertencer ao período em que entrar.
@@ -146,9 +146,9 @@ Organizar o conteúdo em subtabs “Períodos de caixa” e “Receitas sem caix
 
 - Primeira entrada: selecionar “Visão geral” quando existir `activeDay`; sem período ativo, selecionar “Operação”.
 - Ao mudar de aba, manter montados os painéis que contêm formulário, filtro ou detalhe expansível, para que a seleção e o progresso não desapareçam.
-- Uma abertura bem-sucedida mantém a pessoa em Operação e apresenta Movimentações como próxima tarefa. Um fechamento bem-sucedido mantém Operação e mostra a tela para abrir o próximo período. Atualizações manuais e em tempo real atualizam dados sem forçar mudança de aba.
+- Uma abertura bem-sucedida mantém a pessoa em Operação e apresenta Movimentações como próxima tarefa. Um fechamento bem-sucedido mantém Operação e mostra a tela para abrir o próximo período. Atualizações em tempo real atualizam dados sem forçar mudança de aba.
 - O badge da aba Operação pode sinalizar comandas em andamento antes da abertura, somente quando o caixa estiver fechado. O badge de Recebimentos pendentes usa `pendingReceivables.length` e aparece somente quando houver itens.
-- Botão Atualizar, estado em tempo real, filtros e ações continuam usando as funções atuais. A organização visual não deve alterar idempotência nem o identificador usado para repetir uma mutation incerta.
+- Não exibir botão manual de atualização nem indicador textual de conexão. Manter atualizações em tempo real silenciosas, filtros e seus estados de carregamento/erro. A organização visual não deve alterar idempotência nem o identificador usado para repetir uma mutation incerta.
 
 ## Direção visual e responsividade
 
@@ -167,7 +167,7 @@ Organizar o conteúdo em subtabs “Períodos de caixa” e “Receitas sem caix
 2. O status do caixa permanece visível em todas as áreas e diferencia claramente período ativo de caixa fechado.
 3. Com caixa fechado, a abertura e eventuais comandas anteriores à abertura estão em Operação; o panorama mostra estado vazio honesto e caminho para abrir.
 4. Com caixa ativo, Visão geral mostra filtro, valores e meios de pagamento; Operação separa movimento, recebível e fechamento.
-5. Movimentações, recebíveis, fechamento, filtros, histórico expansível, paginação, relatório legado, erros, atualizações em tempo real e restrições de papel continuam disponíveis e sem alteração de regra.
+5. Movimentações, recebíveis, fechamento, filtros, histórico expansível, paginação, relatório legado, erros, atualizações em tempo real silenciosas e restrições de papel continuam disponíveis e sem alteração de regra.
 6. Dinheiro esperado não muda ao filtrar um intervalo analítico; nenhum valor ilustrativo ou componente financeiro é inventado na tela real.
 7. No mobile não há rolagem horizontal, ações ficam acessíveis e status, diferença, datas e valores permanecem legíveis.
 8. A tela mantém a identidade do Tavvi e o shell global, sem duplicar navegação do protótipo.

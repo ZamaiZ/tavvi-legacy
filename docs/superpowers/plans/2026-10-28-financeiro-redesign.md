@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Preservar acesso `admin` e `cashier` e o shell do workspace existente.
-- Não alterar banco, schema, Server Actions, DAL, contratos em `domain/finance.ts`, regras de cálculo ou fluxo de Caixa.
+- Não alterar banco, schema, Server Actions, DAL, contratos em `domain/finance.ts`, regras de cálculo ou fluxo de Caixa, exceto remover a denominação física de R$ 0,01 da contagem conforme adição posterior do usuário; valores financeiros mantêm precisão de centavos.
 - Usar `totals.expectedCashCents` como valor oficial; ele representa o saldo total esperado da gaveta, não o intervalo analítico selecionado.
 - Preservar fuso horário do restaurante, filtros independentes, atualizações em tempo real, idempotência e repetição segura de mutations incertas.
 - Reutilizar o padrão das abas de `cash-account-tabs.tsx` e os componentes financeiros existentes; não adicionar dependências.
@@ -61,7 +61,7 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - [x] **Passo 2:** Criar os estados controlados da área principal, da operação e do histórico. Inicializar a área principal em Visão geral quando `initialDashboard.activeDay` existir e em Operação quando não existir.
 - [x] **Passo 3:** Extrair o status aberto/fechado de `CashDayOverview` para `CashDayStatus` e posicioná-lo depois do cabeçalho e antes das abas.
 - [x] **Passo 4:** Compor as abas principais com ícones `react-icons/lu`; renderizar um único painel visual por vez e manter os painéis necessários montados.
-- [x] **Passo 5:** Remover o banner “Escopo atual” do fluxo principal, mantendo descrição concisa no cabeçalho, indicador realtime, atualização manual, erros e estado de carregamento.
+- [x] **Passo 5:** Remover o banner “Escopo atual” do fluxo principal; após orientação do usuário, também remover botão manual e indicador textual do realtime, mantendo descrição concisa, atualização automática silenciosa, erros dos filtros e estado de carregamento.
 - [x] **Passo 6 — revisão estática:** conferir que o status está fora dos painéis, os três valores de aba são consistentes, as áreas iniciais dependem de `activeDay` e não há navegação global duplicada.
 
 ## Tarefa 2: Visão geral aberta e fechada
