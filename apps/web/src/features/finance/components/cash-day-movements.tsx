@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { LuArrowDownLeft, LuArrowUpRight, LuCirclePlus, LuVault } from 'react-icons/lu'
+import { LuArrowDownLeft, LuArrowUpRight, LuBanknote, LuCirclePlus, LuVault } from 'react-icons/lu'
 import type { CashDayMovementDTO, FinanceDashboardDTO } from '@/domain/finance'
 import { digitsToCents, formatCents } from '@/lib/money'
 import { recordCashDayMovementAction } from '@/server/actions/finance'
@@ -10,10 +10,11 @@ import { SpinnerRing } from '@/components/ui/spinner'
 import { useFinanceMutation } from './use-finance-mutation'
 import { formatRestaurantDateTime } from './finance-time'
 
-export function CashDayMovements({ restaurantId, cashDayId, movements, timezone, onUpdated }: {
+export function CashDayMovements({ restaurantId, cashDayId, movements, expectedCashCents, timezone, onUpdated }: {
   restaurantId: string
   cashDayId: string
   movements: CashDayMovementDTO[]
+  expectedCashCents: number
   timezone: string
   onUpdated: (dashboard: FinanceDashboardDTO) => void
 }) {
@@ -30,28 +31,36 @@ export function CashDayMovements({ restaurantId, cashDayId, movements, timezone,
     mutation.submit(recordCashDayMovementAction, { restaurantId, cashDayId, type, amountCents, reason: reason.trim() })
   }
 
-  return <section className="tv-finance-card tv-finance-movement-section" aria-labelledby="tv-finance-movements-title">
-    <div className="tv-finance-section-heading compact"><span className="tv-finance-icon"><LuVault aria-hidden="true" /></span><div><p>CONTROLE DA GAVETA</p><h2 id="tv-finance-movements-title">Movimentações de dinheiro</h2>
-      <small>Reforço e retirada de espécie alteram o valor esperado, mas não são receita nem despesa operacional.</small>
-    </div></div>
-    <form className="tv-finance-movement-form" onSubmit={submit}>
-      <label>Tipo de movimentação<select value={type} disabled={mutation.busy || mutation.locked} onChange={(event) => { setType(event.target.value as typeof type); mutation.clearError() }}>
-        <option value="replenishment">Suprimento · reforçar o troco</option>
-        <option value="withdrawal">Sangria · retirar para o cofre</option>
-      </select></label>
-      <label>Valor<span className="tv-finance-money-input"><b>R$</b><input inputMode="numeric" value={amount} disabled={mutation.busy || mutation.locked} placeholder="0,00"
-        onChange={(event) => { setAmount(event.target.value); mutation.clearError() }} /></span></label>
-      <label className="tv-finance-reason-field">Motivo<input value={reason} disabled={mutation.busy || mutation.locked} maxLength={500} placeholder={type === 'replenishment' ? 'Ex.: reforço para troco' : 'Ex.: retirada para cofre'}
-        onChange={(event) => { setReason(event.target.value); mutation.clearError() }} /></label>
-      <Button type="submit" size="lg" disabled={!ready || mutation.busy}>{mutation.busy ? <><SpinnerRing decorative /> Registrando…</> : mutation.locked ? 'Repetir movimentação' : <><LuCirclePlus aria-hidden="true" /> Registrar</>}</Button>
-    </form>
-    {mutation.error ? <p className="tv-finance-error" role="alert">{mutation.error}</p> : null}
-    <div className="tv-finance-movement-list">
-      <h3>Movimentações deste caixa <span>{movements.length}</span></h3>
-      {movements.length ? movements.map((movement) => <MovementRow key={movement.id} movement={movement} timezone={timezone} />)
-        : <p className="tv-finance-empty-inline">Nenhum suprimento ou sangria registrado neste período.</p>}
-    </div>
-  </section>
+  return <div className="tv-finance-operation-layout">
+    <section className="tv-finance-card tv-finance-movement-section" aria-labelledby="tv-finance-movements-title">
+      <div className="tv-finance-section-heading compact"><span className="tv-finance-icon"><LuVault aria-hidden="true" /></span><div><p>CONTROLE DA GAVETA</p><h2 id="tv-finance-movements-title">Movimentações de dinheiro</h2>
+        <small>Reforço e retirada de espécie alteram o valor esperado, mas não são receita nem despesa operacional.</small>
+      </div></div>
+      <form className="tv-finance-movement-form" onSubmit={submit}>
+        <label>Tipo de movimentação<select value={type} disabled={mutation.busy || mutation.locked} onChange={(event) => { setType(event.target.value as typeof type); mutation.clearError() }}>
+          <option value="replenishment">Suprimento · reforçar o troco</option>
+          <option value="withdrawal">Sangria · retirar para o cofre</option>
+        </select></label>
+        <label>Valor<span className="tv-finance-money-input"><b>R$</b><input inputMode="numeric" value={amount} disabled={mutation.busy || mutation.locked} placeholder="0,00"
+          onChange={(event) => { setAmount(event.target.value); mutation.clearError() }} /></span></label>
+        <label className="tv-finance-reason-field">Motivo<input value={reason} disabled={mutation.busy || mutation.locked} maxLength={500} placeholder={type === 'replenishment' ? 'Ex.: reforço para troco' : 'Ex.: retirada para cofre'}
+          onChange={(event) => { setReason(event.target.value); mutation.clearError() }} /></label>
+        <Button type="submit" size="lg" disabled={!ready || mutation.busy}>{mutation.busy ? <><SpinnerRing decorative /> Registrando…</> : mutation.locked ? 'Repetir movimentação' : <><LuCirclePlus aria-hidden="true" /> Registrar</>}</Button>
+      </form>
+      {mutation.error ? <p className="tv-finance-error" role="alert">{mutation.error}</p> : null}
+      <div className="tv-finance-movement-list">
+        <h3>Movimentações deste caixa <span>{movements.length}</span></h3>
+        {movements.length ? movements.map((movement) => <MovementRow key={movement.id} movement={movement} timezone={timezone} />)
+          : <p className="tv-finance-empty-inline">Nenhum suprimento ou sangria registrado neste período.</p>}
+      </div>
+    </section>
+    <aside className="tv-finance-drawer-card" aria-labelledby="tv-finance-drawer-title">
+      <span className="tv-finance-drawer-icon"><LuBanknote aria-hidden="true" /></span>
+      <div><p className="tv-finance-section-kicker">SALDO ATUAL</p><h2 id="tv-finance-drawer-title">Dinheiro esperado na gaveta</h2></div>
+      <strong aria-live="polite">{formatCents(expectedCashCents)}</strong>
+      <p>Saldo do período completo: fundo inicial, recebimentos e estornos em dinheiro, suprimentos e sangrias.</p>
+    </aside>
+  </div>
 }
 
 function MovementRow({ movement, timezone }: { movement: CashDayMovementDTO; timezone: string }) {

@@ -57,12 +57,12 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - Exportar em `cash-day-overview.tsx` um `CashDayStatus({ dashboard }: { dashboard: FinanceDashboardDTO })` independente do conteúdo de métricas.
 - Usar `Tabs`, `TabsList`, `TabsTrigger` e `TabsContent` de `@/components/ui/tabs`, com painéis mantidos montados onde o estado interno precisa persistir.
 
-- [ ] **Passo 1:** Ler os dois guias Next 16 indicados em Global Constraints antes de tocar componentes client.
-- [ ] **Passo 2:** Criar os estados controlados da área principal, da operação e do histórico. Inicializar a área principal em Visão geral quando `initialDashboard.activeDay` existir e em Operação quando não existir.
-- [ ] **Passo 3:** Extrair o status aberto/fechado de `CashDayOverview` para `CashDayStatus` e posicioná-lo depois do cabeçalho e antes das abas.
-- [ ] **Passo 4:** Compor as abas principais com ícones `react-icons/lu`; renderizar um único painel visual por vez e manter os painéis necessários montados.
-- [ ] **Passo 5:** Remover o banner “Escopo atual” do fluxo principal, mantendo descrição concisa no cabeçalho, indicador realtime, atualização manual, erros e estado de carregamento.
-- [ ] **Passo 6 — revisão estática:** conferir que o status está fora dos painéis, os três valores de aba são consistentes, as áreas iniciais dependem de `activeDay` e não há navegação global duplicada.
+- [x] **Passo 1:** Ler os dois guias Next 16 indicados em Global Constraints antes de tocar componentes client.
+- [x] **Passo 2:** Criar os estados controlados da área principal, da operação e do histórico. Inicializar a área principal em Visão geral quando `initialDashboard.activeDay` existir e em Operação quando não existir.
+- [x] **Passo 3:** Extrair o status aberto/fechado de `CashDayOverview` para `CashDayStatus` e posicioná-lo depois do cabeçalho e antes das abas.
+- [x] **Passo 4:** Compor as abas principais com ícones `react-icons/lu`; renderizar um único painel visual por vez e manter os painéis necessários montados.
+- [x] **Passo 5:** Remover o banner “Escopo atual” do fluxo principal, mantendo descrição concisa no cabeçalho, indicador realtime, atualização manual, erros e estado de carregamento.
+- [x] **Passo 6 — revisão estática:** conferir que o status está fora dos painéis, os três valores de aba são consistentes, as áreas iniciais dependem de `activeDay` e não há navegação global duplicada.
 
 ## Tarefa 2: Visão geral aberta e fechada
 
@@ -77,12 +77,12 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - `CashDayOverview` consome `dashboard`, `loading` e `onFilter(from, to)` como hoje; seu conteúdo é montado dentro do painel Visão geral.
 - A ação “Ir para abertura do caixa” altera somente `FinanceArea` para `'operation'`.
 
-- [ ] **Passo 1:** Para `activeDay === null`, renderizar estado vazio com chamada para abrir o caixa; omitir métricas zeradas.
-- [ ] **Passo 2:** Quando houver um período encerrado com `countedCashCents` não nulo em `dashboard.history`, mostrar discretamente a data e o valor contado; omitir essa linha sem dados reais.
-- [ ] **Passo 3:** Para período ativo, manter `FinanceDateRangeFilter` e os quatro indicadores complementares; usar `totals.expectedCashCents` como valor de destaque.
-- [ ] **Passo 4:** Rotular o dinheiro esperado como saldo da gaveta no período inteiro e manter o aviso sobre vendas/gorjetas brutas e estornos separados. Não derivar breakdown no browser.
-- [ ] **Passo 5:** Preservar meios de pagamento, estado vazio, erro, timezone e atualização por `onFilter`; os dados do relatório legado não entram neste painel.
-- [ ] **Passo 6 — revisão estática:** seguir os props do filtro até `reload(from, to)` e confirmar que dinheiro esperado não é recalculado no componente nem declarado como parte do intervalo filtrado.
+- [x] **Passo 1:** Para `activeDay === null`, renderizar estado vazio com chamada para abrir o caixa; omitir métricas zeradas.
+- [x] **Passo 2:** Quando houver um período encerrado com `countedCashCents` não nulo em `dashboard.history`, mostrar discretamente a data e o valor contado; omitir essa linha sem dados reais.
+- [x] **Passo 3:** Para período ativo, manter `FinanceDateRangeFilter` e os quatro indicadores complementares; usar `totals.expectedCashCents` como valor de destaque.
+- [x] **Passo 4:** Rotular o dinheiro esperado como saldo da gaveta no período inteiro e manter o aviso sobre vendas/gorjetas brutas e estornos separados. Não derivar breakdown no browser.
+- [x] **Passo 5:** Preservar meios de pagamento, estado vazio, erro, timezone e atualização por `onFilter`; os dados do relatório legado não entram neste painel.
+- [x] **Passo 6 — revisão estática:** seguir os props do filtro até `reload(from, to)` e confirmar que dinheiro esperado não é recalculado no componente nem declarado como parte do intervalo filtrado.
 
 ## Tarefa 3: Operação e subtabs por responsabilidade
 
@@ -98,13 +98,13 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - Reutilizar `CashDayOpening({ restaurantId, onUpdated })`, `PendingReceivables({ restaurantId, accounts, timezone })` e `CashDayClosing({ restaurantId, dashboard, role, onUpdated })` sem alterar seus contratos.
 - Subtabs controladas: `movements`, `receivables`, `closing`.
 
-- [ ] **Passo 1:** Em Operação sem caixa, renderizar `CashDayOpening` e a lista de `accountsBlockingClose`; manter o alerta e os valores fornecidos pelo dashboard.
-- [ ] **Passo 2:** Em Operação com caixa, criar subtabs Movimentações, Recebimentos pendentes e Fechamento. Selecionar Movimentações como padrão e adicionar badge somente quando houver pendências.
-- [ ] **Passo 3:** Mover `PendingReceivables` para a subtab correspondente, mantendo o destino de recebimento no Caixa e o empty state atual.
-- [ ] **Passo 4:** Dar ao painel Movimentações um layout de formulário/lista e cartão lateral; adaptar `CashDayMovements` para exibir a prop `expectedCashCents` sem calcular seus próprios valores.
-- [ ] **Passo 5:** Montar `CashDayClosing` somente no painel Fechamento mantendo-o montado ao alternar; preservar motivo de diferença, bloqueadores, papel, justificativa e confirmação de exceção do próprio componente.
-- [ ] **Passo 6:** Após abertura bem-sucedida, permanecer em Operação com Movimentações selecionada; após fechamento bem-sucedido, permanecer em Operação e mostrar abertura. Reiniciar a subtab operacional em Movimentações quando o período ativo mudar de identidade ou for fechado. Refresh/realtime atualizam dados sem alterar a área escolhida.
-- [ ] **Passo 7 — revisão estática:** verificar que cada subtab monta o componente existente correto, os badges usam arrays reais e o novo cartão recebe apenas o saldo oficial.
+- [x] **Passo 1:** Em Operação sem caixa, renderizar `CashDayOpening` e a lista de `accountsBlockingClose`; manter o alerta e os valores fornecidos pelo dashboard.
+- [x] **Passo 2:** Em Operação com caixa, criar subtabs Movimentações, Recebimentos pendentes e Fechamento. Selecionar Movimentações como padrão e adicionar badge somente quando houver pendências.
+- [x] **Passo 3:** Mover `PendingReceivables` para a subtab correspondente, mantendo o destino de recebimento no Caixa e o empty state atual.
+- [x] **Passo 4:** Dar ao painel Movimentações um layout de formulário/lista e cartão lateral; adaptar `CashDayMovements` para exibir a prop `expectedCashCents` sem calcular seus próprios valores.
+- [x] **Passo 5:** Montar `CashDayClosing` somente no painel Fechamento mantendo-o montado ao alternar; preservar motivo de diferença, bloqueadores, papel, justificativa e confirmação de exceção do próprio componente.
+- [x] **Passo 6:** Após abertura bem-sucedida, permanecer em Operação com Movimentações selecionada; após fechamento bem-sucedido, permanecer em Operação e mostrar abertura. Reiniciar a subtab operacional em Movimentações quando o período ativo mudar de identidade ou for fechado. Refresh/realtime atualizam dados sem alterar a área escolhida.
+- [x] **Passo 7 — revisão estática:** verificar que cada subtab monta o componente existente correto, os badges usam arrays reais e o novo cartão recebe apenas o saldo oficial.
 
 ## Tarefa 4: Histórico separado em períodos e receitas sem caixa
 
@@ -118,11 +118,11 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - Reutilizar `CashDayHistory` com os props atuais e `LegacyFinanceReport` com `initialReport` e `refreshVersion` atuais.
 - Subtabs controladas: `periods` e `legacy`.
 
-- [ ] **Passo 1:** Criar subtabs Períodos de caixa e Receitas sem caixa no painel Histórico.
-- [ ] **Passo 2:** Posicionar `CashDayHistory` no primeiro painel, mantendo estado de período expandido, carregamento de detalhe, paginação e erros.
-- [ ] **Passo 3:** Posicionar `LegacyFinanceReport` no segundo painel, mantendo seu filtro de datas, indicadores, métodos, nota de escopo e refresh independente.
-- [ ] **Passo 4:** Não criar o botão “Filtrar datas” do protótipo para a lista de períodos; não misturar registros legados com valores de caixa físico.
-- [ ] **Passo 5 — revisão estática:** conferir fluxo de `refreshVersion`, props de histórico, ação de paginação e presença dos dois filtros independentes onde já existem.
+- [x] **Passo 1:** Criar subtabs Períodos de caixa e Receitas sem caixa no painel Histórico.
+- [x] **Passo 2:** Posicionar `CashDayHistory` no primeiro painel, mantendo estado de período expandido, carregamento de detalhe, paginação e erros.
+- [x] **Passo 3:** Posicionar `LegacyFinanceReport` no segundo painel, mantendo seu filtro de datas, indicadores, métodos, nota de escopo e refresh independente.
+- [x] **Passo 4:** Não criar o botão “Filtrar datas” do protótipo para a lista de períodos; não misturar registros legados com valores de caixa físico.
+- [x] **Passo 5 — revisão estática:** conferir fluxo de `refreshVersion`, props de histórico, ação de paginação e presença dos dois filtros independentes onde já existem.
 
 ## Tarefa 5: Acabamento responsivo, acessibilidade e loading
 
@@ -132,13 +132,13 @@ Os cinco pontos abaixo serão conferidos por inspeção estática conforme a reg
 - Modificar `apps/web/src/app/admin/workspace/restaurants/[id]/financeiro/loading.tsx`
 - Ajustar `apps/web/src/features/finance/components/finance-screen.tsx` somente se necessário para atributos ARIA ou estados de feedback.
 
-- [ ] **Passo 1:** Aplicar tokens existentes do workspace e a hierarquia do protótipo: status, abas, heading do painel, ação principal e conteúdo secundário.
-- [ ] **Passo 2:** Em desktop, manter abas principais em linha e permitir cartões em duas colunas onde há espaço; preservar largura máxima do workspace.
-- [ ] **Passo 3:** Em tablet, empilhar blocos quando a largura reduzir; em mobile, manter abas e subtabs utilizáveis, formulários em coluna e ações principais largas.
-- [ ] **Passo 4:** Ajustar linhas de meios de pagamento e histórico para mobile sem ocultar rótulos, status, diferença ou valores e sem rolagem horizontal da página.
-- [ ] **Passo 5:** Atualizar skeleton para espelhar cabeçalho, status, navegação e painel, removendo a grade fixa de cinco métricas.
-- [ ] **Passo 6:** Conferir labels acessíveis, ícones decorativos ocultos, foco visível, mensagens `status`/`alert` e nomes/controles ARIA das abas.
-- [ ] **Passo 7 — revisão estática:** inspecionar breakpoints atuais em 1100px e 680px, seletores sob `.workspace-territory`, semântica de painéis e inexistência de navegação duplicada. Não executar comandos automatizados proibidos.
+- [x] **Passo 1:** Aplicar tokens existentes do workspace e a hierarquia do protótipo: status, abas, heading do painel, ação principal e conteúdo secundário.
+- [x] **Passo 2:** Em desktop, manter abas principais em linha e permitir cartões em duas colunas onde há espaço; preservar largura máxima do workspace.
+- [x] **Passo 3:** Em tablet, empilhar blocos quando a largura reduzir; em mobile, manter abas e subtabs utilizáveis, formulários em coluna e ações principais largas.
+- [x] **Passo 4:** Ajustar linhas de meios de pagamento e histórico para mobile sem ocultar rótulos, status, diferença ou valores e sem rolagem horizontal da página.
+- [x] **Passo 5:** Atualizar skeleton para espelhar cabeçalho, status, navegação e painel, removendo a grade fixa de cinco métricas.
+- [x] **Passo 6:** Conferir labels acessíveis, ícones decorativos ocultos, foco visível, mensagens `status`/`alert` e nomes/controles ARIA das abas.
+- [x] **Passo 7 — revisão estática:** inspecionar breakpoints atuais em 1100px e 680px, seletores sob `.workspace-territory`, semântica de painéis e inexistência de navegação duplicada. Não executar comandos automatizados proibidos.
 
 ## Limites de validação
 
