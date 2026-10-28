@@ -12,6 +12,10 @@ export async function listCashAccountsAction(restaurantId: string): Promise<Acti
   return runAction(() => dal.listCashAccounts(restaurantId))
 }
 
+export async function listPendingCashAccountsAction(restaurantId: string): Promise<ActionResult<TableAccountSummaryDTO[]>> {
+  return runAction(() => dal.listPendingCashAccounts(restaurantId))
+}
+
 export async function getTableAccountDetailsAction(input: { restaurantId: string; accountId: string }): Promise<ActionResult<TableAccountDTO | null>> {
   return runAction(() => dal.getTableAccountDetails(input))
 }

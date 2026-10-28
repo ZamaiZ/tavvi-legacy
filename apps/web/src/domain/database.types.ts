@@ -62,6 +62,42 @@ type TableAccountRow = {
   opened_by: string
   closed_at: string | null
   closed_by: string | null
+  pending_cash_day_id: string | null
+}
+
+type RestaurantCashDayRow = {
+  id: string
+  restaurant_id: string
+  status: string
+  opened_at: string
+  opened_by: string
+  opening_cash_cents: number
+  opening_count: Json | null
+  open_request_id: string
+  open_request_fingerprint: string
+  closed_at: string | null
+  closed_by: string | null
+  expected_cash_cents: number | null
+  counted_cash_cents: number | null
+  cash_difference_cents: number | null
+  closing_count: Json | null
+  difference_reason: string | null
+  exception_reason: string | null
+  close_request_id: string | null
+  close_request_fingerprint: string | null
+}
+
+type CashDayMovementRow = {
+  id: string
+  restaurant_id: string
+  cash_day_id: string
+  movement_type: string
+  amount_cents: number
+  reason: string
+  request_id: string
+  request_fingerprint: string
+  created_by: string
+  created_at: string
 }
 
 type OrderRow = {
@@ -111,6 +147,7 @@ type TableAccountPaymentRow = {
   request_fingerprint: string
   created_by: string
   created_at: string
+  cash_day_id: string | null
 }
 
 type TableAccountEventRow = {
@@ -164,6 +201,8 @@ export type Database = {
       order_items: FinancialTable<OrderItemRow>
       table_account_payments: FinancialTable<TableAccountPaymentRow>
       table_account_events: FinancialTable<TableAccountEventRow>
+      restaurant_cash_days: FinancialTable<RestaurantCashDayRow>
+      cash_day_movements: FinancialTable<CashDayMovementRow>
       app_server_keys: {
         Row: {
           key_hash: string
@@ -1156,6 +1195,10 @@ export type Database = {
       is_restaurant_admin: { Args: { rid: string }; Returns: boolean }
       is_restaurant_public: { Args: { rid: string }; Returns: boolean }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }
+      legacy_restaurant_finance_report: {
+        Args: { p_restaurant_id: string; p_from: string | null; p_to: string | null }
+        Returns: Json
+      }
       list_platform_admin_invites: {
         Args: never
         Returns: PlatformAdminInviteRow[]
@@ -1356,6 +1399,25 @@ export type Database = {
         }
         Returns: Json
       }
+      open_restaurant_cash_day: {
+        Args: { p_restaurant_id: string; p_opening_cash_cents: number; p_opening_count: Json; p_request_id: string }
+        Returns: Json
+      }
+      record_cash_day_movement: {
+        Args: { p_cash_day_id: string; p_movement_type: string; p_amount_cents: number; p_reason: string; p_request_id: string }
+        Returns: Json
+      }
+      close_restaurant_cash_day: {
+        Args: {
+          p_cash_day_id: string
+          p_counted_cash_cents: number
+          p_closing_count: Json
+          p_difference_reason: string
+          p_exception_reason: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       decide_tip_and_close_table_account: {
         Args: { p_account_id: string; p_tip_accepted: boolean; p_request_id: string }
         Returns: Json
@@ -1365,7 +1427,7 @@ export type Database = {
         Returns: Json
       }
       reverse_table_account_payment: {
-        Args: { p_payment_id: string; p_amount_cents: number; p_reason: string; p_request_id: string }
+        Args: { p_payment_id: string; p_amount_cents: number; p_refund_method_id: string; p_reason: string; p_request_id: string }
         Returns: Json
       }
       set_restaurant_payment_method_active: {

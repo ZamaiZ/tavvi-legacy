@@ -14,6 +14,7 @@ import {
   getTableAccountDetailsAction,
   getCheckoutSettingsAction,
   listCashAccountsAction,
+  listPendingCashAccountsAction,
   reopenTableAccountAction,
 } from '@/server/actions/table-accounts'
 import { useTableAccountsRealtime } from '../use-table-accounts-realtime'
@@ -26,6 +27,7 @@ export function CashScreen({
   restaurantName,
   role,
   initialActive,
+  initialPending,
   initialRecentClosed,
   initialSelectedAccount,
   initialSettings,
@@ -34,21 +36,27 @@ export function CashScreen({
   restaurantName: string
   role: MemberRole
   initialActive: TableAccountSummaryDTO[]
+  initialPending: TableAccountSummaryDTO[]
   initialRecentClosed: TableAccountSummaryDTO[]
   initialSelectedAccount: TableAccountDTO | null
   initialSettings: CheckoutSettingsDTO
 }) {
   const mobile = useIsMobile()
   const [active, setActive] = useState<TableAccountSummaryDTO[]>(initialActive)
+  const [pending, setPending] = useState<TableAccountSummaryDTO[]>(initialPending)
   const [recentClosed, setRecentClosed] = useState(initialRecentClosed)
   const [settings, setSettings] = useState(initialSettings)
-  const [selectedId, setSelectedId] = useState(initialSelectedAccount?.accountId ?? initialActive[0]?.accountId ?? initialRecentClosed[0]?.accountId ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedAccount?.accountId ?? initialActive[0]?.accountId ?? initialPending[0]?.accountId ?? initialRecentClosed[0]?.accountId ?? null)
   const [selectedAccount, setSelectedAccount] = useState<TableAccountDTO | null>(initialSelectedAccount)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileAccountsOpen, setMobileAccountsOpen] = useState(true)
   const [selectedTab, setSelectedTab] = useState<CashTab>('conta')
   const [operationState, setOperationState] = useState<CashOperationState>('idle')
-  const [listFilter, setListFilter] = useState<'active' | 'closed'>(initialActive.length ? 'active' : initialRecentClosed.length ? 'closed' : 'active')
+  const [listFilter, setListFilter] = useState<'active' | 'pending' | 'closed'>(
+    initialSelectedAccount?.status === 'pending' ? 'pending'
+      : initialSelectedAccount?.status === 'closed' ? 'closed'
+        : initialActive.length ? 'active' : initialPending.length ? 'pending' : initialRecentClosed.length ? 'closed' : 'active',
+  )
   const [detailLoading, setDetailLoading] = useState(false)
   const [showTipDecision, setShowTipDecision] = useState(false)
   const [reopenReason, setReopenReason] = useState('')
@@ -62,7 +70,7 @@ export function CashScreen({
   const settlementRequestIds = useRef(new Map<string, string>())
   const refreshRevision = useRef(0)
   const detailRevision = useRef(0)
-  const selectedIdRef = useRef(selectedId)
+  const selectedIdRef = useRef<string | null>(selectedId)
   const selectedStatusRef = useRef(initialSelectedAccount?.status ?? null)
 
   const selected = selectedAccount?.accountId === selectedId ? selectedAccount : null
@@ -94,22 +102,26 @@ export function CashScreen({
     const revision = ++refreshRevision.current
     setRefreshing(true)
     try {
-      const [result, settingsResult] = await Promise.all([
+      const [result, pendingResult, settingsResult] = await Promise.all([
         listCashAccountsAction(restaurantId),
+        listPendingCashAccountsAction(restaurantId),
         getCheckoutSettingsAction(restaurantId),
       ])
       if (revision !== refreshRevision.current) return
       if (!result.ok) { setError(result.error); return }
+      if (!pendingResult.ok) { setError(pendingResult.error); return }
       if (settingsResult.ok) setSettings(settingsResult.data)
       setError(settingsResult.ok ? null : settingsResult.error)
       setActive(result.data.active)
       setRecentClosed(result.data.recentClosed)
+      setPending(pendingResult.data)
       let accountId = selectedIdRef.current
       const previousStatus = selectedStatusRef.current
       const stillAvailable = accountId && (result.data.active.some((account) => account.accountId === accountId)
+        || pendingResult.data.some((account) => account.accountId === accountId)
         || result.data.recentClosed.some((account) => account.accountId === accountId))
       if (!stillAvailable && !operationLockedRef.current) {
-        accountId = result.data.active[0]?.accountId ?? result.data.recentClosed[0]?.accountId ?? null
+        accountId = result.data.active[0]?.accountId ?? pendingResult.data[0]?.accountId ?? result.data.recentClosed[0]?.accountId ?? null
         selectedIdRef.current = accountId
         setSelectedId(accountId)
         setError('A comanda selecionada não está mais na lista. A seleção foi atualizada.')
@@ -125,7 +137,7 @@ export function CashScreen({
             setSelectedAccount(detailResult.data)
             selectedStatusRef.current = detailResult.data.status
             if (previousStatus && previousStatus !== detailResult.data.status) {
-              setListFilter(detailResult.data.status === 'closed' ? 'closed' : 'active')
+              setListFilter(detailResult.data.status === 'closed' ? 'closed' : detailResult.data.status === 'pending' ? 'pending' : 'active')
             }
           } else {
             setSelectedAccount(null)
@@ -176,14 +188,17 @@ export function CashScreen({
     setSelectedAccount(account)
     selectedStatusRef.current = account.status
     selectedIdRef.current = account.accountId
-    setActive((current) => account.status === 'closed'
+    setActive((current) => account.status === 'closed' || account.status === 'pending'
       ? current.filter((item) => item.accountId !== account.accountId)
       : [summary, ...current.filter((item) => item.accountId !== account.accountId)].sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.accountId.localeCompare(b.accountId)))
+    setPending((current) => account.status === 'pending'
+      ? [summary, ...current.filter((item) => item.accountId !== account.accountId)].sort((a, b) => a.openedAt.localeCompare(b.openedAt) || a.accountId.localeCompare(b.accountId))
+      : current.filter((item) => item.accountId !== account.accountId))
     setRecentClosed((current) => account.status === 'closed'
       ? [summary, ...current.filter((item) => item.accountId !== account.accountId)].slice(0, 25)
       : current.filter((item) => item.accountId !== account.accountId))
     setSelectedId(account.accountId)
-    setListFilter(account.status === 'closed' ? 'closed' : 'active')
+    setListFilter(account.status === 'closed' ? 'closed' : account.status === 'pending' ? 'pending' : 'active')
     setShowTipDecision(false)
     setReopenOpen(false)
     setReopenReason('')
@@ -276,6 +291,7 @@ export function CashScreen({
     <div className={`tv-cash-layout${mobile ? ' is-mobile' : ''}`}>
       {(!mobile || showMobileAccounts) ? <CashAccountList
         active={active}
+        pending={pending}
         recentClosed={recentClosed}
         selectedId={selectedId}
         filter={listFilter}
@@ -294,6 +310,7 @@ export function CashScreen({
           restaurantName={restaurantName}
           role={role}
           methods={methods}
+          allMethods={settings.paymentMethods}
           selectedTab={selectedTab}
           onTabChange={changeTab}
           onUpdated={applyAccount}

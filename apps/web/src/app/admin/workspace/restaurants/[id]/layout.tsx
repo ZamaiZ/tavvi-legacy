@@ -10,6 +10,7 @@ import MenuLoading from './loading'
 import CallsLoading from './service-calls/loading'
 import ContactLoading from './contact/loading'
 import FeedbacksLoading from './feedbacks/loading'
+import FinanceLoading from './financeiro/loading'
 import GettingStartedLoading from './getting-started/loading'
 import IdentityLoading from './identity/loading'
 import IdentifiersLoading from './identificadores/loading'
@@ -23,6 +24,7 @@ const restaurantRouteSkeletons = {
   'service-calls': <CallsLoading />,
   contact: <ContactLoading />,
   feedbacks: <FeedbacksLoading />,
+  financeiro: <FinanceLoading />,
   'getting-started': <GettingStartedLoading />,
   identity: <IdentityLoading />,
   identificadores: <IdentifiersLoading />,

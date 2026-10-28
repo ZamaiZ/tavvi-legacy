@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from 'react'
+import Link from 'next/link'
 import { LuBanknote, LuCircleAlert } from 'react-icons/lu'
 import type { PaymentMethodDTO, TableAccountDTO } from '@/domain/table-account'
 import { digitsToCents, formatCents, formatCentsInput } from '@/lib/money'
@@ -115,7 +116,7 @@ export function PaymentEntry({
       {method?.methodType === 'cash' ? <label><span>Valor recebido em dinheiro</span><span className="tv-cash-money-field"><b>R$</b><input inputMode="numeric" value={cashText} disabled={retryRequired || busy} onChange={(event) => setCashText(event.target.value)} onBlur={() => { const cents = digitsToCents(cashText); if (cents !== null) setCashText(formatCentsInput(cents)) }} /></span></label> : null}
     </div>
     {method?.methodType === 'cash' ? <div className="tv-cash-change"><span>Troco</span><strong>{formatCents(changeCents)}</strong></div> : null}
-    {error ? <p className="tv-cash-inline-error" role="alert">{error}</p> : null}
+    {error ? <p className="tv-cash-inline-error" role="alert">{error}{error.includes('página Financeiro') ? <> <Link href={`/restaurantes/${restaurantId}/financeiro`}>Abrir Financeiro</Link></> : null}</p> : null}
     {retryRequired ? <p className="tv-cash-inline-hint" role="status">A resposta anterior ficou incerta. Repita o mesmo lançamento antes de alterá-lo.</p> : null}
     <button type="submit" className="tv-cash-register-payment" disabled={!canSubmit || busy}>{busy ? <><SpinnerRing decorative /> Registrando…</> : `${retryRequired ? 'Repetir confirmação' : 'Registrar'} ${formatCents(appliedCents ?? 0)} em ${method?.name ?? 'pagamento'}`}</button>
     <small className="tv-cash-payment-footnote">O recebimento é registrado no sistema. O pagamento é processado separadamente na maquininha ou no meio escolhido.</small>
@@ -133,6 +134,7 @@ function isDefinitivePaymentRejection(message: string): boolean {
     'Não há saldo pendente para receber',
     'O valor excede o saldo atual',
     'Essa forma de pagamento está inativa',
+    'Abra o caixa na página Financeiro',
     'Confira o valor recebido em dinheiro e o troco',
     'Você não tem permissão para esta operação',
   ].some((knownMessage) => message.includes(knownMessage))

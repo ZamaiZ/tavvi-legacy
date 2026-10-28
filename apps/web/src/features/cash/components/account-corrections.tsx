@@ -1,9 +1,10 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { LuRotateCcw, LuX } from 'react-icons/lu'
 import type { MemberRole } from '@/domain/invite'
-import type { TableAccountDTO } from '@/domain/table-account'
+import type { PaymentMethodDTO, TableAccountDTO } from '@/domain/table-account'
 import { digitsToCents, formatCents, formatCentsInput } from '@/lib/money'
 import { SpinnerRing } from '@/components/ui/spinner'
 import { cancelAccountOrderItemAction, reverseAccountPaymentAction } from '@/server/actions/table-accounts'
@@ -12,6 +13,7 @@ type PendingCorrection = {
   kind: 'refund'
   paymentId: string
   amountCents: number
+  refundMethodId: string
   reason: string
   fingerprint: string
   requestId: string
@@ -28,12 +30,14 @@ const MAX_AMOUNT_CENTS = 2_147_483_647
 export function AccountCorrections({
   restaurantId,
   account,
+  methods,
   role,
   onUpdated,
   onOperationStateChange,
 }: {
   restaurantId: string
   account: TableAccountDTO
+  methods: PaymentMethodDTO[]
   role: MemberRole
   onUpdated: (account: TableAccountDTO) => void
   onOperationStateChange: (state: 'idle' | 'busy' | 'uncertain') => void
@@ -41,6 +45,7 @@ export function AccountCorrections({
   const [refundId, setRefundId] = useState<string | null>(null)
   const [cancelId, setCancelId] = useState<string | null>(null)
   const [amountText, setAmountText] = useState('')
+  const [refundMethodId, setRefundMethodId] = useState('')
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pendingRetry, setPendingRetry] = useState<PendingCorrection | null>(null)
@@ -55,6 +60,7 @@ export function AccountCorrections({
     setRefundId(paymentId)
     setCancelId(null)
     setAmountText(formatCentsInput(available))
+    setRefundMethodId(account.payments.find((payment) => payment.id === paymentId)?.methodId ?? '')
     setReason('')
     setError(null)
   }
@@ -63,16 +69,17 @@ export function AccountCorrections({
     const retry = pendingRetry?.kind === 'refund' && pendingRetry.paymentId === paymentId ? pendingRetry : null
     if (pendingRetry && !retry) return
     const amountCents = retry?.amountCents ?? digitsToCents(amountText)
+    const actualMethodId = retry?.refundMethodId ?? refundMethodId
     const normalizedReason = retry?.reason ?? reason.trim()
-    if (!amountCents || amountCents > MAX_AMOUNT_CENTS || normalizedReason.length < 3) return
-    const fingerprint = retry?.fingerprint ?? JSON.stringify({ paymentId, amountCents, reason: normalizedReason })
+    if (!amountCents || amountCents > MAX_AMOUNT_CENTS || !actualMethodId || normalizedReason.length < 3) return
+    const fingerprint = retry?.fingerprint ?? JSON.stringify({ paymentId, amountCents, refundMethodId: actualMethodId, reason: normalizedReason })
     const requestId = retry?.requestId ?? requestIds.current.get(fingerprint) ?? crypto.randomUUID()
     requestIds.current.set(fingerprint, requestId)
-    const operation: PendingCorrection = { kind: 'refund', paymentId, amountCents, reason: normalizedReason, fingerprint, requestId }
+    const operation: PendingCorrection = { kind: 'refund', paymentId, amountCents, refundMethodId: actualMethodId, reason: normalizedReason, fingerprint, requestId }
     onOperationStateChange('busy')
     startTransition(async () => {
       try {
-        const result = await reverseAccountPaymentAction({ restaurantId, paymentId, amountCents, reason: normalizedReason, requestId })
+        const result = await reverseAccountPaymentAction({ restaurantId, paymentId, amountCents, refundMethodId: actualMethodId, reason: normalizedReason, requestId })
         if (!result.ok) {
           setError(result.error)
           if (isDefinitiveCorrectionRejection(result.error)) {
@@ -155,8 +162,9 @@ export function AccountCorrections({
           <div className="tv-cash-correction-summary"><span><strong>{payment.methodName}</strong><small>Recebido {formatCents(payment.amountAppliedCents)} · disponível para estorno {formatCents(available)}</small></span>
             {refundId === payment.id ? <div className="tv-cash-correction-form">
               <label>Valor a estornar<input inputMode="numeric" value={refundRetry ? formatCentsInput(refundRetry.amountCents) : amountText} disabled={busy || pendingRetry !== null} onChange={(event) => setAmountText(event.target.value)} onBlur={() => { const value = digitsToCents(amountText); if (value !== null && value <= MAX_AMOUNT_CENTS) setAmountText(formatCentsInput(value)) }} />{amountTooLarge ? <small className="tv-cash-field-hint is-error">O valor excede o limite permitido.</small> : null}</label>
+              <label>Devolver por<select value={refundRetry?.refundMethodId ?? refundMethodId} disabled={busy || pendingRetry !== null} onChange={(event) => setRefundMethodId(event.target.value)}>{methods.filter((method) => method.isActive || method.id === payment.methodId || method.id === refundMethodId).map((method) => <option key={method.id} value={method.id}>{method.name}{method.isActive ? '' : ' · inativa (histórico)'}</option>)}</select></label>
               <label>Motivo<textarea value={refundRetry?.reason ?? reason} disabled={busy || pendingRetry !== null} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="Descreva o motivo do estorno" /></label>
-              <div><button type="button" disabled={busy || (!retryingRefund && (!enteredAmount || enteredAmount > MAX_AMOUNT_CENTS || enteredAmount > available || reason.trim().length < 3))} onClick={() => submitRefund(payment.id)}>{busy ? <SpinnerRing decorative /> : null}{retryingRefund ? 'Repetir estorno' : 'Registrar estorno'}</button><button type="button" className="tv-cash-correction-cancel" disabled={busy || pendingRetry !== null} onClick={() => setRefundId(null)}>Cancelar</button></div>
+              <div><button type="button" disabled={busy || (!retryingRefund && (!enteredAmount || enteredAmount > MAX_AMOUNT_CENTS || enteredAmount > available || reason.trim().length < 3 || !refundMethodId))} onClick={() => submitRefund(payment.id)}>{busy ? <SpinnerRing decorative /> : null}{retryingRefund ? 'Repetir estorno' : 'Registrar estorno'}</button><button type="button" className="tv-cash-correction-cancel" disabled={busy || pendingRetry !== null} onClick={() => setRefundId(null)}>Cancelar</button></div>
             </div> : <button type="button" disabled={busy || pendingRetry !== null} onClick={() => openRefund(payment.id, available)}>Estornar</button>}
           </div>
         </div>
@@ -181,7 +189,7 @@ export function AccountCorrections({
     </section>
 
     {pendingRetry ? <p className="tv-cash-inline-hint" role="status">A resposta anterior ficou incerta. Repita a mesma correção antes de iniciar outra.</p> : null}
-    {error ? <p className="tv-cash-inline-error" role="alert">{error}</p> : null}
+    {error ? <p className="tv-cash-inline-error" role="alert">{error}{error.includes('página Financeiro') ? <> <Link href={`/restaurantes/${restaurantId}/financeiro`}>Abrir Financeiro</Link></> : null}</p> : null}
   </div>
 }
 
@@ -198,6 +206,7 @@ function isDefinitiveCorrectionRejection(message: string): boolean {
     'Estorne valores suficientes antes de cancelar este item',
     'Este item já foi cancelado',
     'O recebimento não está disponível neste restaurante',
+    'Abra o caixa na página Financeiro',
     'O item não está disponível neste restaurante',
     'O pedido não está disponível neste restaurante',
   ].some((knownMessage) => message.includes(knownMessage))

@@ -174,6 +174,7 @@ async function hydrateAccounts(db: Db, rows: AccountRow[]): Promise<TableAccount
         reason: payment.reason,
         createdBy: payment.created_by,
         createdAt: payment.created_at,
+        cashDayId: payment.cash_day_id,
       })),
       events: (eventsByAccount.get(row.id) ?? []).map((event) => ({
         id: event.id,
@@ -287,19 +288,39 @@ export async function listCashAccounts(restaurantIdValue: unknown): Promise<{ ac
   const restaurantId = uuidSchema.parse(restaurantIdValue)
   ensureCashRole(await myRole(restaurantId))
   const db = await getClient()
-  const [activeResult, closedResult] = await Promise.all([
-    db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
-      .in('status', ['open', 'settling']).order('opened_at', { ascending: true }).order('id', { ascending: true }),
+  const [activeRows, closedResult] = await Promise.all([
+    fetchAllRows(
+      (from, to) => db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
+        .in('status', ['open', 'settling']).order('opened_at', { ascending: true }).order('id', { ascending: true }).range(from, to),
+      'Não foi possível listar as comandas',
+    ),
     db.from('table_accounts').select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at').eq('restaurant_id', restaurantId)
       .eq('status', 'closed').order('closed_at', { ascending: false }).order('id', { ascending: false }).limit(25),
   ])
-  if (activeResult.error) throw new Error(`Não foi possível listar as comandas: ${activeResult.error.message}`)
   if (closedResult.error) throw new Error(`Não foi possível listar as contas fechadas: ${closedResult.error.message}`)
   const [active, recentClosed] = await Promise.all([
-    summarizeAccounts(db, (activeResult.data ?? []) as AccountSummaryRow[]),
+    summarizeAccounts(db, activeRows as AccountSummaryRow[]),
     summarizeAccounts(db, (closedResult.data ?? []) as AccountSummaryRow[]),
   ])
   return { active, recentClosed }
+}
+
+export async function listPendingCashAccounts(restaurantIdValue: unknown, sourceCashDayIdValue?: unknown): Promise<TableAccountSummaryDTO[]> {
+  const restaurantId = uuidSchema.parse(restaurantIdValue)
+  const sourceCashDayId = sourceCashDayIdValue === undefined ? null : uuidSchema.parse(sourceCashDayIdValue)
+  ensureCashRole(await myRole(restaurantId))
+  const db = await getClient()
+  const rows = await fetchAllRows(
+    (from, to) => {
+      let query = db.from('table_accounts')
+        .select('id, restaurant_id, table_number, status, tip_mode, tip_percent_bps, tip_fixed_cents, tip_accepted, tip_amount_cents, opened_at, closed_at')
+        .eq('restaurant_id', restaurantId).eq('status', 'pending')
+      if (sourceCashDayId) query = query.eq('pending_cash_day_id', sourceCashDayId)
+      return query.order('opened_at', { ascending: true }).order('id', { ascending: true }).range(from, to)
+    },
+    'Não foi possível listar os recebimentos pendentes',
+  )
+  return summarizeAccounts(db, rows as AccountSummaryRow[])
 }
 
 export async function getCheckoutSettings(restaurantIdValue: unknown): Promise<CheckoutSettingsDTO> {
@@ -386,6 +407,9 @@ function rpcError(error: { message: string }): never {
     ['account_no_balance_due', 'Não há saldo pendente para receber.'],
     ['payment_exceeds_balance', 'O valor excede o saldo atual. Atualize a comanda.'],
     ['payment_method_unavailable', 'Essa forma de pagamento está inativa. Atualize a lista.'],
+    ['cash_day_not_open', 'Abra o caixa na página Financeiro antes de receber ou estornar pagamentos.'],
+    ['cash_day_insufficient_cash', 'O dinheiro disponível no caixa não cobre esta devolução em espécie.'],
+    ['cash_day_expected_cash_invalid', 'O saldo esperado ficou fora do limite aceito. Confira o valor do pagamento.'],
     ['cash_amount_invalid', 'Confira o valor recebido em dinheiro e o troco.'],
     ['account_total_too_large', 'O total desta comanda excede o limite permitido. Revise o pedido ou a política de gorjeta.'],
     ['tip_disabled', 'A gorjeta está desativada para esta comanda.'],
@@ -459,6 +483,7 @@ export async function reverseAccountPayment(input: unknown): Promise<TableAccoun
   if (!payment) throw new UserFacingError('O recebimento não está disponível neste restaurante.')
   const { data: result, error } = await db.rpc('reverse_table_account_payment', {
     p_payment_id: data.paymentId, p_amount_cents: data.amountCents,
+    p_refund_method_id: data.refundMethodId,
     p_reason: data.reason, p_request_id: data.requestId,
   })
   if (error) rpcError(error)

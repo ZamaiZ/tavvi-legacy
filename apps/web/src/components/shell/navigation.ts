@@ -87,6 +87,17 @@ export function getRestaurantNavigation(
     })
   }
 
+  if (role === 'admin' || role === 'cashier') {
+    children.push({
+      kind: 'leaf',
+      href: `${root}/financeiro`,
+      label: 'Financeiro',
+      icon: 'cash',
+      description: 'Acompanhe recebimentos e o caixa do dia',
+      keywords: ['caixa diário', 'fundo inicial', 'fechamento', 'movimentações'],
+    })
+  }
+
   if (role === 'admin') {
     children.push(
       {

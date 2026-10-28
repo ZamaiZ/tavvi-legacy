@@ -23,6 +23,7 @@ function eventLabel(eventType: string): string {
     order_item_cancelled: 'Item cancelado',
     account_closed: 'Comanda encerrada',
     account_reopened_by_refund: 'Conta reaberta por estorno',
+    account_carried_to_pending: 'Saldo transportado para recebimento posterior',
   }
   return labels[eventType] ?? 'Alteração registrada'
 }

@@ -399,7 +399,7 @@
 @keyframes tv-cash-pulse { to { opacity: .52; } }
 
 .workspace-territory .tv-cash-list-heading { min-height: 58px; }
-.workspace-territory .tv-cash-list-filters { padding: 0 10px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.workspace-territory .tv-cash-list-filters { padding: 0 10px 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .workspace-territory .tv-cash-list-filters button { min-height: 42px; padding: 0 9px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--tv-text-2); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
 .workspace-territory .tv-cash-list-filters button.is-active { border-color: var(--tv-line); background: var(--tv-surface-2); color: var(--tv-text); }
 .workspace-territory .tv-cash-list-filters button span { min-width: 21px; padding: 3px 5px; border-radius: 99px; background: var(--tv-bg); color: var(--tv-text-2); font-size: 10px; font-variant-numeric: tabular-nums; }

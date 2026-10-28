@@ -22,6 +22,7 @@ export function CashAccountTabs({
   restaurantName,
   role,
   methods,
+  allMethods,
   selectedTab,
   onTabChange,
   onUpdated,
@@ -43,6 +44,7 @@ export function CashAccountTabs({
   restaurantName: string
   role: MemberRole
   methods: PaymentMethodDTO[]
+  allMethods: PaymentMethodDTO[]
   selectedTab: CashTab
   onTabChange: (tab: CashTab) => void
   onUpdated: (account: TableAccountDTO) => void
@@ -62,13 +64,24 @@ export function CashAccountTabs({
   return <>
     <section className="tv-cash-summary" aria-label={`Resumo da Mesa ${account.tableNumber}`}>
       <div className="tv-cash-summary-main">
-        <div><span className={`tv-cash-status is-${account.status}`}>{account.status === 'open' ? 'Aberta' : account.status === 'settling' ? 'Em fechamento' : 'Fechada'}</span><h2>Mesa {account.tableNumber}</h2><small>Aberta em {new Date(account.openedAt).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
+        <div><span className={`tv-cash-status is-${account.status}`}>{account.status === 'open' ? 'Aberta' : account.status === 'settling' ? 'Em fechamento' : account.status === 'pending' ? 'Pendente' : 'Fechada'}</span><h2>Mesa {account.tableNumber}</h2><small>Aberta em {new Date(account.openedAt).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>
         <div className="tv-cash-summary-right"><div className={`tv-cash-summary-due${account.balanceDueCents <= 0 ? ' is-settled' : ''}`}><span>SALDO PENDENTE</span><strong>{formatCents(account.balanceDueCents)}</strong></div><button type="button" className="tv-cash-print-icon" aria-label="Imprimir pré-conta" title="Imprimir pré-conta" onClick={() => window.print()}><LuPrinter aria-hidden="true" /></button></div>
       </div>
       <dl><div><dt>Total da conta</dt><dd>{formatCents(account.totalCents)}</dd></div><div><dt>Já recebido</dt><dd>{formatCents(account.paidCents)}</dd></div></dl>
     </section>
 
-    <Tabs value={selectedTab} onValueChange={(value) => onTabChange(value as CashTab)} className="tv-cash-tabs">
+    {account.status === 'pending' ? <section className="tv-cash-pending-account" aria-label="Recebimento pendente">
+      <div className="tv-cash-pending-banner"><strong>Recebimento pendente da Mesa {account.tableNumber}</strong><span>A mesa foi liberada. Receba o saldo total ou em parcelas; cada parcela será registrada no caixa aberto no momento do recebimento.</span></div>
+      {account.balanceDueCents > 0 ? <PaymentEntry
+        key={`pending-payment-entry:${account.accountId}`}
+        restaurantId={restaurantId}
+        account={account}
+        methods={methods}
+        onUpdated={onUpdated}
+        onOperationStateChange={onOperationStateChange}
+      /> : <p className="tv-cash-readonly-note">Esta pendência não tem saldo restante.</p>}
+      <AccountPaymentHistory account={account} />
+    </section> : <Tabs value={selectedTab} onValueChange={(value) => onTabChange(value as CashTab)} className="tv-cash-tabs">
       <TabsList className="tv-cash-tabs-list" aria-label="Áreas da comanda">
         <TabsTrigger value="conta" aria-label="Conta" disabled={navigationLocked} className="tv-cash-tab"><LuReceiptText aria-hidden="true" /><span>Conta</span></TabsTrigger>
         <TabsTrigger value="recebimentos" aria-label="Recebimentos" disabled={navigationLocked} className="tv-cash-tab"><LuBanknote aria-hidden="true" /><span><span className="tv-cash-tab-wide">Recebimentos</span><span className="tv-cash-tab-short">Receber</span></span></TabsTrigger>
@@ -86,7 +99,7 @@ export function CashAccountTabs({
           key={`payment-entry:${account.accountId}`}
           restaurantId={restaurantId}
           account={account}
-          methods={methods}
+        methods={methods}
           onUpdated={onUpdated}
           onOperationStateChange={onOperationStateChange}
         /> : <p className="tv-cash-readonly-note">{account.status === 'closed' ? 'Comanda encerrada. Os recebimentos estão disponíveis no histórico abaixo.' : 'Saldo zerado. A comanda continua aberta para novos pedidos até o encerramento do consumo.'}</p>}
@@ -114,13 +127,14 @@ export function CashAccountTabs({
           key={`account-corrections:${account.accountId}`}
           restaurantId={restaurantId}
           account={account}
+          methods={allMethods}
           role={role}
           onUpdated={onUpdated}
           onOperationStateChange={onOperationStateChange}
         />
         <AccountAudit account={account} />
       </TabsContent>
-    </Tabs>
+    </Tabs>}
 
     <div className="tv-cash-print-only" aria-hidden="true"><PreAccount restaurantName={restaurantName} account={account} /></div>
   </>

@@ -3,7 +3,7 @@ import { plainTextSchema, uuidSchema } from './common'
 
 const amountCentsSchema = z.int().min(0).max(2_147_483_647)
 
-export const accountStatusSchema = z.enum(['open', 'settling', 'closed'])
+export const accountStatusSchema = z.enum(['open', 'settling', 'pending', 'closed'])
 export type TableAccountStatus = z.infer<typeof accountStatusSchema>
 
 export const tipModeSchema = z.enum(['disabled', 'percentage', 'fixed'])
@@ -70,6 +70,7 @@ export type AccountPaymentDTO = {
   reason: string | null
   createdBy: string
   createdAt: string
+  cashDayId: string | null
 }
 
 export type TableAccountEventDTO = {
@@ -131,6 +132,7 @@ export const reopenAccountSchema = z.object({
 export const reversePaymentSchema = z.object({
   restaurantId: uuidSchema,
   paymentId: uuidSchema,
+  refundMethodId: uuidSchema,
   amountCents: z.int().positive().max(2_147_483_647),
   reason: plainTextSchema(500, 3),
   requestId: uuidSchema,
